@@ -10,6 +10,7 @@
 <meta property="og:title" content="Crisp — Design with a crunch!">
 <meta property="og:description" content="Brands and digital products designed with a clear purpose. Strategy, branding, product design and build, from Mumbai.">
 <meta property="og:url" content="https://crispstudio.in/">
+<meta property="og:image" content="https://crispstudio.in/assets/motion/crunch-poster.jpg">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,23 +23,27 @@
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="crumb" viewBox="0 0 20 16"><path d="M2 9 8 1l10 4-3 9-11 1z"/></symbol>
-  <symbol id="arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="spark" viewBox="0 0 24 24"><path d="M12 0c.6 6.4 5.6 11.4 12 12-6.4.6-11.4 5.6-12 12-.6-6.4-5.6-11.4-12-12C6.4 11.4 11.4 6.4 12 0z"/></symbol>
+  <symbol id="arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="arrow-ne" viewBox="0 0 16 16"><path d="M4.5 11.5l7-7M5.5 4.5h6v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
 <header class="site-head">
   <div class="wrap">
-    <a class="brandmark" href="/" aria-label="Crisp home"><img src="/assets/logo/Crisp_Logo_FullColour.svg" alt="Crisp" width="120" height="81"></a>
-    <button class="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Menu">
-      <svg class="open" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h14M3 14h14"/></svg>
-      <svg class="close" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
-    </button>
-    <nav class="nav" id="nav" aria-label="Main">
-      <a href="/work/">Work</a>
-      <a href="/services/">Services</a>
-      <a href="/about/">About</a>
-      <a href="/blog/">Blog</a>
-      <a class="btn btn--sm" href="/contact/">Let's chat <svg width="14" height="14"><use href="#arrow"/></svg></a>
-    </nav>
+    <div class="bar">
+      <a class="brandmark" href="/" aria-label="Crisp home"><img src="/assets/logo/Crisp_Logo_FullColour.svg" alt="Crisp" width="120" height="81"></a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Menu">
+        <svg class="open" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h14M3 13h14"/></svg>
+        <svg class="close" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+      </button>
+      <nav class="nav" id="nav" aria-label="Main">
+        <a href="/work/">Work</a>
+        <a href="/services/">Services</a>
+        <a href="/about/">About</a>
+        <a href="/blog/">Blog</a>
+        <a class="btn btn--sm" href="/contact/">Let's chat <span class="ico"><svg width="12" height="12"><use href="#arrow"/></svg></span></a>
+      </nav>
+    </div>
   </div>
 </header>
 
@@ -47,111 +52,178 @@
   <!-- 1. Hero -->
   <section class="hero">
     <div class="crumbs" aria-hidden="true">
-      <svg class="crumb" style="top:14%;left:3%;--s:14px;--r:18deg"><use href="#crumb"/></svg>
-      <svg class="crumb" style="top:8%;right:30%;--s:10px;--r:-30deg;--c:var(--rust)"><use href="#crumb"/></svg>
-      <svg class="crumb" style="bottom:12%;right:4%;--s:16px;--r:64deg"><use href="#crumb"/></svg>
-      <svg class="crumb" style="bottom:6%;left:38%;--s:9px;--r:120deg;--c:var(--rust)"><use href="#crumb"/></svg>
+      <svg class="crumb" style="top:10%;left:2%;--s:14px;--r:18deg"><use href="#crumb"/></svg>
+      <svg class="crumb" style="top:6%;left:46%;--s:10px;--r:-30deg;--c:var(--rust);--d:-2s"><use href="#crumb"/></svg>
+      <svg class="crumb" style="bottom:10%;right:3%;--s:16px;--r:64deg;--d:-4s"><use href="#crumb"/></svg>
+      <svg class="crumb" style="bottom:6%;left:40%;--s:9px;--r:120deg;--c:var(--rust);--d:-1s"><use href="#crumb"/></svg>
+      <svg class="crumb" style="top:44%;right:1%;--s:11px;--r:200deg;--d:-3s"><use href="#crumb"/></svg>
     </div>
     <div class="wrap hero-grid">
       <div>
-        <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Crisp · Design studio, Mumbai</p>
-        <h1 class="display">Design with a <span class="gold">crunch!</span></h1>
-        <p class="lede">We design brands and digital products with a clear purpose, to <strong>look sharp, work better and move the business forward.</strong></p>
-        <div class="cta">
-          <a class="btn" href="/contact/">Let's chat <svg width="16" height="16"><use href="#arrow"/></svg></a>
-          <a class="link" href="/work/">See the work</a>
+        <p class="status fade-up" style="--d:.1s"><span class="pulse" aria-hidden="true"></span>Design studio · Mumbai, India</p>
+        <h1 class="display" aria-label="Design with a crunch!">
+          <span class="line" aria-hidden="true"><span class="w" style="--i:0">Design</span> <span class="w" style="--i:1">with</span> <span class="w" style="--i:2">a</span></span>
+          <span class="line" aria-hidden="true" style="padding-bottom:.3em;margin-bottom:-.3em"><span class="w squiggle-word gold" style="--i:3">crunch!<svg class="squiggle" viewBox="0 0 300 24" preserveAspectRatio="none"><path d="M4 16c30-12 52-12 78-2s50 10 76 0 50-10 76 0 40 8 62-2"/></svg></span></span>
+        </h1>
+        <p class="lede fade-up" style="--d:.7s">We design brands and digital products with a clear purpose, to <strong>look sharp, work better and move the business forward.</strong></p>
+        <div class="cta fade-up" style="--d:.85s">
+          <a class="btn" href="/contact/">Let's chat <span class="ico"><svg width="13" height="13"><use href="#arrow"/></svg></span></a>
+          <a class="link" href="/work/">See the work <svg width="14" height="14"><use href="#arrow-ne"/></svg></a>
         </div>
       </div>
-      <div class="hero-mark">
-        <img src="/assets/logo/Crisp_Logo_FullColour.svg" alt="" width="460" height="310">
+
+      <div class="hero-art">
+        <div class="badge" aria-hidden="true">
+          <svg class="badge-ring" viewBox="0 0 120 120">
+            <defs><path id="ring" d="M60 60m-44 0a44 44 0 1 1 88 0a44 44 0 1 1-88 0"/></defs>
+            <circle cx="60" cy="60" r="58"/>
+            <text><textPath href="#ring" textLength="272">STRATEGY • BRAND • PRODUCT • BUILD •</textPath></text>
+          </svg>
+          <div class="badge-core"><svg><use href="#spark"/></svg></div>
+        </div>
+        <div class="sticker">
+          <video id="crunch" autoplay muted loop playsinline preload="auto" poster="/assets/motion/crunch-poster.jpg" aria-label="The Crisp croissant taking a crunchy bite">
+            <source src="/assets/motion/crunch.mp4" type="video/mp4">
+          </video>
+          <span class="sticker-label">Fresh daily</span>
+        </div>
       </div>
     </div>
   </section>
 
+  <!-- Tape band -->
+  <div class="tapes" aria-hidden="true">
+    <div class="tape tape--back"><div class="tape-track" data-tape="Clarify,Engage,Convert,Simplify,Move to act"></div></div>
+    <div class="tape tape--front"><div class="tape-track" data-tape="Strategy,Brand,Product,Build"></div></div>
+  </div>
+
   <!-- 2. Selected work -->
-  <section class="section section--tint" id="work" aria-labelledby="work-title">
+  <section class="section" id="work" aria-labelledby="work-title">
     <div class="wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">Selected work</p>
-        <h2 class="h1" id="work-title">Good work speaks for itself.</h2>
-        <p class="lede">A few of the brands and products we've shaped. Some of our best work lives behind NDAs, ask us about it. Confidentiality is non-negotiable.</p>
+      <div class="section-head section-head--split">
+        <div class="reveal">
+          <p class="eyebrow"><span class="num">01</span> Selected work</p>
+          <h2 class="h1" id="work-title">Good work speaks for itself.</h2>
+        </div>
+        <p class="lede reveal" style="--rd:.1s">A few of the brands and products we've shaped. Some of our best work lives behind NDAs, ask us about it. Confidentiality is non-negotiable.</p>
       </div>
 
       <!-- WORK CARDS: visual · sector/service tags · one-line description · link (only if a case study exists).
-           TODO: confirm each line with the client before launch; swap visuals for project imagery. -->
+           TODO: confirm each line with the client before launch; swap tiles for project imagery. -->
       <div class="work-grid">
         <article class="card reveal">
-          <div class="card-visual" style="--v:#FFFFFF"><img src="/assets/clients/hdfc-securities.png" alt="HDFC securities" loading="lazy"></div>
+          <div class="card-visual pat-dots" style="--v:var(--butter)">
+            <span class="card-index">01</span>
+            <div class="tile" style="--tr:-3deg;--lh:40px"><img src="/assets/clients/hdfc-securities.png" alt="HDFC securities" loading="lazy"></div>
+          </div>
           <div class="card-body">
-            <div class="tags"><span class="tag">Finance</span><span class="tag tag--line">Product Design</span></div>
-            <p>Making investing flows clearer for millions of retail traders.</p>
+            <div>
+              <div class="tags"><span class="tag">Finance</span><span class="tag tag--line">Product Design</span></div>
+              <p>Making investing flows clearer for millions of retail traders.</p>
+            </div>
+          </div>
+        </article>
+        <article class="card reveal" style="--rd:.1s">
+          <div class="card-visual pat-lines" style="--v:var(--flake)">
+            <span class="card-index">02</span>
+            <div class="tile" style="--tr:3deg;--lh:52px"><img src="/assets/clients/the-mind-mojo.png" alt="The Mind Mojo" loading="lazy"></div>
+          </div>
+          <div class="card-body">
+            <div>
+              <div class="tags"><span class="tag">Wellness</span><span class="tag tag--line">Branding</span></div>
+              <p>A warm, confident identity for a mental-wellness practice.</p>
+            </div>
           </div>
         </article>
         <article class="card reveal">
-          <div class="card-visual" style="--v:var(--flake)"><img src="/assets/clients/the-mind-mojo.png" alt="The Mind Mojo" loading="lazy"></div>
-          <div class="card-body">
-            <div class="tags"><span class="tag">Wellness</span><span class="tag tag--line">Branding</span></div>
-            <p>A warm, confident identity for a mental-wellness practice.</p>
-          </div>
-        </article>
-        <article class="card reveal">
-          <div class="card-visual" style="--v:#FFFFFF"><img src="/assets/clients/nmims.png" alt="NMIMS" loading="lazy"></div>
-          <div class="card-body">
-            <div class="tags"><span class="tag">Ed-tech</span><span class="tag tag--line">Strategy &amp; Research</span></div>
-            <p>Untangling the student journey from first visit to enrolment.</p>
-          </div>
-        </article>
-        <article class="card reveal">
-          <div class="card-visual" style="--v:var(--navy)">
-            <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.2" fill="#FFFFFF"/></svg>
+          <div class="card-visual pat-grid" style="--v:#FFFFFF">
+            <span class="card-index">03</span>
+            <div class="tile" style="--tr:-2deg;--lh:54px"><img src="/assets/clients/nmims.png" alt="NMIMS" loading="lazy"></div>
           </div>
           <div class="card-body">
-            <div class="tags"><span class="tag">SaaS · Finance · D2C</span><span class="tag tag--line">Under NDA</span></div>
-            <p>Our best work doesn't always get a public page. We'll walk you through it on a call.</p>
-            <a class="card-more" href="/contact/">Ask us about it <svg width="14" height="14"><use href="#arrow"/></svg></a>
+            <div>
+              <div class="tags"><span class="tag">Ed-tech</span><span class="tag tag--line">Strategy &amp; Research</span></div>
+              <p>Untangling the student journey from first visit to enrolment.</p>
+            </div>
           </div>
         </article>
+        <a class="card card--nda reveal" href="/contact/" style="--rd:.1s">
+          <div class="card-visual pat-dots-light">
+            <span class="card-index">04</span>
+            <span class="stamp">Confidential</span>
+            <div class="tile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#021F53" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2.5" fill="#FFCB99"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.3" fill="#021F53"/></svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div>
+              <div class="tags"><span class="tag">SaaS · Finance · D2C</span><span class="tag tag--line">Under NDA</span></div>
+              <p>Our best work doesn't always get a public page. Ask us and we'll walk you through it.</p>
+            </div>
+            <span class="card-go" aria-hidden="true"><svg width="16" height="16"><use href="#arrow"/></svg></span>
+          </div>
+        </a>
       </div>
 
       <div class="section-foot reveal">
-        <a class="btn btn--ghost" href="/work/">View all work <svg width="16" height="16"><use href="#arrow"/></svg></a>
+        <a class="btn btn--ghost" href="/work/">View all work <span class="ico"><svg width="13" height="13"><use href="#arrow"/></svg></span></a>
       </div>
     </div>
   </section>
 
   <!-- Brands -->
-  <section class="clients" aria-label="Clients">
-    <div class="wrap"><p class="eyebrow">Brands we've been baking for!</p></div>
+  <section class="clients" aria-labelledby="clients-title">
+    <div class="wrap clients-head reveal">
+      <h2 class="h2" id="clients-title">Brands we've been baking for!</h2>
+      <span class="note">Hover to see them in colour</span>
+    </div>
     <div class="marquee"><div class="track" id="track"></div></div>
   </section>
 
   <!-- 3. What we do -->
-  <section class="section" aria-labelledby="do-title">
-    <div class="wrap">
-      <div class="section-head reveal">
-        <p class="eyebrow">What we do</p>
+  <section class="section section--tint" aria-labelledby="do-title">
+    <div class="wrap svc">
+      <div class="svc-intro reveal">
+        <p class="eyebrow"><span class="num">02</span> What we do</p>
         <h2 class="h1" id="do-title">Strategy. Brand. Product. Build.</h2>
         <p class="lede">From finding what needs fixing to shipping what comes next.</p>
+        <a class="btn btn--ghost" href="/services/">All services <span class="ico"><svg width="13" height="13"><use href="#arrow"/></svg></span></a>
       </div>
-      <ul class="svc-list reveal">
-        <li><a href="/services/#strategy">
-          <span class="svc-num">01</span><span class="svc-name">Strategy &amp; Research</span>
-          <span class="svc-line">Find the problem before designing the solution.</span>
+      <ul class="svc-list">
+        <li class="reveal"><a href="/services/#strategy">
+          <span class="svc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.6-4.6M8 10.5h5M10.5 8v5"/></svg></span>
+          <span class="svc-main">
+            <span class="svc-name"><small>01</small>Strategy &amp; Research</span>
+            <span class="svc-line">Find the problem before designing the solution.</span>
+            <span class="svc-tags"><span>UX Audits</span><span>User Research</span><span>Journey Mapping</span><span>Usability Testing</span></span>
+          </span>
           <span class="svc-arrow" aria-hidden="true"><svg width="16" height="16"><use href="#arrow"/></svg></span>
         </a></li>
-        <li><a href="/services/#branding">
-          <span class="svc-num">02</span><span class="svc-name">Branding</span>
-          <span class="svc-line">Give your brand a clear point of view.</span>
+        <li class="reveal"><a href="/services/#branding">
+          <span class="svc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 9l8 12 8-12z"/><path d="M4 9h16M12 3v18"/></svg></span>
+          <span class="svc-main">
+            <span class="svc-name"><small>02</small>Branding</span>
+            <span class="svc-line">Give your brand a clear point of view.</span>
+            <span class="svc-tags"><span>Positioning</span><span>Visual Identity</span><span>Guidelines</span><span>Brand Architecture</span></span>
+          </span>
           <span class="svc-arrow" aria-hidden="true"><svg width="16" height="16"><use href="#arrow"/></svg></span>
         </a></li>
-        <li><a href="/services/#product-design">
-          <span class="svc-num">03</span><span class="svc-name">Product Design</span>
-          <span class="svc-line">Products people actually want to use.</span>
+        <li class="reveal"><a href="/services/#product-design">
+          <span class="svc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11"/></svg></span>
+          <span class="svc-main">
+            <span class="svc-name"><small>03</small>Product Design</span>
+            <span class="svc-line">Products people actually want to use.</span>
+            <span class="svc-tags"><span>UX &amp; UI</span><span>AI Experience</span><span>Design Systems</span><span>Prototyping</span></span>
+          </span>
           <span class="svc-arrow" aria-hidden="true"><svg width="16" height="16"><use href="#arrow"/></svg></span>
         </a></li>
-        <li><a href="/services/#build">
-          <span class="svc-num">04</span><span class="svc-name">Build</span>
-          <span class="svc-line">Designed here. Built here.</span>
+        <li class="reveal"><a href="/services/#build">
+          <span class="svc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg></span>
+          <span class="svc-main">
+            <span class="svc-name"><small>04</small>Build</span>
+            <span class="svc-line">Designed here. Built here.</span>
+            <span class="svc-tags"><span>Front-end</span><span>Web Development</span><span>Framer</span></span>
+          </span>
           <span class="svc-arrow" aria-hidden="true"><svg width="16" height="16"><use href="#arrow"/></svg></span>
         </a></li>
       </ul>
@@ -159,17 +231,32 @@
   </section>
 
   <!-- 4. Why Crisp -->
-  <section class="section section--navy" aria-labelledby="why-title">
-    <div class="wrap why">
+  <section class="section section--navy why" aria-labelledby="why-title">
+    <div class="crumbs" aria-hidden="true">
+      <svg class="crumb" style="top:12%;right:8%;--s:16px;--r:30deg;--c:var(--flake)"><use href="#crumb"/></svg>
+      <svg class="crumb" style="top:30%;right:22%;--s:9px;--r:-40deg;--c:var(--rust);--d:-3s"><use href="#crumb"/></svg>
+      <svg class="crumb" style="bottom:14%;right:5%;--s:12px;--r:90deg;--c:var(--flake);--d:-5s"><use href="#crumb"/></svg>
+    </div>
+    <div class="wrap">
       <div class="reveal">
-        <p class="eyebrow">Why Crisp</p>
-        <h2 class="h1" id="why-title" style="margin-top:18px">Design that has a job to do.</h2>
+        <p class="eyebrow"><span class="num" style="color:#fff">03</span> Why Crisp</p>
+        <h2 class="h1" id="why-title">Design that has a job to do.</h2>
       </div>
-      <div class="reveal">
-        <p>A pretty interface isn't enough. A clever logo isn't enough.</p>
-        <p>Everything we make has a job, to clarify, engage, convert, simplify or move someone to act. <strong>That's the crunch.</strong></p>
-        <ul class="jobs" aria-label="The jobs our work does">
-          <li>Clarify</li><li>Engage</li><li>Convert</li><li>Simplify</li><li>Move to act</li>
+
+      <div class="not-enough reveal">
+        <p><span class="strike">A pretty interface</span> isn't enough.</p>
+        <p><span class="strike" style="--sd:.65s">A clever logo</span> isn't enough.</p>
+      </div>
+
+      <p class="has-job reveal">Everything we make has a job, to
+        <span class="cycle" id="cycle" aria-hidden="true"><span class="on">clarify.</span><span>engage.</span><span>convert.</span><span>simplify.</span><span>move people.</span></span>
+        <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">clarify, engage, convert, simplify or move someone to act.</span>
+      </p>
+
+      <div class="why-foot reveal">
+        <p class="crunch-line">That's the crunch.</p>
+        <ul class="jobs" id="jobs" aria-label="The jobs our work does">
+          <li class="on">Clarify</li><li>Engage</li><li>Convert</li><li>Simplify</li><li>Move to act</li>
         </ul>
       </div>
     </div>
@@ -179,26 +266,32 @@
   <section class="section" id="from-the-blog" aria-labelledby="blog-title" hidden>
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow">From the blog</p>
+        <p class="eyebrow"><span class="num">04</span> From the blog</p>
         <h2 class="h1" id="blog-title">What's in the Oven?</h2>
       </div>
       <div class="post-grid"></div>
-      <div class="section-foot"><a class="link" href="/blog/">Read the blog <svg width="14" height="14"><use href="#arrow"/></svg></a></div>
+      <div class="section-foot"><a class="link" href="/blog/">Read the blog <svg width="14" height="14"><use href="#arrow-ne"/></svg></a></div>
     </div>
   </section>
 
   <!-- 6. Closing CTA -->
-  <section class="section section--tint closer" aria-labelledby="closer-title">
-    <div class="crumbs" aria-hidden="true">
-      <svg class="crumb" style="top:18%;right:6%;--s:14px;--r:40deg"><use href="#crumb"/></svg>
-      <svg class="crumb" style="bottom:20%;right:22%;--s:10px;--r:-20deg;--c:var(--rust)"><use href="#crumb"/></svg>
-    </div>
-    <div class="wrap closer-inner reveal">
-      <div>
-        <h2 class="h1" id="closer-title">Got something worth making?</h2>
-        <p class="lede">Tell us what you're working on.</p>
+  <section class="section closer" aria-labelledby="closer-title">
+    <div class="wrap">
+      <div class="closer-card reveal">
+        <div class="crumbs" aria-hidden="true">
+          <svg class="crumb" style="top:12%;right:30%;--s:12px;--r:40deg"><use href="#crumb"/></svg>
+          <svg class="crumb" style="bottom:14%;right:6%;--s:10px;--r:-20deg;--c:var(--rust);--d:-2s"><use href="#crumb"/></svg>
+        </div>
+        <div>
+          <h2 class="h1" id="closer-title">Got something worth making?</h2>
+          <p class="lede">Tell us what you're working on.</p>
+          <div class="closer-actions">
+            <a class="btn" href="/contact/">Let's chat <span class="ico"><svg width="13" height="13"><use href="#arrow"/></svg></span></a>
+            <a class="link" href="mailto:team@crispstudio.in">team@crispstudio.in</a>
+          </div>
+        </div>
+        <img class="closer-art" src="/assets/logo/Crisp_Avatar_Orange.svg" alt="" width="240" height="240" loading="lazy">
       </div>
-      <a class="btn" href="/contact/">Let's chat <svg width="16" height="16"><use href="#arrow"/></svg></a>
     </div>
   </section>
 
@@ -208,7 +301,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a href="/" aria-label="Crisp home"><img src="/assets/logo/Crisp_Logo_FullColour.svg" alt="Crisp" width="132" height="89"></a>
+        <a href="/" aria-label="Crisp home"><img src="/assets/logo/Crisp_Logo_FullColour.svg" alt="Crisp" width="140" height="94"></a>
         <p>Design with a crunch!</p>
       </div>
       <div class="foot-col">

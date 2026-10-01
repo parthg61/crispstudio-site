@@ -63,6 +63,41 @@ if (blogBlock) {
     .catch(() => {});
 }
 
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Tape bands — words repeated so the scroll loops seamlessly
+document.querySelectorAll('[data-tape]').forEach(t => {
+  const words = t.dataset.tape.split(',');
+  const one = words.map(w => `<span>${w}</span><svg viewBox="0 0 24 24"><use href="#spark"/></svg>`).join('');
+  t.innerHTML = one.repeat(4) + one.repeat(4);
+});
+
+// Why Crisp — cycle the job word and light up the matching pill
+const cycle = document.getElementById('cycle');
+const jobs = document.querySelectorAll('#jobs li');
+if (cycle && !reduceMotion) {
+  const words = [...cycle.children];
+  let i = 0;
+  const fit = () => (cycle.style.width = words[i].getBoundingClientRect().width + 'px');
+  fit();
+  window.addEventListener('resize', fit);
+  document.fonts && document.fonts.ready.then(fit);
+  setInterval(() => {
+    const prev = words[i];
+    i = (i + 1) % words.length;
+    prev.classList.remove('on');
+    prev.classList.add('out');
+    setTimeout(() => prev.classList.remove('out'), 600);
+    words[i].classList.add('on');
+    fit();
+    jobs.forEach((j, k) => j.classList.toggle('on', k === i));
+  }, 2000);
+}
+
+// Hero video — respect reduced motion
+const crunch = document.getElementById('crunch');
+if (crunch && reduceMotion) { crunch.removeAttribute('autoplay'); crunch.pause(); }
+
 // Reveal on scroll
 const reveals = document.querySelectorAll('.reveal');
 if ('IntersectionObserver' in window) {
