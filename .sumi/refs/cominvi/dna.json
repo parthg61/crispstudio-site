@@ -1,0 +1,550 @@
+{
+  "slug": "cominvi",
+  "url": "https://www.cominvi.com.mx/",
+  "source": "awwwards",
+  "award": "SOTD",
+  "score": 7.44,
+  "awwwards": "https://www.awwwards.com/sites/cominvi",
+  "tags": [
+    "business-corporate",
+    "other",
+    "technology",
+    "animation",
+    "graphic-design",
+    "content-architecture",
+    "webflow",
+    "javascript",
+    "figma"
+  ],
+  "capturedAt": "2026-10-01T10:48:05.516Z",
+  "shots": [
+    "desktop-0.jpg",
+    "desktop-1.jpg",
+    "desktop-2.jpg",
+    "desktop-3.jpg",
+    "desktop-4.jpg",
+    "phone-0.jpg",
+    "phone-1.jpg",
+    "phone-2.jpg"
+  ],
+  "dna": {
+    "desktop": {
+      "title": "CoMinVi | Underground Mining Contractor in Mexico",
+      "description": "Leading underground mining contractor in Mexico with 20+ years experience. Specializing in tunnel development, ground support, and mineral extraction.",
+      "pageHeight": 900,
+      "sectionCount": 10,
+      "theme": "dark",
+      "type": {
+        "display": {
+          "family": "Helvetica Now Display",
+          "sizes": [
+            16
+          ],
+          "weight": "700",
+          "lineHeight": 1,
+          "tracking": "0",
+          "transform": "none",
+          "count": 1
+        },
+        "heading": {
+          "family": "Helvetica Now Display",
+          "sizes": [
+            32,
+            24,
+            20,
+            11
+          ],
+          "weight": "700",
+          "lineHeight": 1.1,
+          "tracking": "-0.025em",
+          "transform": "none",
+          "count": 24
+        },
+        "body": {
+          "family": "Helvetica Now Display",
+          "sizes": [
+            48,
+            20,
+            16
+          ],
+          "weight": "700",
+          "lineHeight": 1.2,
+          "tracking": "0",
+          "transform": "none",
+          "count": 28
+        },
+        "ui": {
+          "family": "Helvetica Now Display",
+          "sizes": [
+            16
+          ],
+          "weight": "400",
+          "lineHeight": 1,
+          "tracking": "0",
+          "transform": "none",
+          "count": 16
+        },
+        "loadedFaces": [
+          "webflow-icons 400",
+          "Helvetica Now Display 700",
+          "PP Supply Mono 300",
+          "Helvetica Now Display 500"
+        ]
+      },
+      "color": {
+        "pageBackground": "rgb(21, 21, 21)",
+        "backgrounds": [
+          {
+            "color": "rgb(255, 255, 255)",
+            "share": 12.173
+          },
+          {
+            "color": "rgb(235, 240, 237)",
+            "share": 5.785
+          },
+          {
+            "color": "rgb(21, 21, 21)",
+            "share": 4.154
+          },
+          {
+            "color": "rgba(2, 2, 2, 0.2)",
+            "share": 1
+          },
+          {
+            "color": "rgb(224, 224, 224)",
+            "share": 0.15
+          }
+        ],
+        "text": [
+          {
+            "color": "rgb(21, 21, 21)",
+            "count": 1084
+          },
+          {
+            "color": "rgb(255, 255, 255)",
+            "count": 29
+          },
+          {
+            "color": "rgb(235, 240, 237)",
+            "count": 26
+          },
+          {
+            "color": "rgb(244, 121, 32)",
+            "count": 1
+          }
+        ]
+      },
+      "spacing": {
+        "sectionPaddingY": [
+          32
+        ],
+        "sectionHeights": [
+          900,
+          1538,
+          1648,
+          2430,
+          1635,
+          3112,
+          1977,
+          2917,
+          900,
+          447
+        ],
+        "gaps": [
+          [
+            "16px",
+            37
+          ],
+          [
+            "12.8px",
+            15
+          ],
+          [
+            "4px",
+            15
+          ],
+          [
+            "12px",
+            14
+          ],
+          [
+            "8px",
+            13
+          ],
+          [
+            "18.4px",
+            10
+          ]
+        ]
+      },
+      "layout": {
+        "viewport": 1440,
+        "containerMaxWidths": [
+          [
+            "56px",
+            5
+          ],
+          [
+            "332px",
+            1
+          ],
+          [
+            "1376px",
+            1
+          ]
+        ],
+        "gridCount": 12,
+        "flexCount": 206,
+        "gridTemplates": [
+          [
+            "12 cols",
+            7
+          ],
+          [
+            "3 cols",
+            3
+          ],
+          [
+            "2 cols",
+            2
+          ]
+        ]
+      },
+      "shape": {
+        "radii": [
+          [
+            "4px",
+            23
+          ],
+          [
+            "8px",
+            17
+          ],
+          [
+            "2px",
+            2
+          ],
+          [
+            "1000px",
+            1
+          ],
+          [
+            "100%",
+            1
+          ]
+        ]
+      },
+      "motion": {
+        "stack": {
+          "gsap": false,
+          "scrollTrigger": false,
+          "lenis": true,
+          "locomotive": false,
+          "three": false,
+          "webgl": false,
+          "framer": false,
+          "webflow": true,
+          "barba": true,
+          "swiper": false,
+          "lottie": false
+        },
+        "canvases": 2,
+        "videos": 2,
+        "easings": [
+          [
+            "cubic-bezier(0.5, 0, 0, 1)",
+            29
+          ],
+          [
+            "ease",
+            26
+          ],
+          [
+            "ease-in-out",
+            17
+          ],
+          [
+            "cubic-bezier(0.6, 0, 0, 1)",
+            2
+          ]
+        ],
+        "durations": [
+          [
+            "0.4s",
+            32
+          ],
+          [
+            "0.8s",
+            23
+          ],
+          [
+            "0.15s",
+            14
+          ],
+          [
+            "0.2s",
+            3
+          ]
+        ]
+      },
+      "counts": {
+        "images": 24,
+        "links": 34,
+        "buttons": 18,
+        "forms": 0
+      }
+    },
+    "phone": {
+      "title": "CoMinVi | Underground Mining Contractor in Mexico",
+      "description": "Leading underground mining contractor in Mexico with 20+ years experience. Specializing in tunnel development, ground support, and mineral extraction.",
+      "pageHeight": 844,
+      "sectionCount": 10,
+      "theme": "dark",
+      "type": {
+        "display": {
+          "family": "Helvetica Now Display",
+          "sizes": [
+            16
+          ],
+          "weight": "700",
+          "lineHeight": 1,
+          "tracking": "0",
+          "transform": "none",
+          "count": 1
+        },
+        "heading": {
+          "family": "Helvetica Now Display",
+          "sizes": [
+            24,
+            20,
+            12
+          ],
+          "weight": "700",
+          "lineHeight": 1.1,
+          "tracking": "-0.025em",
+          "transform": "none",
+          "count": 23
+        },
+        "body": {
+          "family": "Helvetica Now Display",
+          "sizes": [
+            32,
+            20,
+            19,
+            16,
+            12
+          ],
+          "weight": "700",
+          "lineHeight": 1.2,
+          "tracking": "0",
+          "transform": "none",
+          "count": 28
+        },
+        "ui": {
+          "family": "Helvetica Now Display",
+          "sizes": [
+            16
+          ],
+          "weight": "400",
+          "lineHeight": 1,
+          "tracking": "0",
+          "transform": "none",
+          "count": 16
+        },
+        "loadedFaces": [
+          "webflow-icons 400",
+          "Helvetica Now Display 700",
+          "PP Supply Mono 300",
+          "Helvetica Now Display 500"
+        ]
+      },
+      "color": {
+        "pageBackground": "rgb(21, 21, 21)",
+        "backgrounds": [
+          {
+            "color": "rgb(255, 255, 255)",
+            "share": 11.418
+          },
+          {
+            "color": "rgb(235, 240, 237)",
+            "share": 8.699
+          },
+          {
+            "color": "rgb(21, 21, 21)",
+            "share": 7.389
+          },
+          {
+            "color": "rgba(2, 2, 2, 0.2)",
+            "share": 1
+          },
+          {
+            "color": "rgb(224, 224, 224)",
+            "share": 0.125
+          }
+        ],
+        "text": [
+          {
+            "color": "rgb(21, 21, 21)",
+            "count": 1086
+          },
+          {
+            "color": "rgb(255, 255, 255)",
+            "count": 33
+          },
+          {
+            "color": "rgb(244, 121, 32)",
+            "count": 1
+          }
+        ]
+      },
+      "spacing": {
+        "sectionPaddingY": [
+          16,
+          232
+        ],
+        "sectionHeights": [
+          844,
+          1996,
+          2304,
+          2279,
+          1284,
+          4779,
+          2628,
+          790,
+          844,
+          603
+        ],
+        "gaps": [
+          [
+            "16px",
+            36
+          ],
+          [
+            "8px",
+            25
+          ],
+          [
+            "12.8px",
+            15
+          ],
+          [
+            "12px",
+            14
+          ],
+          [
+            "4.8px",
+            8
+          ],
+          [
+            "32px",
+            7
+          ]
+        ]
+      },
+      "layout": {
+        "viewport": 390,
+        "containerMaxWidths": [],
+        "gridCount": 10,
+        "flexCount": 230,
+        "gridTemplates": [
+          [
+            "1 cols",
+            4
+          ],
+          [
+            "4 cols",
+            2
+          ],
+          [
+            "8 cols",
+            2
+          ],
+          [
+            "2 cols",
+            2
+          ]
+        ]
+      },
+      "shape": {
+        "radii": [
+          [
+            "4px",
+            35
+          ],
+          [
+            "8px",
+            17
+          ],
+          [
+            "2px",
+            2
+          ],
+          [
+            "1000px",
+            1
+          ],
+          [
+            "100%",
+            1
+          ]
+        ]
+      },
+      "motion": {
+        "stack": {
+          "gsap": false,
+          "scrollTrigger": false,
+          "lenis": true,
+          "locomotive": false,
+          "three": false,
+          "webgl": false,
+          "framer": false,
+          "webflow": true,
+          "barba": true,
+          "swiper": false,
+          "lottie": false
+        },
+        "canvases": 2,
+        "videos": 2,
+        "easings": [
+          [
+            "ease-in-out",
+            17
+          ],
+          [
+            "cubic-bezier(0.5, 0, 0, 1)",
+            3
+          ],
+          [
+            "cubic-bezier(0.6, 0, 0, 1)",
+            2
+          ]
+        ],
+        "durations": [
+          [
+            "0.15s",
+            14
+          ],
+          [
+            "0.2s",
+            3
+          ],
+          [
+            "0.8s",
+            3
+          ],
+          [
+            "0.5s",
+            2
+          ]
+        ]
+      },
+      "counts": {
+        "images": 24,
+        "links": 34,
+        "buttons": 18,
+        "forms": 0
+      }
+    }
+  },
+  "ok": true
+}

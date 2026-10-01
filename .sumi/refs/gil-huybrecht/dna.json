@@ -1,0 +1,292 @@
+{
+  "slug": "gil-huybrecht",
+  "url": "https://gilhuybrecht.com/",
+  "source": "awwwards",
+  "award": "SOTD",
+  "score": 7.66,
+  "awwwards": "https://www.awwwards.com/sites/gil-huybrecht",
+  "tags": [
+    "design-agencies",
+    "promotional",
+    "web-interactive",
+    "clean",
+    "infinite-scroll",
+    "portfolio",
+    "typography",
+    "gallery",
+    "microinteractions",
+    "webgl",
+    "next-js",
+    "datocms"
+  ],
+  "capturedAt": "2026-10-01T10:48:25.691Z",
+  "shots": [
+    "desktop-0.jpg",
+    "desktop-1.jpg",
+    "desktop-2.jpg",
+    "desktop-3.jpg",
+    "desktop-4.jpg",
+    "phone-0.jpg",
+    "phone-1.jpg",
+    "phone-2.jpg"
+  ],
+  "dna": {
+    "desktop": {
+      "title": "Gil Huybrecht — Freelance designer & art director",
+      "description": "Independent designer specialised in editorial websites, ecommerce and immersive online experiences.",
+      "pageHeight": 4440,
+      "sectionCount": 2,
+      "theme": "dark",
+      "type": {
+        "display": null,
+        "heading": {
+          "family": "sans",
+          "sizes": [
+            16
+          ],
+          "weight": "500",
+          "lineHeight": 1.11,
+          "tracking": "0",
+          "transform": "none",
+          "count": 40
+        },
+        "body": null,
+        "ui": {
+          "family": "sans",
+          "sizes": [
+            16
+          ],
+          "weight": "500",
+          "lineHeight": 1.11,
+          "tracking": "0",
+          "transform": "none",
+          "count": 7
+        },
+        "loadedFaces": [
+          "sans 500"
+        ]
+      },
+      "color": {
+        "pageBackground": "rgb(0, 0, 0)",
+        "backgrounds": [
+          {
+            "color": "rgba(44, 44, 47, 0.6)",
+            "share": 0.001
+          }
+        ],
+        "text": [
+          {
+            "color": "rgb(255, 255, 255)",
+            "count": 129
+          },
+          {
+            "color": "rgba(255, 255, 255, 0.4)",
+            "count": 2
+          }
+        ]
+      },
+      "spacing": {
+        "sectionPaddingY": [
+          450
+        ],
+        "sectionHeights": [
+          4056,
+          48
+        ],
+        "gaps": [
+          [
+            "72px",
+            1
+          ]
+        ]
+      },
+      "layout": {
+        "viewport": 1440,
+        "containerMaxWidths": [],
+        "gridCount": 3,
+        "flexCount": 99,
+        "gridTemplates": [
+          [
+            "14 cols",
+            3
+          ]
+        ]
+      },
+      "shape": {
+        "radii": [
+          [
+            "4.8px",
+            2
+          ]
+        ]
+      },
+      "motion": {
+        "stack": {
+          "gsap": false,
+          "scrollTrigger": false,
+          "lenis": true,
+          "locomotive": false,
+          "three": true,
+          "webgl": true,
+          "framer": false,
+          "webflow": false,
+          "barba": false,
+          "swiper": false,
+          "lottie": false
+        },
+        "canvases": 1,
+        "videos": 1,
+        "easings": [
+          [
+            "cubic-bezier(0.23, 1, 0.32, 1)",
+            89
+          ],
+          [
+            "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+            1
+          ]
+        ],
+        "durations": [
+          [
+            "0.2s",
+            84
+          ],
+          [
+            "0.3s",
+            5
+          ],
+          [
+            "0.25s",
+            1
+          ]
+        ]
+      },
+      "counts": {
+        "images": 0,
+        "links": 9,
+        "buttons": 5,
+        "forms": 0
+      }
+    },
+    "phone": {
+      "title": "Gil Huybrecht — Freelance designer & art director",
+      "description": "Independent designer specialised in editorial websites, ecommerce and immersive online experiences.",
+      "pageHeight": 5174,
+      "sectionCount": 2,
+      "theme": "dark",
+      "type": {
+        "display": null,
+        "heading": {
+          "family": "sans",
+          "sizes": [
+            17
+          ],
+          "weight": "500",
+          "lineHeight": 1.11,
+          "tracking": "0",
+          "transform": "none",
+          "count": 38
+        },
+        "body": null,
+        "ui": {
+          "family": "sans",
+          "sizes": [
+            17
+          ],
+          "weight": "500",
+          "lineHeight": 1.11,
+          "tracking": "0",
+          "transform": "none",
+          "count": 3
+        },
+        "loadedFaces": [
+          "sans 500"
+        ]
+      },
+      "color": {
+        "pageBackground": "rgb(0, 0, 0)",
+        "backgrounds": [],
+        "text": [
+          {
+            "color": "rgb(255, 255, 255)",
+            "count": 31
+          }
+        ]
+      },
+      "spacing": {
+        "sectionPaddingY": [
+          150
+        ],
+        "sectionHeights": [
+          4797,
+          226
+        ],
+        "gaps": [
+          [
+            "75px",
+            1
+          ]
+        ]
+      },
+      "layout": {
+        "viewport": 390,
+        "containerMaxWidths": [],
+        "gridCount": 2,
+        "flexCount": 46,
+        "gridTemplates": [
+          [
+            "4 cols",
+            2
+          ]
+        ]
+      },
+      "shape": {
+        "radii": []
+      },
+      "motion": {
+        "stack": {
+          "gsap": false,
+          "scrollTrigger": false,
+          "lenis": true,
+          "locomotive": false,
+          "three": true,
+          "webgl": false,
+          "framer": false,
+          "webflow": false,
+          "barba": false,
+          "swiper": false,
+          "lottie": false
+        },
+        "canvases": 0,
+        "videos": 7,
+        "easings": [
+          [
+            "cubic-bezier(0.23, 1, 0.32, 1)",
+            38
+          ],
+          [
+            "ease-out",
+            32
+          ]
+        ],
+        "durations": [
+          [
+            "0.2s",
+            38
+          ],
+          [
+            "1s",
+            32
+          ]
+        ]
+      },
+      "counts": {
+        "images": 32,
+        "links": 7,
+        "buttons": 3,
+        "forms": 0
+      }
+    }
+  },
+  "ok": true
+}

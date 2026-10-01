@@ -68,8 +68,23 @@
         <p class="lede fade-up" style="--d:.7s">We design brands and digital products with a clear purpose, to <strong>look sharp, work better and move the business forward.</strong></p>
         <div class="cta fade-up" style="--d:.85s">
           <a class="btn" href="/contact/">Let's chat <span class="ico"><svg width="13" height="13"><use href="#arrow"/></svg></span></a>
-          <a class="link" href="/work/">See the work <svg width="14" height="14"><use href="#arrow-ne"/></svg></a>
         </div>
+        <!-- Gateway tiles (board trait: CoMinVi) -->
+        <nav class="gates fade-up" style="--d:1s" aria-label="Explore">
+          <a class="gate" href="/work/">
+            <span class="gate-visual pat-dots"><span class="gate-tile"><img src="/assets/clients/hdfc-securities.png" alt=""></span><span class="gate-tile gate-tile--b"><img src="/assets/clients/the-mind-mojo.png" alt=""></span></span>
+            <span class="gate-bar">Selected work <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l6 4-6 4z"/></svg></span>
+          </a>
+          <a class="gate" href="/services/">
+            <span class="gate-visual gate-visual--flake">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.6-4.6"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 9l8 12 8-12z"/><path d="M4 9h16"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
+            </span>
+            <span class="gate-bar">Services <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l6 4-6 4z"/></svg></span>
+          </a>
+        </nav>
       </div>
 
       <div class="hero-art">
@@ -82,8 +97,13 @@
           <div class="badge-core"><svg><use href="#spark"/></svg></div>
         </div>
         <div class="sticker">
-          <video id="crunch" autoplay muted loop playsinline preload="auto" poster="/assets/motion/crunch-poster.jpg" aria-label="The Crisp croissant taking a crunchy bite">
+          <!-- Remotion: assemble intro (board trait: Santioni) hands off to the crunch loop -->
+          <img class="vid-still" src="/assets/motion/crunch-poster.jpg" alt="" width="800" height="800">
+          <video id="crunch" class="vid-loop" muted loop playsinline preload="auto" poster="/assets/motion/crunch-poster.jpg" aria-hidden="true">
             <source src="/assets/motion/crunch.mp4" type="video/mp4">
+          </video>
+          <video id="assemble" class="vid-intro" autoplay muted playsinline preload="auto" aria-label="The Crisp croissant assembling, then taking a crunchy bite">
+            <source src="/assets/motion/assemble.mp4" type="video/mp4">
           </video>
           <span class="sticker-label">Fresh daily</span>
         </div>
@@ -335,6 +355,7 @@
   </div>
 </footer>
 
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js" defer></script>
 <script src="/js/site.js" defer></script>
 </body>
 </html>

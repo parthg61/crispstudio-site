@@ -1,0 +1,26 @@
+{
+  "listing": "https://www.awwwards.com/websites/design-agencies/",
+  "fetchedAt": "2026-10-01T10:42:57.732Z",
+  "sites": [
+    {
+      "source": "awwwards",
+      "slug": "meer-mohsin",
+      "name": "MEER MOHSIN",
+      "award": "SOTD",
+      "score": 7.26,
+      "url": "https://www.meermohsin.me/",
+      "awwwards": "https://www.awwwards.com/sites/meer-mohsin",
+      "tags": [
+        "business-corporate",
+        "design-agencies",
+        "web-interactive",
+        "animation",
+        "storytelling",
+        "3d",
+        "html5",
+        "gsap",
+        "three-js"
+      ]
+    }
+  ]
+}

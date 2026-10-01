@@ -1,0 +1,68 @@
+{
+  "sites": [
+    {
+      "source": "awwwards",
+      "slug": "cominvi",
+      "name": "CoMinVi",
+      "award": "SOTD",
+      "score": 7.44,
+      "url": "https://www.cominvi.com.mx/",
+      "awwwards": "https://www.awwwards.com/sites/cominvi",
+      "tags": [
+        "business-corporate",
+        "other",
+        "technology",
+        "animation",
+        "graphic-design",
+        "content-architecture",
+        "webflow",
+        "javascript",
+        "figma"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "gil-huybrecht",
+      "name": "Gil Huybrecht",
+      "award": "SOTD",
+      "score": 7.66,
+      "url": "https://gilhuybrecht.com/",
+      "awwwards": "https://www.awwwards.com/sites/gil-huybrecht",
+      "tags": [
+        "design-agencies",
+        "promotional",
+        "web-interactive",
+        "clean",
+        "infinite-scroll",
+        "portfolio",
+        "typography",
+        "gallery",
+        "microinteractions",
+        "webgl",
+        "next-js",
+        "datocms"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "santioni-spirits",
+      "name": "Santioni Spirits",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "https://santionispirits.com/",
+      "awwwards": "https://www.awwwards.com/sites/santioni-spirits",
+      "tags": [
+        "art-illustration",
+        "food-drink",
+        "web-interactive",
+        "animation",
+        "typography",
+        "illustration",
+        "sound-audio",
+        "storytelling",
+        "interaction-design",
+        "webgl"
+      ]
+    }
+  ]
+}

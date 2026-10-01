@@ -94,9 +94,47 @@ if (cycle && !reduceMotion) {
   }, 2000);
 }
 
-// Hero video — respect reduced motion
+// Hero video: Remotion intro plays once, then hands off to the preloaded crunch loop.
+// Both clips share the same frame at the seam, so the swap is invisible.
 const crunch = document.getElementById('crunch');
-if (crunch && reduceMotion) { crunch.removeAttribute('autoplay'); crunch.pause(); }
+const assemble = document.getElementById('assemble');
+if (crunch && assemble) {
+  if (reduceMotion) {
+    assemble.removeAttribute('autoplay');
+    assemble.pause();
+    assemble.classList.add('done');
+  } else {
+    let done = false;
+    const handoff = () => {
+      if (done) return;
+      done = true;
+      crunch.currentTime = 0;
+      crunch.play().catch(() => {});
+      assemble.classList.add('done');
+    };
+    // Also catches an intro that finished before this script ran
+    if (assemble.ended) handoff();
+    assemble.addEventListener('ended', handoff);
+    assemble.addEventListener('timeupdate', () => {
+      if (assemble.duration && assemble.currentTime >= assemble.duration - 0.06) handoff();
+    });
+    // Autoplay blocked or media suspended: resume, or skip straight to the loop
+    const resume = () => { if (!done && assemble.paused) assemble.play().catch(handoff); };
+    resume();
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { resume(); if (done && crunch.paused) crunch.play().catch(() => {}); } });
+  }
+}
+
+// Smooth scroll (board norm) — Lenis, skipped for reduced motion
+if (window.Lenis && !reduceMotion) {
+  const lenis = new Lenis({ duration: 1.1, easing: t => 1 - Math.pow(1 - t, 4) });
+  const raf = time => { lenis.raf(time); requestAnimationFrame(raf); };
+  requestAnimationFrame(raf);
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); lenis.scrollTo(target, { offset: -110 }); }
+  }));
+}
 
 // Reveal on scroll
 const reveals = document.querySelectorAll('.reveal');

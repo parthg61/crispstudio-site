@@ -1,0 +1,245 @@
+{
+  "listing": "https://www.awwwards.com/websites/sites_of_the_day/",
+  "fetchedAt": "2026-10-01T10:43:59.529Z",
+  "sites": [
+    {
+      "source": "awwwards",
+      "slug": "colonia-zacamil",
+      "name": "Colonia Zacamil",
+      "award": "SOTD",
+      "score": 7.58,
+      "url": "https://coloniazacamil.com/",
+      "awwwards": "https://www.awwwards.com/sites/colonia-zacamil",
+      "tags": [
+        "art-illustration",
+        "institutions",
+        "social-responsibility",
+        "3d",
+        "webgl",
+        "three-js",
+        "vue-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "cominvi",
+      "name": "CoMinVi",
+      "award": "SOTD",
+      "score": 7.44,
+      "url": "https://www.cominvi.com.mx/",
+      "awwwards": "https://www.awwwards.com/sites/cominvi",
+      "tags": [
+        "business-corporate",
+        "other",
+        "technology",
+        "animation",
+        "graphic-design",
+        "content-architecture",
+        "webflow",
+        "javascript",
+        "figma"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "jesper-landberg-4",
+      "name": "Jesper Landberg",
+      "award": "SOTD",
+      "score": 7.73,
+      "url": "http://jesperlandberg.com",
+      "awwwards": "https://www.awwwards.com/sites/jesper-landberg-4",
+      "tags": [
+        "web-interactive",
+        "animation",
+        "infinite-scroll",
+        "gsap",
+        "three-js",
+        "nuxt-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "butter",
+      "name": "Butter",
+      "award": "SOTD",
+      "score": 7.5,
+      "url": "https://www.butter.video/",
+      "awwwards": "https://www.awwwards.com/sites/butter",
+      "tags": [
+        "business-corporate",
+        "mobile-apps",
+        "web-interactive",
+        "app-style",
+        "3d",
+        "filters-and-effects",
+        "webgl",
+        "react",
+        "p5js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "realevate",
+      "name": "Realevate",
+      "award": "SOTD",
+      "score": 7.22,
+      "url": "https://realevate.agency/",
+      "awwwards": "https://www.awwwards.com/sites/realevate",
+      "tags": [
+        "business-corporate",
+        "real-estate",
+        "animation",
+        "fullscreen",
+        "menu-horizontal",
+        "microinteractions",
+        "node-js",
+        "gsap",
+        "javascript"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "meer-mohsin",
+      "name": "MEER MOHSIN",
+      "award": "SOTD",
+      "score": 7.26,
+      "url": "https://www.meermohsin.me/",
+      "awwwards": "https://www.awwwards.com/sites/meer-mohsin",
+      "tags": [
+        "business-corporate",
+        "design-agencies",
+        "web-interactive",
+        "animation",
+        "storytelling",
+        "3d",
+        "html5",
+        "gsap",
+        "three-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "the-tie-break",
+      "name": "The Tie-break",
+      "award": "SOTD",
+      "score": 7.28,
+      "url": "https://thetiebreak.merci-michel.com/",
+      "awwwards": "https://www.awwwards.com/sites/the-tie-break",
+      "tags": [
+        "fashion",
+        "games-entertainment",
+        "experimental",
+        "colorful",
+        "fullscreen",
+        "photo-video",
+        "webgl",
+        "three-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "moto-finance",
+      "name": "Moto Finance",
+      "award": "SOTD",
+      "score": 7.3,
+      "url": "https://www.moto-card.com/",
+      "awwwards": "https://www.awwwards.com/sites/moto-finance",
+      "tags": [
+        "technology",
+        "startups",
+        "luxury",
+        "big-background-images",
+        "parallax",
+        "scrolling",
+        "single-page",
+        "3d",
+        "gsap",
+        "three-js",
+        "webflow"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "sobha-privy-collection",
+      "name": "Sobha Privy Collection",
+      "award": "SOTD",
+      "score": 7.37,
+      "url": "https://sobha-privy-collection.com/",
+      "awwwards": "https://www.awwwards.com/sites/sobha-privy-collection",
+      "tags": [
+        "architecture",
+        "real-estate",
+        "luxury",
+        "animation",
+        "parallax",
+        "3d",
+        "webgl",
+        "three-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "bleibtgleich26",
+      "name": "bleibtgleich'26",
+      "award": "SOTD",
+      "score": 7.46,
+      "url": "https://bleibtgleich.dev",
+      "awwwards": "https://www.awwwards.com/sites/bleibtgleich26",
+      "tags": [
+        "art-illustration",
+        "promotional",
+        "experimental",
+        "portfolio",
+        "filters-and-effects",
+        "gsap",
+        "webflow"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "gil-huybrecht",
+      "name": "Gil Huybrecht",
+      "award": "SOTD",
+      "score": 7.66,
+      "url": "https://gilhuybrecht.com/",
+      "awwwards": "https://www.awwwards.com/sites/gil-huybrecht",
+      "tags": [
+        "design-agencies",
+        "promotional",
+        "web-interactive",
+        "clean",
+        "infinite-scroll",
+        "portfolio",
+        "typography",
+        "gallery",
+        "microinteractions",
+        "webgl",
+        "next-js",
+        "datocms"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "pensatori-irrazionali",
+      "name": "Pensatori Irrazionali",
+      "award": "SOTD",
+      "score": 7.23,
+      "url": "https://pensatori-irrazionali.com/",
+      "awwwards": "https://www.awwwards.com/sites/pensatori-irrazionali",
+      "tags": [
+        "design-agencies",
+        "technology",
+        "web-interactive",
+        "navigation",
+        "portfolio",
+        "photo-video",
+        "contact-page",
+        "microinteractions",
+        "404-pages",
+        "webgl",
+        "gsap",
+        "three-js"
+      ]
+    }
+  ]
+}

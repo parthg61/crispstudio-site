@@ -4,7 +4,7 @@
   "description": "Remotion source for crispstudio.in motion assets",
   "scripts": {
     "studio": "remotion studio",
-    "render": "remotion render Crunch out/crunch.mp4 --codec=h264 --crf=24 --scale=0.8 && remotion still Crunch ../assets/motion/crunch-poster.jpg --frame=0 --image-format=jpeg --scale=0.8 && ffmpeg -y -i out/crunch.mp4 -c:v libx264 -crf 29 -preset veryslow -pix_fmt yuv420p -movflags +faststart -an ../assets/motion/crunch.mp4"
+    "render": "remotion render Assemble out/assemble.mp4 --codec=h264 --crf=24 --scale=0.8 && remotion render Crunch out/crunch.mp4 --codec=h264 --crf=24 --scale=0.8 && remotion still Crunch ../assets/motion/crunch-poster.jpg --frame=0 --image-format=jpeg --scale=0.8 && ffmpeg -y -i out/assemble.mp4 -c:v libx264 -crf 29 -preset veryslow -pix_fmt yuv420p -movflags +faststart -an ../assets/motion/assemble.mp4 && ffmpeg -y -i out/crunch.mp4 -c:v libx264 -crf 29 -preset veryslow -pix_fmt yuv420p -movflags +faststart -an ../assets/motion/crunch.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.425",

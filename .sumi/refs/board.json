@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "createdAt": "2026-10-01T00:00:00Z",
+  "brief": "Design studio site for Crisp, Mumbai: warm, bold, a little cheeky; content stays as written",
+  "primaryAction": "Let's chat (/contact/)",
+  "references": [
+    {
+      "slug": "santioni-spirits",
+      "source": "awwwards",
+      "url": "https://santionispirits.com/",
+      "award": "Honorable Mention",
+      "score": null,
+      "trait": "lettered mark assembles itself on entry, then holds the first screen",
+      "dimension": "motion"
+    },
+    {
+      "slug": "cominvi",
+      "source": "awwwards",
+      "url": "https://www.cominvi.com.mx/",
+      "award": "SOTD",
+      "score": 7.44,
+      "trait": "hero gateway tiles: preview thumbnails with label bar + arrow",
+      "dimension": "composition"
+    },
+    {
+      "slug": "gil-huybrecht",
+      "source": "awwwards",
+      "url": "https://gilhuybrecht.com/",
+      "award": "SOTD",
+      "score": 7.66,
+      "trait": "work index as client name + strip of numbered frames",
+      "dimension": "layout"
+    }
+  ],
+  "norm": [
+    "one accent",
+    "quiet small UI type vs large display",
+    "smooth scroll",
+    "round menu controls"
+  ],
+  "direction": {
+    "type": {
+      "display": {
+        "family": "Inter",
+        "sizeDesktop": "clamp(52px, 8.6vw, 124px)",
+        "tracking": "-0.05em",
+        "leading": 0.94,
+        "weight": 600
+      },
+      "body": {
+        "family": "Inter",
+        "size": "17px",
+        "leading": 1.6
+      },
+      "contrastRatio": 7.3
+    },
+    "color": {
+      "page": "#FFFFFF",
+      "ink": "#021F53",
+      "muted": "#5A6478",
+      "accent": "#FD9F0F",
+      "blocking": "one navy band at Why Crisp; butter tint sections"
+    },
+    "rhythm": {
+      "sectionPaddingY": {
+        "desktop": 152,
+        "phone": 80
+      },
+      "grid": 12,
+      "container": 1240
+    },
+    "shape": {
+      "radius": {
+        "control": "999px",
+        "card": "20px",
+        "feature": "32px",
+        "small": "12px"
+      }
+    },
+    "motion": {
+      "smoothScroll": true,
+      "easing": "cubic-bezier(0.22, 1.2, 0.36, 1)",
+      "tempo": {
+        "ui": "300ms",
+        "reveal": "800ms"
+      },
+      "signature": "Remotion assemble -> crunch hero loop"
+    }
+  },
+  "avoid": [
+    "dark full-bleed pages",
+    "second typeface",
+    "WebGL first screen"
+  ],
+  "rejected": [
+    {
+      "trait": "black textured backgrounds",
+      "from": "santioni-spirits",
+      "why": "brand forbids dark theme"
+    },
+    {
+      "trait": "age gate + audio",
+      "from": "santioni-spirits",
+      "why": "friction before the one action"
+    },
+    {
+      "trait": "cinematic dark video hero",
+      "from": "cominvi",
+      "why": "competes with croissant + CTA"
+    },
+    {
+      "trait": "Helvetica + mono pairing",
+      "from": "cominvi",
+      "why": "brand is Inter only"
+    },
+    {
+      "trait": "barba transitions",
+      "from": "cominvi",
+      "why": "weight for a static 6-page site"
+    },
+    {
+      "trait": "black WebGL gallery",
+      "from": "gil-huybrecht",
+      "why": "second trait from same site; dark"
+    }
+  ],
+  "medianScore": 7.55
+}

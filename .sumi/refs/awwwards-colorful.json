@@ -1,0 +1,44 @@
+{
+  "listing": "https://www.awwwards.com/websites/colorful/",
+  "fetchedAt": "2026-10-01T10:43:22.924Z",
+  "sites": [
+    {
+      "source": "awwwards",
+      "slug": "the-tie-break",
+      "name": "The Tie-break",
+      "award": "SOTD",
+      "score": 7.28,
+      "url": "https://thetiebreak.merci-michel.com/",
+      "awwwards": "https://www.awwwards.com/sites/the-tie-break",
+      "tags": [
+        "fashion",
+        "games-entertainment",
+        "experimental",
+        "colorful",
+        "fullscreen",
+        "photo-video",
+        "webgl",
+        "three-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "lxl-creative",
+      "name": "LxL Creative",
+      "award": "SOTD",
+      "score": 7.37,
+      "url": "https://www.lxlcreative.co.uk/",
+      "awwwards": "https://www.awwwards.com/sites/lxl-creative",
+      "tags": [
+        "film-tv",
+        "colorful",
+        "navigation",
+        "transitions",
+        "microinteractions",
+        "gsap",
+        "barba-js",
+        "webflow"
+      ]
+    }
+  ]
+}

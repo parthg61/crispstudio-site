@@ -1,0 +1,224 @@
+{
+  "listing": "https://www.awwwards.com/websites/illustration/",
+  "fetchedAt": "2026-10-01T10:45:23.672Z",
+  "sites": [
+    {
+      "source": "awwwards",
+      "slug": "the-tuscan-journey-begins",
+      "name": "The Tuscan Journey Begins",
+      "award": "SOTD",
+      "score": 7.27,
+      "url": "https://weekend-mm-2026-pasticcino-bag-master.monogrid.io/en/",
+      "awwwards": "https://www.awwwards.com/sites/the-tuscan-journey-begins",
+      "tags": [
+        "fashion",
+        "music-sound",
+        "web-interactive",
+        "illustration",
+        "sound-audio",
+        "storytelling",
+        "gestures-interaction",
+        "interaction-design",
+        "ui-design",
+        "webgl",
+        "gsap",
+        "vue-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "huy-phan-vol-2",
+      "name": "Huy Phan Vol.2",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "https://huyml.co/",
+      "awwwards": "https://www.awwwards.com/sites/huy-phan-vol-2",
+      "tags": [
+        "promotional",
+        "web-interactive",
+        "clean",
+        "portfolio",
+        "typography",
+        "illustration",
+        "filters-and-effects",
+        "about-page",
+        "gsap",
+        "three-js",
+        "framer"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "penguin-music",
+      "name": "penguin.music",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "https://penguin.music/",
+      "awwwards": "https://www.awwwards.com/sites/penguin-music",
+      "tags": [
+        "art-illustration",
+        "music-sound",
+        "web-interactive",
+        "illustration",
+        "sound-audio",
+        "storytelling",
+        "3d",
+        "animation",
+        "colorful",
+        "webgl",
+        "three-js",
+        "blender"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "santioni-spirits",
+      "name": "Santioni Spirits",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "https://santionispirits.com/",
+      "awwwards": "https://www.awwwards.com/sites/santioni-spirits",
+      "tags": [
+        "art-illustration",
+        "food-drink",
+        "web-interactive",
+        "animation",
+        "typography",
+        "illustration",
+        "sound-audio",
+        "storytelling",
+        "interaction-design",
+        "webgl"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "ronnsquare",
+      "name": "Ronnsquare",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "https://ronnsquare.fr",
+      "awwwards": "https://www.awwwards.com/sites/ronnsquare",
+      "tags": [
+        "architecture",
+        "business-corporate",
+        "animation",
+        "colorful",
+        "illustration",
+        "transitions",
+        "interaction-design",
+        "wordpress",
+        "gsap",
+        "barba-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "rebelliously-optimistic",
+      "name": "Rebelliously Optimistic",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "https://www.rebelliously-optimistic.com/",
+      "awwwards": "https://www.awwwards.com/sites/rebelliously-optimistic",
+      "tags": [
+        "culture-education",
+        "events",
+        "social-responsibility",
+        "animation",
+        "illustration",
+        "storytelling",
+        "copy-design",
+        "interaction-design",
+        "ui-design",
+        "react",
+        "vercel",
+        "next-js"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "kosa",
+      "name": "KŌSA",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "https://hello-world-kosa.squarespace.com/",
+      "awwwards": "https://www.awwwards.com/sites/kosa",
+      "tags": [
+        "experimental",
+        "e-commerce",
+        "other",
+        "animation",
+        "colorful",
+        "illustration",
+        "figma"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "direct-design-agency",
+      "name": "Direct Design Agency",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "https://wearedirect.co/",
+      "awwwards": "https://www.awwwards.com/sites/direct-design-agency",
+      "tags": [
+        "art-illustration",
+        "design-agencies",
+        "web-interactive",
+        "responsive-design",
+        "illustration",
+        "transitions",
+        "3d",
+        "animation",
+        "minimal",
+        "gsap",
+        "barba-js",
+        "webflow"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "tiagofragoso-com",
+      "name": "tiagofragoso.com",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "http://tiagofragoso.com",
+      "awwwards": "https://www.awwwards.com/sites/tiagofragoso-com",
+      "tags": [
+        "experimental",
+        "art-illustration",
+        "technology",
+        "illustration",
+        "copy-design",
+        "microinteractions",
+        "flat-design",
+        "retro",
+        "typography",
+        "netlify"
+      ]
+    },
+    {
+      "source": "awwwards",
+      "slug": "studio-ka-il",
+      "name": "Studio KA IL",
+      "award": "Honorable Mention",
+      "score": null,
+      "url": "http://kail.studio",
+      "awwwards": "https://www.awwwards.com/sites/studio-ka-il",
+      "tags": [
+        "design-agencies",
+        "web-interactive",
+        "startups",
+        "portfolio",
+        "illustration",
+        "transitions",
+        "3d",
+        "animation",
+        "graphic-design",
+        "javascript",
+        "css3",
+        "vite"
+      ]
+    }
+  ]
+}
