@@ -153,6 +153,24 @@ if (subLinks.length && 'IntersectionObserver' in window) {
   Object.keys(byId).forEach(id => { const el = document.getElementById(id); if (el) spy.observe(el); });
 }
 
+// Work filter — show strips that include the chosen service
+const filters = document.querySelectorAll('.filter');
+if (filters.length) {
+  const strips = [...document.querySelectorAll('.strip')];
+  const count = document.getElementById('work-count');
+  filters.forEach(btn => btn.addEventListener('click', () => {
+    const f = btn.dataset.filter;
+    filters.forEach(b => { const on = b === btn; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
+    let shown = 0;
+    strips.forEach(s => {
+      const show = f === 'all' || s.dataset.services.split(' ').includes(f);
+      s.classList.toggle('is-hidden', !show);
+      if (show) { shown++; s.classList.add('in'); }
+    });
+    if (count) count.textContent = String(shown).padStart(2, '0');
+  }));
+}
+
 // Reveal on scroll
 const reveals = document.querySelectorAll('.reveal');
 if ('IntersectionObserver' in window) {
