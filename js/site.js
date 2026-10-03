@@ -132,8 +132,25 @@ if (window.Lenis && !reduceMotion) {
   requestAnimationFrame(raf);
   document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
     const target = document.querySelector(a.getAttribute('href'));
-    if (target) { e.preventDefault(); lenis.scrollTo(target, { offset: -110 }); }
+    if (target) { e.preventDefault(); lenis.scrollTo(target, { offset: document.querySelector('.subnav') ? -150 : -110 }); }
   }));
+}
+
+// Services sub-nav — highlight the section in view
+const subLinks = [...document.querySelectorAll('.subnav-list a')];
+if (subLinks.length && 'IntersectionObserver' in window) {
+  const byId = Object.fromEntries(subLinks.map(a => [a.getAttribute('href').slice(1), a]));
+  const spy = new IntersectionObserver(entries => entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    subLinks.forEach(a => a.classList.remove('active'));
+    const a = byId[e.target.id];
+    if (a) {
+      a.classList.add('active');
+      const list = a.parentElement.parentElement;
+      list.scrollTo({ left: a.offsetLeft - (list.clientWidth - a.offsetWidth) / 2, behavior: 'smooth' });
+    }
+  }), { rootMargin: '-45% 0px -50% 0px' });
+  Object.keys(byId).forEach(id => { const el = document.getElementById(id); if (el) spy.observe(el); });
 }
 
 // Reveal on scroll
