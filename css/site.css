@@ -151,11 +151,31 @@ button.chip:hover { box-shadow: var(--shadow-outline-hover); }
 /* Curl bullets */
 .bullets { list-style: none; display: flex; flex-direction: column; gap: var(--space-3); }
 .bullets li { display: grid; grid-template-columns: var(--space-5) minmax(0, 1fr); gap: var(--space-3); align-items: start; }
+/* the official 20px orange curl (assets/icons/Crisp_Bullet_Curl.svg) */
 .bullets li::before {
-  content: ""; width: var(--space-5); height: var(--space-5); margin-top: var(--space-1);
-  background: var(--orange);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 20a8 8 0 1 1 8-8 5 5 0 0 1-5 5 3 3 0 0 1-3-3 1.5 1.5 0 0 1 1.5-1.5'/%3E%3C/svg%3E") center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 20a8 8 0 1 1 8-8 5 5 0 0 1-5 5 3 3 0 0 1-3-3 1.5 1.5 0 0 1 1.5-1.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  content: ""; width: calc(var(--space-4) + var(--space-1)); height: calc(var(--space-4) + var(--space-1));
+  margin: var(--space-1) 0 0 var(--space-1);
+  background: url("/assets/icons/Crisp_Bullet_Curl.svg") center / contain no-repeat;
+}
+
+/* Icon chip: an official 56px card icon on a --surface-2 square; tilts -10deg and grows 6% on hover
+   (on its own or on the hovered card/link it sits in). Icons are decorative: aria-hidden + alt="". */
+.icon-chip {
+  display: grid; place-items: center; flex: none;
+  width: calc(var(--space-8) + var(--space-4)); height: calc(var(--space-8) + var(--space-4));
+  border-radius: var(--radius-lg); background: var(--surface-2);
+}
+.icon-chip img { width: calc(var(--space-7) + var(--space-2)); height: calc(var(--space-7) + var(--space-2)); }
+@media (prefers-reduced-motion: no-preference) {
+  .icon-chip img { transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+  .icon-chip:hover img, :is(a, .tile, .card):hover .icon-chip img, a:focus-visible .icon-chip img { transform: rotate(-10deg) scale(1.06); }
+}
+
+/* Spinner: the official croissant curl (assets/icons/Crisp_Spinner_Curl.svg), turning only when motion is fine */
+.spinner { width: var(--space-5); height: var(--space-5); flex: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .spinner { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(1turn); } }
 }
 
 /* ── Forms ────────────────────────────────────────────────── */
@@ -220,12 +240,12 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 }
 
 /* ── Footer ───────────────────────────────────────────────── */
-.site-foot { padding-block: var(--pad-section) var(--space-6); border-top: 1px solid var(--border); }
+.site-foot { position: relative; padding-block: var(--pad-section) var(--space-6); border-top: 1px solid var(--border); --peek-h: var(--space-7); }
+.foot-peek { position: absolute; top: -1px; left: 0; right: 0; height: 0; } /* -1px: the edge is the top of the hairline, so Idli sits behind it */
 .site-foot > .wrap { display: flex; flex-direction: column; gap: var(--space-8); }
 .foot-grid { display: grid; gap: var(--space-7); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 600px) { .foot-grid { grid-template-columns: 2fr 1fr 1fr; gap: var(--layout-gutter); } }
 .foot-brand { display: flex; flex-direction: column; gap: var(--space-4); }
-.foot-brand img { width: auto; height: var(--space-8); }
 .foot-col { display: flex; flex-direction: column; gap: var(--space-4); }
 .foot-col h2 { font-size: var(--fs-label); line-height: var(--lh-label); letter-spacing: var(--ls-label); }
 .foot-col ul { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
@@ -319,14 +339,12 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 .closer-copy { display: flex; flex-direction: column; gap: var(--gap-text-actions); }
 .closer-copy .stack { --stack-gap: var(--gap-heading-body); }
 .closer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-5); }
-.closer-art { width: var(--space-10); height: auto; }
 @media (min-width: 600px) { .closer-card { padding: var(--pad-card-featured); } }
 @media (min-width: 1024px) {
   .closer-card { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-7); }
 }
 @media (min-width: 1200px) {
   .closer-card { padding: var(--space-9); }
-  .closer-art { width: calc(var(--space-10) * 2); }
 }
 
 /* ── Services ─────────────────────────────────────────────── */
@@ -486,7 +504,6 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 /* ── Blog ─────────────────────────────────────────────────── */
 .blog-index { padding-block: 0 var(--pad-section-lg); }
 .blog-empty { align-items: flex-start; gap: var(--space-5); }
-.blog-empty img { width: var(--space-9); height: auto; }
 .blog-empty-copy { display: flex; flex-direction: column; gap: var(--gap-heading-body-sm); }
 @media (min-width: 600px) { .blog-empty { padding: var(--pad-card-featured); } }
 @media (min-width: 1024px) {
@@ -494,7 +511,7 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 }
 
 /* ── Contact ──────────────────────────────────────────────── */
-.contact { padding-bottom: var(--pad-section-lg); }
+.contact { padding-block: var(--peek-h) var(--pad-section-lg); }
 .contact-intro { --stack-gap: var(--gap-heading-body); }
 .contact-grid { display: grid; grid-template-columns: minmax(0, 1fr); }
 .contact-main { display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; }
@@ -544,7 +561,7 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 .form-note { flex-basis: 100%; }
 .form-done { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-5); }
 .form-done:focus { outline: none; }
-.form-done img { width: var(--space-9); height: auto; }
+.cat-duo { display: flex; gap: var(--space-2); }
 .contact-direct { color: var(--text-muted); }
 
 /* ── 404 ──────────────────────────────────────────────────── */
@@ -553,9 +570,58 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
   display: grid; place-items: center; aspect-ratio: 4 / 3;
   padding: var(--space-7); border-radius: var(--radius-2xl); background: var(--surface);
 }
-.lost-art img { width: calc(var(--space-10) + var(--space-7)); height: auto; }
+.lost-art .cat-pair { --cat-w: var(--space-10); }
 @media (min-width: 1024px) {
   .lost { padding-top: var(--space-8); }
   .lost-art { aspect-ratio: 1 / 1; }
-  .lost-art img { width: calc(var(--space-10) * 2); }
+  .lost-art .cat-pair { --cat-w: calc(var(--space-10) + var(--space-7)); }
+}
+
+/* ── Idli and Samosa ──────────────────────────────────────── */
+/* Official artwork only (assets/cats, hashes in tools/assets.sha256): never recoloured, no new expressions.
+   Small moments only: never in a .hero, on Work or beside client work. Always decorative (alt="", aria-hidden).
+   Avatars: <img class="cat cat--96|cat--48">, circles. Full body: <span class="cat cat--body"> holding the file
+   twice, a base and a tail layer clipped along the tail (so the tail can sway while the body stays put),
+   plus two eyelids for Samosa's blink in her own body colour (Idli's eyes are already closed and happy). */
+.cat { display: block; flex: none; -webkit-tap-highlight-color: transparent; }
+.cat--96 { width: var(--space-9); height: var(--space-9); border-radius: var(--radius-full); }
+.cat--48 { width: var(--space-7); height: var(--space-7); border-radius: var(--radius-full); }
+.cat--body { position: relative; width: var(--cat-w, var(--space-10)); aspect-ratio: 108 / 96; transform-origin: 50% 75%; }
+.cat--body img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cat-base { clip-path: polygon(0 0, 100% 0, 100% 39.58%, 85.19% 39.58%, 84.26% 58.33%, 77.78% 72.92%, 75.93% 100%, 0 100%); }
+.cat-tail { clip-path: polygon(85.19% 39.58%, 100% 39.58%, 100% 100%, 75.93% 100%, 77.78% 72.92%, 84.26% 58.33%); transform-origin: 75.93% 83.33%; }
+.cat-lid {
+  position: absolute; left: 34.72%; top: 42.19%; width: 8.33%; height: 11.46%;
+  border-radius: var(--radius-full); background: var(--burnt); transform: scaleY(0); transform-origin: 50% 0;
+}
+.cat-lid--r { left: 56.94%; }
+.cat-pair { display: flex; align-items: flex-end; justify-content: center; gap: var(--space-4); width: 100%; }
+.cat-pair .cat--body { flex: 0 1 var(--cat-w); min-width: 0; }
+
+/* Peek: the pair (or one cat) sits behind the top edge of a card or the footer; only the part above the edge shows.
+   --peek-h is how much shows; the cat is 1.5x that wide. The host section adds --peek-h of room above the card. */
+.peek-room { --peek-h: var(--space-8); }
+.closer.peek-room { padding-top: calc(var(--pad-section) + var(--peek-h)); }
+@media (min-width: 1024px) { .peek-room { --peek-h: var(--space-9); } }
+.has-peek { position: relative; }
+.cat-peek {
+  position: absolute; bottom: 100%; right: var(--space-6);
+  display: flex; align-items: flex-start; gap: var(--space-1);
+  height: var(--peek-h, var(--space-8));
+  clip-path: inset(-50% -50% 0 -50%); /* cut along the edge only, so a tilting ear never clips */
+}
+.cat-peek .cat--body { --cat-w: calc(var(--peek-h, var(--space-8)) * 1.5); }
+@media (min-width: 1024px) { .cat-peek { right: var(--space-9); } }
+.foot-peek .cat-peek { right: var(--layout-margin); }
+
+/* Motion: hover/tap feedback and the loops (blink every few seconds, gentle tail sway) only when motion is fine */
+@media (prefers-reduced-motion: no-preference) {
+  .cat, .cat--body { transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+  .cat:hover { transform: rotate(-8deg); }
+  .cat:active { transform: scale(1.06, .9); transition-duration: .12s; }
+  .cat-tail { animation: cat-sway 3.2s ease-in-out infinite; }
+  .cat--idli .cat-tail { animation-duration: 3.8s; animation-delay: -1.4s; }
+  .cat-lid { animation: cat-blink 5s ease-in-out infinite; }
+  @keyframes cat-sway { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-5deg); } }
+  @keyframes cat-blink { 0%, 94%, 100% { transform: scaleY(0); } 97% { transform: scaleY(1); } }
 }

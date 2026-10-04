@@ -90,6 +90,7 @@ if (form) {
   const needs = document.getElementById('f-needs');
   const note = document.getElementById('form-note');
   const btn = form.querySelector('button[type=submit]');
+  const spinner = form.querySelector('.spinner'); // official curl spinner while the form is sending
   const setErr = (el, msg) => {
     const box = el.closest('.field');
     const out = box.querySelector('.err');
@@ -128,6 +129,7 @@ if (form) {
       return;
     }
     btn.disabled = true;
+    if (spinner) spinner.hidden = false;
     try {
       d.delete('website');
       d.set('need', list);
@@ -139,6 +141,7 @@ if (form) {
       done.focus();
     } catch {
       btn.disabled = false;
+      if (spinner) spinner.hidden = true;
       say('That didn\'t go through. Try again, or write to team@crispstudio.in.');
     }
   });

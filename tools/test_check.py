@@ -199,6 +199,62 @@ class Bypasses(unittest.TestCase):
         self.bad(fm("not a key value line"), "bad line")
         self.bad(fm("desc: - starts with a dash"), "indicator")
 
+    # ── Round 2: one logo, cats, official assets ──
+    def test_logo_only_in_header(self):
+        img = lambda html_, slug=None: check.check_images(html_, "t", slug)
+        head = '<header class="site-head"><a class="brandmark" data-logo-slot href="/"><img src="/assets/logo/Crisp_Logo_FullColour.svg" alt="Crisp"></a></header>'
+        self.assertEqual(img(head), [])
+        for src in ("Crisp_Logo_FullColour.svg", "Crisp_Logo_Mono_Navy.svg", "Crisp_Avatar_Orange.svg", "Crisp_Avatar_Navy.svg"):
+            self.bad(img(head + f'<footer><img src="/assets/logo/{src}" alt=""></footer>'), f"{src} in footer")
+            self.bad(img(head + f'<main><div class="closer-card"><img alt="" src="/assets/logo/{src}"></div></main>'), f"{src} in main")
+        self.bad(img("<main><img alt='' srcset='/assets/logo/Crisp_Logo_FullColour.svg 2x'></main>"), "logo via srcset")
+        # the Home hero logo that travels into the navbar is the one exemption: data-hero-logo, inside .hero, on Home
+        hero = '<section class="hero"><div class="wrap"><img data-hero-logo src="/assets/logo/Crisp_Logo_FullColour.svg" alt="Crisp"></div></section>'
+        self.assertEqual(img(head + hero, "home"), [])
+        self.bad(img(head + hero, "about"), "hero logo off Home")
+        self.bad(img(head + hero.replace(" data-hero-logo", ""), "home"), "hero logo without data-hero-logo")
+        self.bad(img(head + '<section class="closer"><img data-hero-logo src="/assets/logo/Crisp_Logo_FullColour.svg" alt=""></section>', "home"),
+                 "data-hero-logo outside .hero")
+        self.bad(img('<header></header><section class="hero"><div class="x"></div></section><img data-hero-logo alt="" src="/assets/logo/Crisp_Logo_FullColour.svg">', "home"),
+                 "after a closed .hero")
+        # the real pages: header logo only (built files)
+        for page in check.built_pages():
+            self.assertEqual(check.check_images(page.read_text(encoding="utf-8"), page.name, check.page_slug(page)), [], page)
+
+    def test_cats_never_in_hero_or_on_work(self):
+        img = lambda html_, slug=None: check.check_images(html_, "t", slug)
+        cats = ("/assets/cats/Crisp_Cat_Samosa.svg", "/assets/cats/Crisp_Cat_Idli_Cream.svg", "/assets/cats/Crisp_Avatar_Idli.svg",
+                "/assets/cats/Crisp_Avatar_Samosa.svg")
+        for c in cats:
+            self.bad(img(f'<section class="hero lost"><div><img src="{c}" alt=""></div></section>'), f"{c} in hero")
+            self.bad(img(f'<main><img src="{c}" alt=""></main>', "work"), f"{c} on work")
+            self.assertEqual(img(f'<section class="hero"></section><section class="contact"><img src="{c}" alt=""></section>', "contact"), [])
+        self.bad(img('<main><div style="background:url(/assets/cats/Crisp_Cat_Idli.svg)"></div></main>', "work"), "cat as background on work")
+        self.assertEqual(img('<section class="hero-grid"><img src="/assets/cats/Crisp_Cat_Idli.svg" alt=""></section>'), [])
+
+    def test_assets_manifest(self):
+        self.assertEqual(check.check_assets(), [])
+        line = (check.ROOT / "tools" / "assets.sha256").read_text(encoding="utf-8").splitlines()[0]
+        digest, rel = line.split("  ", 1)
+        man = lambda body: with_tmp(body, check.check_assets, ".sha256")
+        self.assertEqual(man(line + "\n"), [])
+        self.bad(man(("0" * 64) + "  " + rel + "\n"), "hash mismatch")
+        self.bad(man(digest + "  assets/cats/Nope.svg\n"), "missing file")
+        for f in ("assets/icons/Crisp_Icon_Strategy.svg", "assets/cats/Crisp_Cat_Samosa.svg", "assets/icons/Crisp_Bullet_Curl.svg"):
+            self.assertIn(f, (check.ROOT / "tools" / "assets.sha256").read_text(encoding="utf-8"), f)
+
+    def test_cat_loops_respect_reduced_motion(self):
+        cm = lambda t: check.check_cat_motion(t, "t.css")
+        self.bad(cm(".cat-tail { animation: cat-sway 3s infinite; }"), "loop outside media")
+        self.bad(cm("@media (min-width: 600px) { .cat-lid { animation: cat-blink 5s infinite; } }"), "wrong media")
+        self.bad(cm(".x { animation-name: cat-blink; }"), "cat keyframes on other selector")
+        self.bad(cm("@media (prefers-reduced-motion: reduce) { .cat-tail { animation: cat-sway 3s infinite; } }"), "reduce is not no-preference")
+        self.assertEqual(cm("@media (prefers-reduced-motion: no-preference) { .cat-tail { animation: cat-sway 3s ease-in-out infinite; } "
+                            "@keyframes cat-sway { to { transform: rotate(-4deg); } } }"), [])
+        self.assertEqual(cm("@media (prefers-reduced-motion: no-preference) { @media (min-width: 600px) { .cat-peek .cat-lid { animation: cat-blink 5s infinite; } } }"), [])
+        self.assertEqual(cm(".cat { animation: none; } .track { animation: ticker 40s linear infinite; }"), [])
+        self.assertEqual(check.check_css(check.ROOT / "css" / "site.css"), [])
+
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
 

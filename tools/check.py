@@ -270,7 +270,8 @@ def label_for(path):
 
 def check_css(path):
     path = Path(path)
-    return check_style_text(path.read_text(encoding="utf-8"), label_for(path))
+    text = path.read_text(encoding="utf-8")
+    return check_style_text(text, label_for(path)) + check_cat_motion(text, label_for(path))
 
 
 def check_html(path):
@@ -281,9 +282,12 @@ def check_html(path):
 
     # inline styles and <style> blocks follow the same rules as CSS files
     css_bits = [m[1] for m in re.findall(r"(?<![\w-])style\s*=\s*([\"'])(.*?)\1", text, flags=re.S)]
-    css_bits += re.findall(r"<style[^>]*>(.*?)</style>", text, flags=re.S)
+    style_blocks = re.findall(r"<style[^>]*>(.*?)</style>", text, flags=re.S)
+    css_bits += style_blocks
     for bit in css_bits:
         out += check_style_text(bit, label)
+    for bit in style_blocks:
+        out += check_cat_motion(bit, label)
 
     # colour-bearing attributes (svg fill/stroke etc.) are checked as if they were CSS declarations
     for m in re.finditer(r"(?<![\w-])(fill|stroke|stop-color|flood-color|color|bgcolor)\s*=\s*([\"'])(.*?)\2", text, flags=re.S):
@@ -300,6 +304,127 @@ def check_html(path):
         if not re.search(r"(?<![\w-])alt\s*=", m.group(0), flags=re.I):
             out.append(f"{label}:{line_of(text, m.start())}: <img> without alt")
 
+    out += check_images(text, label, page_slug(path))
+
+    return out
+
+
+# Round 2: one logo per page (the navbar), cats only in small moments
+LOGO_SRC = re.compile(r"Crisp_Logo|Crisp_Avatar_(?:Orange|Navy)")
+CAT_SRC = re.compile(r"Crisp_Cat_|Crisp_Avatar_(?:Samosa|Idli)")
+VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+
+
+def img_contexts(text):
+    """Every <img> with its line, attributes and ancestors as (tag, classes, attrs) tuples."""
+    from html.parser import HTMLParser
+
+    class P(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.stack, self.imgs = [], []
+
+        def handle_starttag(self, tag, attrs):
+            a = {k: (v or "") for k, v in attrs}
+            if tag == "img":
+                self.imgs.append((self.getpos()[0], a, list(self.stack)))
+            if tag not in VOID_TAGS:
+                self.stack.append((tag, a.get("class", "").split(), a))
+
+        def handle_startendtag(self, tag, attrs):
+            if tag == "img":
+                self.handle_starttag(tag, attrs)
+
+        def handle_endtag(self, tag):
+            for i in range(len(self.stack) - 1, -1, -1):
+                if self.stack[i][0] == tag:
+                    del self.stack[i:]
+                    break
+
+    p = P()
+    p.feed(strip_inert(text))
+    return p.imgs
+
+
+def check_images(text, label, slug):
+    """(a) no logo/croissant-avatar <img> outside <header>, except the Home hero logo (data-hero-logo inside
+    .hero on index.html), which travels into the navbar; (b) no cat on the Work page or inside a .hero."""
+    out = []
+    if slug == "work" and CAT_SRC.search(strip_inert(text)):
+        out.append(f"{label}: a cat (Idli/Samosa) appears on the Work page; cats never sit beside client work")
+    for line, a, anc in img_contexts(text):
+        src = a.get("src", "") + " " + a.get("srcset", "")
+        in_header = any(t == "header" for t, _, _ in anc)
+        in_hero = any("hero" in cls for _, cls, _ in anc)
+        if LOGO_SRC.search(src) and not in_header:
+            if not (slug == "home" and in_hero and "data-hero-logo" in a):
+                out.append(f"{label}:{line}: logo/avatar image outside the header ({src.strip()}); one logo per page")
+        if CAT_SRC.search(src) and in_hero:
+            out.append(f"{label}:{line}: cat image inside a .hero ({src.strip()}); cats never sit in a hero")
+    return out
+
+
+def check_assets(manifest=None):
+    """(c) every file in tools/assets.sha256 exists and still matches its recorded hash (official artwork)."""
+    import hashlib
+    manifest = Path(manifest or ROOT / "tools" / "assets.sha256")
+    out = []
+    for n, line in enumerate(manifest.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        digest, _, rel = line.strip().partition("  ")
+        f = ROOT / rel.strip()
+        if not f.is_file():
+            out.append(f"{label_for(manifest)}:{n}: {rel} is missing")
+        elif hashlib.sha256(f.read_bytes()).hexdigest() != digest:
+            out.append(f"{label_for(manifest)}:{n}: {rel} changed (sha256 differs from the official file)")
+    return out
+
+
+def css_rules(text):
+    """Yield (selector, body, at_rules) for every style rule, with the enclosing @-rule preludes."""
+    text = strip_comments(text)
+    stack, buf, i = [], "", 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "{":
+            prelude = buf.strip()
+            buf = ""
+            if prelude.startswith("@"):
+                stack.append(prelude)
+            else:
+                depth, j = 1, i + 1
+                while j < len(text) and depth:
+                    depth += {"{": 1, "}": -1}.get(text[j], 0)
+                    j += 1
+                yield prelude, text[i + 1:j - 1], list(stack)
+                i = j
+                continue
+        elif ch == "}":
+            if stack:
+                stack.pop()
+            buf = ""
+        elif ch == ";" and not stack and buf.strip().startswith("@"):
+            buf = ""  # @import/@charset
+        else:
+            buf += ch
+        i += 1
+
+
+def check_cat_motion(text, label):
+    """(d) cat loops (any animation on a .cat* selector or using @keyframes cat-*) must sit inside
+    @media (prefers-reduced-motion: no-preference), so reduced motion never sees them."""
+    out = []
+    for sel, body, ats in css_rules(text):
+        if any(a.lower().startswith("@keyframes") for a in ats):
+            continue
+        anim = re.search(r"(?<![\w-])animation(?:-name)?\s*:\s*([^;}]+)", body, flags=re.I)
+        if not anim or re.fullmatch(r"\s*none\s*(!important)?\s*", anim.group(1)):
+            continue
+        is_cat = re.search(r"\.cat(?![\w])|\.cat-", sel) or re.search(r"(?<![\w-])cat-[\w-]+", anim.group(1))
+        safe = any(re.search(r"prefers-reduced-motion\s*:\s*no-preference", a, flags=re.I) for a in ats)
+        if is_cat and not safe:
+            out.append(f"{label}: cat animation on '{sel}' is not inside @media (prefers-reduced-motion: no-preference)")
     return out
 
 
@@ -508,7 +633,7 @@ def main(argv):
     for src in sorted((ROOT / "src" / "pages").glob("*.html")):
         problems += check_front_matter(src)
     if not argv:
-        problems += check_links(built_pages()) + check_js()
+        problems += check_links(built_pages()) + check_js() + check_assets()
     for t in targets:
         problems += check_css(t) if t.suffix == ".css" else check_html(t)
     for p in problems:
