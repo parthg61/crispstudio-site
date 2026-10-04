@@ -1,0 +1,12 @@
+# GitHub Pages (Jekyll) settings. The site is pre-built by tools/build.py; Jekyll only copies files.
+# Keep sources, tooling and working folders out of the published site.
+exclude:
+  - src
+  - tools
+  - docs
+  - motion
+  - .sumi
+  - .superpowers
+  - .claude
+  - .gitignore
+  - node_modules
