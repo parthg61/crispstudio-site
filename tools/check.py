@@ -33,7 +33,19 @@ PAGE_COPY = {
         "If we designed it, we build it.",
         "Built for people. Designed for business.",
     ],
+    "work": [
+        "Fresh from the Oven.",
+        "HDFC securities",
+        "The Mind Mojo",
+        "NMIMS",
+        "HDB Financial Services",
+        "SAATH",
+        "Kaamna",
+        "Want to see more?",
+    ],
 }
+# Pages whose case tiles (<article class="case">) must each carry a visual, a tag and a one-line description.
+CASE_PAGES = {"work": 6}
 # Element ids each page must carry (other pages link to them as anchors).
 PAGE_IDS = {
     "services": ["strategy", "branding", "product", "build", "process"],
@@ -255,6 +267,31 @@ def check_copy(slug, text, label):
     out = [f"{label}: missing required copy '{s}'" for s in PAGE_COPY.get(slug, []) if s not in plain]
     ids = set(re.findall(r"(?<![\w-])id\s*=\s*[\"']([^\"']+)[\"']", text))
     out += [f"{label}: missing required id '#{i}'" for i in PAGE_IDS.get(slug, []) if i not in ids]
+    if slug in CASE_PAGES:
+        out += check_cases(text, label, CASE_PAGES[slug])
+    return out
+
+
+def has_class(fragment, cls):
+    return any(cls in m.group(2).split()
+               for m in re.finditer(r"(?<![\w-])class\s*=\s*([\"'])(.*?)\1", fragment, flags=re.S))
+
+
+def check_cases(text, label, expected):
+    """Each <article class="case"> needs a .case-visual, a .tag and a non-empty p.case-line."""
+    out = []
+    cases = [m.group(0) for m in re.finditer(r"<article\b[^>]*>.*?</article>", text, flags=re.S | re.I)
+             if has_class(re.match(r"<article\b[^>]*>", m.group(0), flags=re.I).group(0), "case")]
+    if len(cases) != expected:
+        out.append(f"{label}: expected {expected} case tiles (<article class=\"case\">), found {len(cases)}")
+    for i, c in enumerate(cases, 1):
+        if not has_class(c, "case-visual"):
+            out.append(f"{label}: case {i} has no visual (.case-visual)")
+        if not has_class(c, "tag"):
+            out.append(f"{label}: case {i} has no tag (.tag)")
+        line = re.search(r"<p\b[^>]*class\s*=\s*([\"'])[^\"']*\bcase-line\b[^\"']*\1[^>]*>(.*?)</p>", c, flags=re.S)
+        if not line or not re.sub(r"<[^>]+>|\s", "", line.group(2)):
+            out.append(f"{label}: case {i} has no one-line description (p.case-line)")
     return out
 
 

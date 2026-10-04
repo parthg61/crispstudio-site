@@ -93,6 +93,19 @@ class Bypasses(unittest.TestCase):
         self.bad(check.check_copy("services", good.replace('id="product"', 'id="product-design"'), "t"), "missing #product id")
         self.bad(check.check_copy("services", good.replace('id="process"', 'data-id="process"'), "t"), "data-id is not an id")
 
+    def test_work_copy_and_cases(self):
+        case = ('<article class="case" data-services="branding"><div class="case-visual"><img src="a.png" alt="A"></div>'
+                '<span class="tag">Finance</span><p class="case-line">One line.</p></article>')
+        good = "".join(f"<h2>{s}</h2>" for s in check.PAGE_COPY["work"]) + case * 6
+        self.assertEqual(check.check_copy("work", good, "t"), [])
+        self.bad(check.check_copy("work", good.replace("Fresh from the Oven.", ""), "t"), "missing work headline")
+        self.bad(check.check_copy("work", good.replace("HDB Financial Services", "HDB"), "t"), "missing client name")
+        self.bad(check.check_copy("work", good.replace(case, "", 1), "t"), "only five cases")
+        self.bad(check.check_copy("work", good.replace('class="case-visual"', 'class="visual"', 1), "t"), "case without visual")
+        self.bad(check.check_copy("work", good.replace('<span class="tag">Finance</span>', "", 1), "t"), "case without tag")
+        self.bad(check.check_copy("work", good.replace("One line.", "", 1), "t"), "case with empty line")
+        self.bad(check.check_copy("work", good.replace('class="case-line"', 'class="lede"', 1), "t"), "case without case-line")
+
     def test_home_source_copy(self):
         self.assertEqual(check.check_sources(), [])
 

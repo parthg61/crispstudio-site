@@ -80,5 +80,23 @@ if (svcLinks.length && 'IntersectionObserver' in window) {
   byId.forEach((_, id) => { const el = document.getElementById(id); if (el) io.observe(el); });
 }
 
+// Work filter: show cases that include the chosen service; the index count follows (zero-padded)
+const filters = [...document.querySelectorAll('[data-filter]')];
+if (filters.length) {
+  const cases = [...document.querySelectorAll('.case[data-services]')];
+  const count = document.getElementById('work-count');
+  filters.forEach(btn => btn.addEventListener('click', () => {
+    const f = btn.dataset.filter;
+    filters.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+    let shown = 0;
+    cases.forEach(c => {
+      const show = f === 'all' || c.dataset.services.split(' ').includes(f);
+      c.hidden = !show;
+      if (show) shown++;
+    });
+    if (count) count.textContent = String(shown).padStart(2, '0');
+  }));
+}
+
 // Footer year
 document.querySelectorAll('[data-year]').forEach(el => (el.textContent = new Date().getFullYear()));

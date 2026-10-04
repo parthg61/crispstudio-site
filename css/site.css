@@ -395,3 +395,49 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 @media (min-width: 1200px) {
   .svc-main { grid-column: 5 / span 8; }
 }
+
+/* ── Work ─────────────────────────────────────────────────── */
+.work-index { padding-block: 0; } /* the closing block below brings its own top padding */
+.work-index > .wrap { display: flex; flex-direction: column; gap: var(--space-7); }
+.filter-bar { display: flex; flex-direction: column; gap: var(--space-4); }
+.filters { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+html:not(.js) .filters { display: none; } /* filtering needs JS; without it every case shows */
+.work-count { color: var(--text); font-variant-numeric: tabular-nums; }
+@media (min-width: 1024px) {
+  .filter-bar { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-6); }
+}
+
+.cases { display: flex; flex-direction: column; gap: var(--layout-gutter); }
+.case {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-media-text);
+  padding: var(--pad-card); border-radius: var(--radius-xl); background: var(--surface);
+  min-width: 0; overflow-wrap: anywhere;
+}
+.case-visual {
+  display: grid; place-items: center; aspect-ratio: 16 / 9;
+  padding: var(--space-6); border-radius: var(--radius-lg); background: var(--surface-2);
+}
+/* --logo-h (set per case) evens out the optical size of wide and compact logos */
+.case-visual img { width: auto; height: calc(var(--logo-h, var(--space-8)) * 0.6); max-width: 80%; object-fit: contain; }
+.case-body { display: flex; flex-direction: column; gap: var(--gap-card-stack); padding-top: var(--space-1); }
+.case-num { font-size: var(--fs-small); line-height: var(--lh-small); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.case-line { font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--text-muted); }
+@media (min-width: 1024px) {
+  .case { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--layout-gutter); }
+  .case-visual { grid-column: 1 / span 7; aspect-ratio: 16 / 10; }
+  .case-visual img { height: var(--logo-h, var(--space-8)); }
+  .case-body { grid-column: 8 / span 5; padding: var(--space-2) 0; }
+  .case-num { margin-bottom: auto; } /* number sits top, name/tags/line sit at the foot of the tile */
+}
+
+/* The Pandora's Box: lock panel inside the closing card */
+.vault {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-5);
+  padding: var(--space-7) var(--space-6); border-radius: var(--radius-xl); background: var(--surface-2);
+}
+.vault svg { width: var(--space-8); height: var(--space-8); color: var(--orange); }
+.vault .tags { justify-content: center; }
+@media (min-width: 1024px) {
+  .vault { width: calc(var(--space-10) * 2 + var(--space-8)); aspect-ratio: 1 / 1; }
+  .vault svg { width: var(--space-9); height: var(--space-9); }
+}
