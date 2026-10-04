@@ -35,3 +35,16 @@ Work page: Gil Huybrecht frame strips — client name left, frames numbered 01�
 - Helvetica + PP Supply Mono pairing from CoMinVi: brand is one family (Inter)
 - Barba page transitions from CoMinVi: adds weight for a 6-page static site
 - Black WebGL infinite gallery from Gil Huybrecht: second trait from the same site + dark
+
+---
+# Reference Board v2 — 2026-10-04 (redesign: "too boring")
+Brief: keep the Crisp Design System (white, grey surfaces, orange for action, Schibsted Grotesk); add personality through scale, illustration and interaction; logo appears in the navbar only.
+
+| # | Site | Trait we take | Evidence |
+|---|------|---------------|----------|
+| 1 | [Direct Design Agency](https://wearedirect.co/) | One big flat illustrated object carries the hero (a traffic light with a face), tiny supporting text, huge confident headline | home hero, 2026-10-04 browser capture |
+| 2 | [Rebelliously Optimistic](https://www.rebelliously-optimistic.com/) | Weight/voice contrast inside the headline block: bold line, then a lighter second line | home hero capture |
+| 3 | [Huy Phan Vol.2](https://huyml.co/) | Project images fanned in a perspective strip that reads as one object | home hero capture |
+| 4 | [Gil Huybrecht](https://gilhuybrecht.com/) (v1, kept) | Work index as client name + numbered frames | board v1 |
+
+Rejected: Studio KA IL glass bubbles and gradients (system has no gradient washes); tiagofragoso hand-drawn outlines (system forbids outlines/borders as decoration); Huy Phan / v1 dark and WebGL scenes.
