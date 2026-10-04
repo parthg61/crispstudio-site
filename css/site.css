@@ -337,6 +337,15 @@ html:not(.js) body[data-page="home"] [data-logo-slot] img { visibility: visible;
 .fan-card .tag { margin-inline-start: var(--space-1); }
 @media (max-width: 599px) {
   .fan-card .tag { display: none; } /* 128px cards: name only */
+  /* Phones: the big logo must be in the first screen. The art block opens up (display: contents) so the logo
+     spot heads the hero grid, left-aligned above the status line and headline; the fan, below the button,
+     takes over the grey block. The travel still starts from wherever the spot is measured. */
+  .hero-art { display: contents; --logo-w: calc(var(--space-10) - var(--space-4)); }
+  .hero-logo-spot { order: -1; justify-self: start; }
+  .fan {
+    padding: var(--space-6) var(--space-4) var(--space-7);
+    border-radius: var(--radius-2xl); background: var(--surface);
+  }
 }
 @media (min-width: 600px) {
   .fan-card { padding: var(--space-4); gap: var(--space-3); }

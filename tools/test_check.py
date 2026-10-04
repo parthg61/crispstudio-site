@@ -327,6 +327,17 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(fp("@media (prefers-reduced-motion: no-preference) { .fan .fan-card { animation: fan-out .7s both; } }"), [])
         self.assertEqual(fp((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
+    def test_mobile_hero_logo_first(self):
+        mo = lambda t: check.check_mobile_hero_order(t, "t.css")
+        good = "@media (max-width: 599px) { .hero-art { display: contents; } .hero-logo-spot { order: -1; } }"
+        self.assertEqual(mo(good), [])
+        self.assertEqual(mo(good.replace("order: -1; }", "order: 0; } .hero-copy { order: 1; }")), [])
+        self.bad(mo(""), "no mobile rules")
+        self.bad(mo(good.replace("order: -1", "order: 2")), "spot after the copy")
+        self.bad(mo(good.replace("display: contents", "display: flex")), "spot still inside the art block")
+        self.bad(mo(good.replace("max-width: 599px", "min-width: 600px")), "wrong breakpoint")
+        self.assertEqual(mo((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
+
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
 

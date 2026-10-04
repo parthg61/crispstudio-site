@@ -513,6 +513,28 @@ def check_cat_motion(text, label):
     return out
 
 
+def check_mobile_hero_order(text, label):
+    """Phones (<600px): the big hero logo must be in the first screen, so under @media (max-width: 599px)
+    .hero-art opens up (display: contents) and .hero-logo-spot has an `order` lower than .hero-copy's."""
+    def decl(prop, sel_re):
+        for sel, body, ats in css_rules(text):
+            if any(re.search(r"max-width\s*:\s*599px", a) for a in ats) and re.search(sel_re, sel):
+                m = re.search(rf"(?<![\w-]){prop}\s*:\s*([^;}}]+)", body)
+                if m:
+                    return m.group(1).strip()
+        return None
+    out = []
+    if decl("display", r"\.hero-art(?![\w-])") != "contents":
+        out.append(f"{label}: under max-width: 599px .hero-art must be display: contents (logo spot joins the hero grid)")
+    spot, copy = decl("order", r"\.hero-logo-spot(?![\w-])"), decl("order", r"\.hero-copy(?![\w-])") or "0"
+    try:
+        if spot is None or int(spot) >= int(copy):
+            out.append(f"{label}: under max-width: 599px .hero-logo-spot needs an order lower than .hero-copy ({spot} vs {copy})")
+    except ValueError:
+        out.append(f"{label}: unreadable mobile hero order ({spot} vs {copy})")
+    return out
+
+
 def check_fan_present(text, label):
     """The Home hero cards fan out once on load: site.css must animate .fan-card under no-preference."""
     if any(safe and ".fan-card" in sel for sel, safe in motion_rules(text, "fan")):
@@ -752,6 +774,7 @@ def main(argv):
         problems += check_links(built_pages()) + check_js() + check_assets()
         site_css = ROOT / "css" / "site.css"
         problems += check_fan_present(site_css.read_text(encoding="utf-8"), label_for(site_css))
+        problems += check_mobile_hero_order(site_css.read_text(encoding="utf-8"), label_for(site_css))
     for t in targets:
         problems += check_css(t) if t.suffix == ".css" else check_html(t)
     for p in problems:
