@@ -64,6 +64,93 @@ if (blogBlock) {
     .catch(() => {});
 }
 
+// Blog index: render posts.json into grey post cards; any posts hide the empty state
+const blogList = document.getElementById('blog-list');
+if (blogList) {
+  fetch('/blog/posts.json', { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : []))
+    .then(posts => {
+      if (!Array.isArray(posts) || !posts.length) return;
+      const fmt = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      blogList.innerHTML = [...posts]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map(p => `<a class="post" href="${esc(p.url)}"><time datetime="${esc(p.date)}">${fmt(p.date)}</time><h2 class="t-title">${esc(p.title)}</h2><p>${esc(p.excerpt || '')}</p></a>`)
+        .join('');
+      blogList.hidden = false;
+      document.getElementById('blog-empty').hidden = true;
+    })
+    .catch(() => {});
+}
+
+// Contact form: validate, then post to data-endpoint (or fall back to a pre-filled email).
+// Entered values are never cleared on failure.
+const form = document.getElementById('contact-form');
+if (form) {
+  const needs = document.getElementById('f-needs');
+  const note = document.getElementById('form-note');
+  const btn = form.querySelector('button[type=submit]');
+  const setErr = (el, msg) => {
+    const box = el.closest('.field');
+    const out = box.querySelector('.err');
+    out.textContent = msg || '';
+    out.hidden = !msg;
+    (el === needs ? [needs] : [el]).forEach(i => (msg ? i.setAttribute('aria-invalid', 'true') : i.removeAttribute('aria-invalid')));
+  };
+  const rules = () => {
+    const f = form.elements;
+    return [
+      [f.name, !f.name.value.trim(), 'Tell us your name.'],
+      [f.email, !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim()), 'Add a valid work email.'],
+      [needs, !form.querySelector('[name=need]:checked'), 'Pick at least one.'],
+      [f.message, !f.message.value.trim(), 'Tell us a bit about it.'],
+    ];
+  };
+  const check = () => {
+    let bad = null;
+    rules().forEach(([el, fail, msg]) => { setErr(el, fail ? msg : ''); if (fail && !bad) bad = el; });
+    return bad;
+  };
+  const say = msg => { note.textContent = msg; note.hidden = !msg; };
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    say('');
+    const bad = check();
+    if (bad) { (bad === needs ? needs.querySelector('input') : bad).focus(); return; }
+    const d = new FormData(form);
+    if (d.get('website')) return; // honeypot
+    const list = d.getAll('need').join(', ');
+    const endpoint = form.dataset.endpoint;
+    if (!endpoint) {
+      const body = `Name: ${d.get('name')}\nEmail: ${d.get('email')}\nCompany: ${d.get('company') || '-'}\nNeeds: ${list}\n\n${d.get('message')}`;
+      location.href = `mailto:team@crispstudio.in?subject=${encodeURIComponent('Hello from ' + d.get('name'))}&body=${encodeURIComponent(body)}`;
+      say('Your email app should open. If it doesn\'t, write to team@crispstudio.in.');
+      return;
+    }
+    btn.disabled = true;
+    try {
+      d.delete('website');
+      d.set('need', list);
+      const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: d });
+      if (!res.ok) throw new Error(res.status);
+      form.hidden = true;
+      const done = document.getElementById('form-done');
+      done.hidden = false;
+      done.focus();
+    } catch {
+      btn.disabled = false;
+      say('That didn\'t go through. Try again, or write to team@crispstudio.in.');
+    }
+  });
+  // Clear a field's error as soon as it is fixed
+  const clear = e => {
+    const rule = rules().find(([el]) => el === e.target || (el === needs && needs.contains(e.target)));
+    if (rule && !rule[1]) setErr(rule[0], '');
+  };
+  form.addEventListener('input', clear);
+  form.addEventListener('change', clear);
+}
+
 // Services index: mark the section currently in view (links work without this)
 const svcLinks = [...document.querySelectorAll('.svc-index a')];
 if (svcLinks.length && 'IntersectionObserver' in window) {

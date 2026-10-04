@@ -6,6 +6,7 @@ A page file starts with optional front matter, then the <main> body:
     ---
     title: Work — Crisp
     desc: One-sentence description.
+    robots: noindex        (optional)
     ---
     <main id="main"> ... </main>
 
@@ -47,6 +48,8 @@ def render(slug, meta, body):
     _, path = output_path(slug)
     head = read("head.html").replace("{{title}}", meta["title"]).replace("{{desc}}", meta["desc"])
     head = head.replace("{{slug}}", slug).replace("{{path}}", path)
+    if meta.get("robots"):  # optional front matter, e.g. "robots: noindex" on the 404 page
+        head = head.replace("<meta name=\"description\"", f'<meta name="robots" content="{meta["robots"]}">\n<meta name="description"', 1)
     header = read("header.html")
     for s in NAV_SLUGS:
         header = header.replace("{{cur:%s}}" % s, ' aria-current="page"' if s == slug else "")
