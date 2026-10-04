@@ -699,3 +699,7 @@ html.lenis,html.lenis body{height:auto}
 .form-done[hidden],.form-note[hidden],.err[hidden],#contact-form[hidden]{display:none}
 @media (max-width:900px){.contact-grid{grid-template-columns:1fr}}
 .believe .eyebrow .num{color:var(--gold)}
+
+/* Hero headline scales with its own column so lines never orphan a word */
+.hero-grid > div:first-child{container-type:inline-size}
+@media (min-width:901px){.hero-grid .display{font-size:clamp(48px,15.5cqw,124px)}}
