@@ -3,3 +3,5 @@ node_modules
 motion/node_modules
 motion/out
 .sumi/refs/**/*.jpg
+.superpowers/
+.claude/
