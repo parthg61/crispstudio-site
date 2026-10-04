@@ -84,6 +84,15 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(check.check_copy("home", good.replace("we've", "we&#39;ve"), "t"), [])
         self.assertEqual(check.check_copy("home", good.replace("with a crunch!", 'with <span class="nowrap">a crunch!</span>'), "t"), [])
 
+    def test_services_copy_and_ids(self):
+        ids = "".join(f'<section id="{i}"></section>' for i in check.PAGE_IDS["services"])
+        good = "".join(f"<h2>{s}</h2>" for s in check.PAGE_COPY["services"]) + ids
+        self.assertEqual(check.check_copy("services", good, "t"), [])
+        self.assertEqual(check.check_copy("services", good.replace("Don't", "Don&#39;t"), "t"), [])
+        self.bad(check.check_copy("services", good.replace("Get the mix right.", ""), "t"), "missing services headline")
+        self.bad(check.check_copy("services", good.replace('id="product"', 'id="product-design"'), "t"), "missing #product id")
+        self.bad(check.check_copy("services", good.replace('id="process"', 'data-id="process"'), "t"), "data-id is not an id")
+
     def test_home_source_copy(self):
         self.assertEqual(check.check_sources(), [])
 

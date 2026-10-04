@@ -25,6 +25,18 @@ PAGE_COPY = {
         "Design that has a job to do.",
         "Got something worth making?",
     ],
+    "services": [
+        "Get the mix right.",
+        "Don't design the wrong thing beautifully.",
+        "Position first. Pixels second.",
+        "Make complex feel simple.",
+        "If we designed it, we build it.",
+        "Built for people. Designed for business.",
+    ],
+}
+# Element ids each page must carry (other pages link to them as anchors).
+PAGE_IDS = {
+    "services": ["strategy", "branding", "product", "build", "process"],
 }
 ALLOWED_RADII = {"8px", "12px", "16px", "24px", "32px", "50%", "0"}
 
@@ -240,7 +252,10 @@ def check_copy(slug, text, label):
     """Every required string for the page must appear verbatim (entities decoded)."""
     plain = htmllib.unescape(re.sub(r"<[^>]+>", "", text)).replace("\u2019", "'")
     plain = re.sub(r"\s+", " ", plain.replace("\u00a0", " "))
-    return [f"{label}: missing required copy '{s}'" for s in PAGE_COPY.get(slug, []) if s not in plain]
+    out = [f"{label}: missing required copy '{s}'" for s in PAGE_COPY.get(slug, []) if s not in plain]
+    ids = set(re.findall(r"(?<![\w-])id\s*=\s*[\"']([^\"']+)[\"']", text))
+    out += [f"{label}: missing required id '#{i}'" for i in PAGE_IDS.get(slug, []) if i not in ids]
+    return out
 
 
 def check_sources():
