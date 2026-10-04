@@ -43,13 +43,50 @@ PAGE_COPY = {
         "Kaamna",
         "Want to see more?",
     ],
+    "about": [
+        "No half-baked ideas.",
+        "We're Crisp, a design studio in Mumbai.",
+        "We care about one thing above the rest: does the work have a reason to exist?",
+        "If it looks good but doesn't work, it's not done.",
+        "If it works but nobody understands it, it's not done.",
+        "If it solves the problem but feels forgettable, it's not done.",
+        "We keep going until it clicks.",
+        "Good design looks good. Great design works.",
+        "Startups and established companies.",
+        "Any team with a real problem",
+        "Sound like your kind of studio?",
+    ],
+    "blog": [
+        "Food for thought.",
+        "The first batch is in the oven.",
+        "New writing lands here soon. Until then, tell us what you're working on.",
+    ],
+    "contact": [
+        "Let's make something crispy.",
+        "Tell us what you're working on. We'll help you take it a notch up.",
+        "Prefer email? team@crispstudio.in",
+        "Mumbai, India",
+        "Send it",
+        "Got it. We'll be in touch within two working days.",
+    ],
+    "404": [
+        "Crumbled.",
+        "This page doesn't exist or has moved. Head back home or pick a page from the menu.",
+        "Back to home",
+    ],
 }
 # Pages whose case tiles (<article class="case">) must each carry a visual, a tag and a one-line description.
 CASE_PAGES = {"work": 6}
 # Element ids each page must carry (other pages link to them as anchors).
 PAGE_IDS = {
     "services": ["strategy", "branding", "product", "build", "process"],
+    "blog": ["blog-list", "blog-empty"],
+    "contact": ["contact-form", "f-name", "f-email", "f-company", "f-needs", "f-msg", "form-note", "form-done"],
 }
+# The contact form: label -> control name for the five fields, and the five "What do you need?" options.
+FORM_FIELDS = {"Name": "name", "Work email": "email", "Company": "company",
+               "What do you need?": "need", "Tell us a bit about it": "message"}
+FORM_NEEDS = ["Strategy & Research", "Branding", "Product Design", "Build", "Not sure yet"]
 ALLOWED_RADII = {"8px", "12px", "16px", "24px", "32px", "50%", "0"}
 
 HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
@@ -269,6 +306,30 @@ def check_copy(slug, text, label):
     out += [f"{label}: missing required id '#{i}'" for i in PAGE_IDS.get(slug, []) if i not in ids]
     if slug in CASE_PAGES:
         out += check_cases(text, label, CASE_PAGES[slug])
+    if slug == "contact":
+        out += check_form(text, label, plain)
+    return out
+
+
+def check_form(text, label, plain):
+    """Contact form: five labelled fields, five need checkboxes, data-endpoint, honeypot."""
+    out = []
+    form = re.search(r"<form\b[^>]*\bid=\"contact-form\"[^>]*>(.*?)</form>", text, flags=re.S)
+    if not form:
+        return [f"{label}: no <form id=\"contact-form\">"]
+    if not re.search(r"<form\b[^>]*\bdata-endpoint=\"[^\"]*\"", text):
+        out.append(f"{label}: contact form has no data-endpoint attribute")
+    body = form.group(1)
+    for text_label, name in FORM_FIELDS.items():
+        if text_label not in plain:
+            out.append(f"{label}: contact form missing label '{text_label}'")
+        if not re.search(r"<(?:input|textarea)\b[^>]*\bname=\"%s\"" % name, body):
+            out.append(f"{label}: contact form missing control name=\"{name}\"")
+    values = [htmllib.unescape(v) for v in re.findall(r"<input\b[^>]*type=\"checkbox\"[^>]*value=\"([^\"]*)\"", body)]
+    if values != FORM_NEEDS:
+        out.append(f"{label}: contact form needs checkboxes {values} != {FORM_NEEDS}")
+    if not re.search(r"<input\b[^>]*\bname=\"website\"", body):
+        out.append(f"{label}: contact form lost its honeypot (name=\"website\")")
     return out
 
 

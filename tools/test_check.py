@@ -106,6 +106,35 @@ class Bypasses(unittest.TestCase):
         self.bad(check.check_copy("work", good.replace("One line.", "", 1), "t"), "case with empty line")
         self.bad(check.check_copy("work", good.replace('class="case-line"', 'class="lede"', 1), "t"), "case without case-line")
 
+    def test_contact_form(self):
+        needs = "".join(f'<label><input type="checkbox" name="need" value="{v.replace("&", "&amp;")}">{v.replace("&", "&amp;")}</label>'
+                        for v in check.FORM_NEEDS)
+        form = ('<form id="contact-form" novalidate data-endpoint="">'
+                '<label for="f-name">Name</label><input id="f-name" name="name">'
+                '<label for="f-email">Work email</label><input id="f-email" name="email" type="email">'
+                '<label for="f-company">Company</label><input id="f-company" name="company">'
+                '<fieldset id="f-needs"><legend>What do you need?</legend>' + needs + '</fieldset>'
+                '<label for="f-msg">Tell us a bit about it</label><textarea id="f-msg" name="message"></textarea>'
+                '<input class="hp" name="website" tabindex="-1"><button>Send it</button>'
+                '<p id="form-note"></p></form><div id="form-done"></div>')
+        good = "".join(f"<p>{s}</p>" for s in check.PAGE_COPY["contact"]) + form
+        self.assertEqual(check.check_copy("contact", good, "t"), [])
+        self.bad(check.check_copy("contact", good.replace('data-endpoint=""', ""), "t"), "no data-endpoint")
+        self.bad(check.check_copy("contact", good.replace('name="company"', 'name="org"'), "t"), "renamed field")
+        self.bad(check.check_copy("contact", good.replace('value="Build"', 'value="Dev"'), "t"), "renamed need")
+        self.bad(check.check_copy("contact", good.replace('<label><input type="checkbox" name="need" value="Not sure yet">Not sure yet</label>', ""), "t"), "four needs")
+        self.bad(check.check_copy("contact", good.replace('name="website"', 'name="url"'), "t"), "no honeypot")
+        self.bad(check.check_copy("contact", good.replace('id="form-done"', ""), "t"), "no #form-done")
+        self.bad(check.check_copy("contact", good.replace("Work email", "Email"), "t"), "renamed label")
+
+    def test_about_blog_404_copy(self):
+        for slug in ("about", "blog", "404"):
+            ids = "".join(f'<div id="{i}"></div>' for i in check.PAGE_IDS.get(slug, []))
+            good = "".join(f"<p>{s}</p>" for s in check.PAGE_COPY[slug]) + ids
+            self.assertEqual(check.check_copy(slug, good, "t"), [], slug)
+            self.bad(check.check_copy(slug, good.replace(check.PAGE_COPY[slug][0], ""), "t"), f"{slug} headline")
+        self.bad(check.check_copy("blog", "".join(f"<p>{s}</p>" for s in check.PAGE_COPY["blog"]), "t"), "blog ids")
+
     def test_home_source_copy(self):
         self.assertEqual(check.check_sources(), [])
 
