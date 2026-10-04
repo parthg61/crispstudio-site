@@ -305,6 +305,8 @@ def check_html(path):
             out.append(f"{label}:{line_of(text, m.start())}: <img> without alt")
 
     out += check_images(text, label, page_slug(path))
+    if page_slug(path) is not None:
+        out += check_hero(text, label, page_slug(path))
 
     return out
 
@@ -315,35 +317,97 @@ CAT_SRC = re.compile(r"Crisp_Cat_|Crisp_Avatar_(?:Samosa|Idli)")
 VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
 
 
-def img_contexts(text):
-    """Every <img> with its line, attributes and ancestors as (tag, classes, attrs) tuples."""
+def tag_contexts(text):
+    """Every start tag as a dict: line, tag, attrs, ancestors ((tag, classes, attrs) tuples) and text
+    (the element's own text content, gathered until it closes; empty for void tags)."""
     from html.parser import HTMLParser
 
     class P(HTMLParser):
         def __init__(self):
             super().__init__(convert_charrefs=True)
-            self.stack, self.imgs = [], []
+            self.stack, self.els, self.open = [], [], []
 
         def handle_starttag(self, tag, attrs):
             a = {k: (v or "") for k, v in attrs}
-            if tag == "img":
-                self.imgs.append((self.getpos()[0], a, list(self.stack)))
+            el = {"line": self.getpos()[0], "tag": tag, "attrs": a, "ancestors": list(self.stack), "text": ""}
+            self.els.append(el)
             if tag not in VOID_TAGS:
                 self.stack.append((tag, a.get("class", "").split(), a))
+                self.open.append(el)
 
         def handle_startendtag(self, tag, attrs):
-            if tag == "img":
-                self.handle_starttag(tag, attrs)
+            self.handle_starttag(tag, attrs)
+            if tag not in VOID_TAGS:  # <x/> on a non-void tag: close it straight away
+                self.handle_endtag(tag)
+
+        def handle_data(self, data):
+            for el in self.open:
+                el["text"] += data
 
         def handle_endtag(self, tag):
             for i in range(len(self.stack) - 1, -1, -1):
                 if self.stack[i][0] == tag:
                     del self.stack[i:]
+                    del self.open[i:]
                     break
 
     p = P()
     p.feed(strip_inert(text))
-    return p.imgs
+    return p.els
+
+
+def img_contexts(text):
+    """Every <img> with its line, attributes and ancestors as (tag, classes, attrs) tuples."""
+    return [(e["line"], e["attrs"], e["ancestors"]) for e in tag_contexts(text) if e["tag"] == "img"]
+
+
+HERO_CLIENTS = ("HDFC securities", "The Mind Mojo", "NMIMS")
+
+
+def in_class(el, cls):
+    return any(cls in c for _, c, _ in el["ancestors"])
+
+
+def check_hero(text, label, slug):
+    """Round 2 Home hero. Every page: one [data-logo-slot] header brandmark (an <a href="/">) inside <header>.
+    Home only: exactly one <img data-hero-logo> inside .hero (it travels into the slot), and a decorative
+    .fan (aria-hidden) inside .hero holding three .fan-card cards named HDFC securities, The Mind Mojo, NMIMS."""
+    out = []
+    els = tag_contexts(text)
+    slots = [e for e in els if "data-logo-slot" in e["attrs"]]
+    if len(slots) != 1:
+        out.append(f"{label}: expected one [data-logo-slot] header logo link, found {len(slots)}")
+    for e in slots:
+        if not any(t == "header" for t, _, _ in e["ancestors"]):
+            out.append(f"{label}:{e['line']}: [data-logo-slot] must sit inside <header>")
+        if e["tag"] != "a" or e["attrs"].get("href") != "/":
+            out.append(f"{label}:{e['line']}: [data-logo-slot] must be the <a href=\"/\"> brandmark")
+    logos = [e for e in els if "data-hero-logo" in e["attrs"]]
+    if slug != "home":
+        out += [f"{label}:{e['line']}: data-hero-logo is for the Home hero only" for e in logos]
+        return out
+    if len(logos) != 1:
+        out.append(f"{label}: Home needs exactly one data-hero-logo element, found {len(logos)}")
+    for e in logos:
+        if e["tag"] != "img" or not in_class(e, "hero"):
+            out.append(f"{label}:{e['line']}: data-hero-logo must be an <img> inside .hero")
+    fans = [e for e in els if "fan" in e["attrs"].get("class", "").split()]
+    if len(fans) != 1:
+        out.append(f"{label}: Home needs one .fan card stack in the hero, found {len(fans)}")
+    for fan in fans:
+        if not in_class(fan, "hero"):
+            out.append(f"{label}:{fan['line']}: .fan must sit inside .hero")
+        if fan["attrs"].get("aria-hidden") != "true":
+            out.append(f"{label}:{fan['line']}: .fan is decorative and needs aria-hidden=\"true\"")
+        cards = [e for e in els if "fan-card" in e["attrs"].get("class", "").split()
+                 and any(a is fan["attrs"] for _, _, a in e["ancestors"])]
+        if len(cards) != 3:
+            out.append(f"{label}:{fan['line']}: .fan needs three .fan-card cards, found {len(cards)}")
+        names = [re.sub(r"\s+", " ", c["text"]).strip() for c in cards]
+        for client in HERO_CLIENTS:
+            if not any(client in n for n in names):
+                out.append(f"{label}:{fan['line']}: .fan has no card for '{client}'")
+    return out
 
 
 def check_images(text, label, slug):
@@ -411,21 +475,39 @@ def css_rules(text):
         i += 1
 
 
-def check_cat_motion(text, label):
-    """(d) cat loops (any animation on a .cat* selector or using @keyframes cat-*) must sit inside
-    @media (prefers-reduced-motion: no-preference), so reduced motion never sees them."""
-    out = []
+def motion_rules(text, name):
+    """(selector, safe) for every rule that animates a .<name>* selector or uses @keyframes <name>-*;
+    safe means it sits inside @media (prefers-reduced-motion: no-preference)."""
+    found = []
     for sel, body, ats in css_rules(text):
         if any(a.lower().startswith("@keyframes") for a in ats):
             continue
         anim = re.search(r"(?<![\w-])animation(?:-name)?\s*:\s*([^;}]+)", body, flags=re.I)
         if not anim or re.fullmatch(r"\s*none\s*(!important)?\s*", anim.group(1)):
             continue
-        is_cat = re.search(r"\.cat(?![\w])|\.cat-", sel) or re.search(r"(?<![\w-])cat-[\w-]+", anim.group(1))
-        safe = any(re.search(r"prefers-reduced-motion\s*:\s*no-preference", a, flags=re.I) for a in ats)
-        if is_cat and not safe:
-            out.append(f"{label}: cat animation on '{sel}' is not inside @media (prefers-reduced-motion: no-preference)")
+        n = re.escape(name)
+        if re.search(rf"\.{n}(?![\w])|\.{n}-", sel) or re.search(rf"(?<![\w-]){n}-[\w-]+", anim.group(1)):
+            safe = any(re.search(r"prefers-reduced-motion\s*:\s*no-preference", a, flags=re.I) for a in ats)
+            found.append((sel, safe))
+    return found
+
+
+def check_cat_motion(text, label):
+    """(d) cat loops (any animation on a .cat* selector or using @keyframes cat-*) must sit inside
+    @media (prefers-reduced-motion: no-preference), so reduced motion never sees them. The Home hero card
+    fan (.fan*, @keyframes fan-*) follows the same rule."""
+    out = []
+    for name, what in (("cat", "cat"), ("fan", "hero card fan")):
+        out += [f"{label}: {what} animation on '{sel}' is not inside @media (prefers-reduced-motion: no-preference)"
+                for sel, safe in motion_rules(text, name) if not safe]
     return out
+
+
+def check_fan_present(text, label):
+    """The Home hero cards fan out once on load: site.css must animate .fan-card under no-preference."""
+    if any(safe and ".fan-card" in sel for sel, safe in motion_rules(text, "fan")):
+        return []
+    return [f"{label}: no .fan-card load animation inside @media (prefers-reduced-motion: no-preference)"]
 
 
 def page_slug(path):
@@ -615,6 +697,30 @@ def check_js():
     # Tab focus on a half-hidden Services index chip must scroll the chip row (Chrome does not on its own)
     if not re.search(r"\.svc-index ul'\)[\s\S]{0,400}focusin[\s\S]{0,200}scrollIntoView", js):
         out.append("js/site.js: Services index chip row no longer scrolls the focused chip into view")
+    return out + check_logo_travel_js(js)
+
+
+LOGO_TRAVEL_GUARD = re.compile(
+    r"if\s*\(\s*document\.querySelector\(\s*(['\"])\.hero \[data-hero-logo\]\1\s*\)\s*\)\s*initLogoTravel\(\s*\)")
+
+
+def check_logo_travel_js(js, label="js/site.js"):
+    """initLogoTravel() is defined once, honours reduced motion, and is called exactly once, guarded by
+    the Home hero logo: if (document.querySelector('.hero [data-hero-logo]')) initLogoTravel();"""
+    js = re.sub(r"/\*.*?\*/|(?<![:'\"\\])//[^\n]*", "", js, flags=re.S)
+    out = []
+    defs = re.findall(r"function\s+initLogoTravel\s*\(", js)
+    if len(defs) != 1:
+        out.append(f"{label}: expected one 'function initLogoTravel()', found {len(defs)}")
+    else:
+        body = js[js.index(re.search(r"function\s+initLogoTravel\s*\(", js).group(0)):]
+        if not re.search(r"matchMedia\(\s*(['\"])\(prefers-reduced-motion: reduce\)\1\s*\)", body[:4000]):
+            out.append(f"{label}: initLogoTravel must check matchMedia('(prefers-reduced-motion: reduce)')")
+    calls = [m for m in re.finditer(r"(?<!function )(?<![\w.])initLogoTravel\s*\(\s*\)", js)]
+    guarded = LOGO_TRAVEL_GUARD.findall(js)
+    if len(calls) != 1 or len(guarded) != 1:
+        out.append(f"{label}: initLogoTravel() must be called once, only when '.hero [data-hero-logo]' exists "
+                   f"({len(calls)} call(s), {len(guarded)} guarded)")
     return out
 
 
@@ -634,6 +740,8 @@ def main(argv):
         problems += check_front_matter(src)
     if not argv:
         problems += check_links(built_pages()) + check_js() + check_assets()
+        site_css = ROOT / "css" / "site.css"
+        problems += check_fan_present(site_css.read_text(encoding="utf-8"), label_for(site_css))
     for t in targets:
         problems += check_css(t) if t.suffix == ".css" else check_html(t)
     for p in problems:

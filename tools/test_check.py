@@ -255,6 +255,68 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(cm(".cat { animation: none; } .track { animation: ticker 40s linear infinite; }"), [])
         self.assertEqual(check.check_css(check.ROOT / "css" / "site.css"), [])
 
+    # ── Round 2, Task 2: Home hero logo travel and the card fan ──
+    HEAD = ('<header class="site-head"><a class="brandmark" data-logo-slot href="/" aria-label="Crisp home">'
+            '<img src="/assets/logo/Crisp_Logo_FullColour.svg" alt="Crisp"></a></header>')
+    CARD = '<div class="fan-card"><div class="fan-visual"><img src="/assets/clients/x.png" alt=""></div><p>{}</p></div>'
+    LOGO = '<div class="hero-logo-spot"><img data-hero-logo class="hero-logo" src="/assets/logo/Crisp_Logo_FullColour.svg" alt=""></div>'
+
+    def hero(self, logo=None, cards=("HDFC securities", "The Mind Mojo", "NMIMS"), fan_attrs=' aria-hidden="true"'):
+        fan = f'<div class="fan"{fan_attrs}>' + "".join(self.CARD.format(c) for c in cards) + "</div>"
+        return f'<section class="hero"><div class="wrap"><div class="hero-art">{self.LOGO if logo is None else logo}{fan}</div></div></section>'
+
+    def test_hero_logo_slot_and_fan(self):
+        hc = lambda html_, slug="home": check.check_hero(html_, "t", slug)
+        good = self.HEAD + "<main>" + self.hero() + "</main>"
+        self.assertEqual(hc(good), [])
+        # the header slot: on every page, once, inside <header>, the <a href="/"> brandmark
+        self.assertEqual(hc(self.HEAD + "<main></main>", "about"), [])
+        self.bad(hc("<header><a class='brandmark' href='/'><img alt='' src='/a.svg'></a></header>", "about"), "no slot")
+        self.bad(hc('<header></header><main><a data-logo-slot href="/">x</a></main>', "about"), "slot outside header")
+        self.bad(hc('<header><span data-logo-slot></span></header>', "about"), "slot is not the home link")
+        self.bad(hc(self.HEAD + self.HEAD, "about"), "two slots")
+        # the hero logo: Home only, exactly one, an <img> inside .hero
+        self.bad(hc(self.HEAD + "<main>" + self.hero(logo="") + "</main>"), "no hero logo on Home")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(logo=self.LOGO * 2) + "</main>"), "two hero logos")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(logo="") + self.LOGO + "</main>"), "hero logo after the hero")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(logo='<div data-hero-logo></div>') + "</main>"), "hero logo not an img")
+        self.bad(hc(self.HEAD + '<main><section class="hero">' + self.LOGO + "</section></main>", "about"), "hero logo off Home")
+        # the fan: one, decorative, in the hero, three named client cards
+        self.bad(hc(self.HEAD + "<main>" + self.hero(cards=("HDFC securities", "NMIMS")) + "</main>"), "two cards")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(cards=("HDFC securities", "The Mind Mojo", "SAATH")) + "</main>"), "wrong client")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(fan_attrs="") + "</main>"), "fan not aria-hidden")
+        moved = self.hero().replace('<div class="fan"', '</div></div></section><div class="fan"', 1)
+        self.bad(hc(self.HEAD + "<main>" + moved + "</main>"), "fan outside the hero")
+        # the real pages
+        for page in check.built_pages():
+            self.assertEqual(check.check_hero(page.read_text(encoding="utf-8"), page.name, check.page_slug(page)), [], page)
+
+    def test_logo_travel_js(self):
+        lt = check.check_logo_travel_js
+        fn = ("function initLogoTravel() {\n  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');\n}\n")
+        call = "if (document.querySelector('.hero [data-hero-logo]')) initLogoTravel();\n"
+        self.assertEqual(lt(fn + call), [])
+        self.bad(lt(call), "not defined")
+        self.bad(lt(fn), "never called")
+        self.bad(lt(fn + "initLogoTravel();\n"), "called without the hero guard")
+        self.bad(lt(fn + call + "initLogoTravel();\n"), "a second, unguarded call")
+        self.bad(lt(fn + "// " + call), "guard only in a comment")
+        self.bad(lt(fn.replace("reduce)", "no-preference)") + call), "no reduced-motion check")
+        self.assertEqual(check.check_js(), [])
+
+    def test_fan_motion(self):
+        cm = lambda t: check.check_cat_motion(t, "t.css")
+        self.bad(cm(".fan-card { animation: fan-out .7s both; }"), "fan outside media")
+        self.bad(cm("@media (prefers-reduced-motion: reduce) { .fan-card { animation: fan-out .7s; } }"), "fan under reduce")
+        self.bad(cm(".x { animation-name: fan-out; }"), "fan keyframes elsewhere")
+        self.assertEqual(cm("@media (prefers-reduced-motion: no-preference) { .fan-card { animation: fan-out .7s both; } "
+                            "@keyframes fan-out { from { transform: none; } } }"), [])
+        fp = lambda t: check.check_fan_present(t, "t.css")
+        self.bad(fp(".fan-card { transform: rotate(4deg); }"), "no fan animation at all")
+        self.bad(fp(".fan-card { animation: fan-out .7s; }"), "fan animation not under no-preference")
+        self.assertEqual(fp("@media (prefers-reduced-motion: no-preference) { .fan .fan-card { animation: fan-out .7s both; } }"), [])
+        self.assertEqual(fp((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
+
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
 

@@ -37,6 +37,55 @@ if (head) {
   window.addEventListener('scroll', onScroll, { passive: true });
 }
 
+// Home: the big hero logo travels into the navbar logo slot over the first 320px of scroll, then docks.
+// It is one element (position: fixed via html.logo-travel) whose rect is interpolated from its hero spot to
+// the slot's logo: p = clamp(scrollY / 320, 0, 1). The slot's own logo stays hidden (CSS) until p === 1;
+// then html.logo-docked hides the travelling logo and shows the slot's, at the same rect, so there is never
+// a second logo and the navbar link ("Crisp home") is the logo from then on. Reduced motion: nothing moves,
+// the CSS hides the hero logo and the navbar logo shows as on every other page.
+function initLogoTravel() {
+  const logo = document.querySelector('.hero [data-hero-logo]');
+  const slot = document.querySelector('[data-logo-slot] img');
+  if (!logo || !slot) return;
+  const root = document.documentElement;
+  const spot = logo.parentElement;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const DISTANCE = 320;
+  const link = slot.closest('a');
+  let focused = false; // keyboard focus on the navbar link docks the logo, so the focus ring never circles an empty slot
+  const update = () => {
+    if (reduce.matches) {
+      root.classList.remove('logo-travel', 'logo-docked');
+      logo.style.removeProperty('width');
+      logo.style.removeProperty('transform');
+      return;
+    }
+    const a = spot.getBoundingClientRect();
+    const b = slot.getBoundingClientRect();
+    if (!a.width || !b.width) return;
+    const p = Math.min(Math.max(window.scrollY / DISTANCE, 0), 1);
+    const lerp = (from, to) => from + (to - from) * p;
+    logo.style.width = `${a.width}px`;
+    logo.style.transform = `translate(${lerp(a.left, b.left)}px, ${lerp(a.top, b.top)}px) scale(${lerp(a.width, b.width) / a.width})`;
+    logo.style.setProperty('--logo-k', String(1 - p));
+    root.classList.add('logo-travel');
+    root.classList.toggle('logo-docked', p === 1 || focused);
+  };
+  update();
+  link.addEventListener('focus', () => { focused = link.matches(':focus-visible'); update(); });
+  link.addEventListener('blur', () => { focused = false; update(); });
+  // scroll and resize run once per frame before paint, so a reload mid-page paints docked straight away
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  window.addEventListener('load', update);
+  window.addEventListener('pageshow', update);
+  if (reduce.addEventListener) reduce.addEventListener('change', update);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
+  // the web font or a late layout change can move the hero spot without any scroll
+  if ('ResizeObserver' in window) new ResizeObserver(update).observe(spot.closest('.hero'));
+}
+if (document.querySelector('.hero [data-hero-logo]')) initLogoTravel();
+
 // Rolling logos (list repeated so the loop is seamless; CSS pauses it for reduced motion)
 const track = document.getElementById('track');
 if (track) {

@@ -1,6 +1,8 @@
 /* Crisp — components and layout. Every value comes from css/tokens.css (load it first). */
 
 /* ── Base ─────────────────────────────────────────────────── */
+/* The house ease: a soft spring for hover, tap and the one Home load moment */
+:root { --ease: cubic-bezier(.34, 1.56, .64, 1); }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: var(--layout-nav-height); }
 body {
@@ -167,7 +169,7 @@ button.chip:hover { box-shadow: var(--shadow-outline-hover); }
 }
 .icon-chip img { width: calc(var(--space-7) + var(--space-2)); height: calc(var(--space-7) + var(--space-2)); }
 @media (prefers-reduced-motion: no-preference) {
-  .icon-chip img { transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+  .icon-chip img { transition: transform .35s var(--ease); }
   .icon-chip:hover img, :is(a, .tile, .card):hover .icon-chip img, a:focus-visible .icon-chip img { transform: rotate(-10deg) scale(1.06); }
 }
 
@@ -262,22 +264,92 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 .hero-grid { display: grid; gap: var(--space-7); align-items: center; grid-template-columns: minmax(0, 1fr); }
 .hero-copy { display: flex; flex-direction: column; gap: var(--gap-text-actions); }
 .hero-copy .stack { --stack-gap: var(--gap-heading-body); }
+/* Right column: a large grey block holding the big logo above three client cards. Sizes per breakpoint:
+   --logo-w the hero logo, --card-w a fan card, --fan-spread how far the side cards move out, --fan-r their tilt. */
 .hero-art {
-  display: grid; place-items: center; aspect-ratio: 4 / 3;
-  padding: var(--space-7); border-radius: var(--radius-2xl); background: var(--surface);
+  --logo-w: var(--space-10); --card-w: var(--space-10); --fan-spread: var(--space-8); --fan-r: 8deg;
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-6);
+  padding: var(--space-6) var(--space-4) var(--space-7); border-radius: var(--radius-2xl); background: var(--surface);
+  min-width: 0;
 }
-.hero-art img { width: 100%; height: auto; filter: drop-shadow(var(--shadow-logo)); }
-@media (min-width: 600px) and (max-width: 1023px) {
-  .hero-art { aspect-ratio: 16 / 9; }
-  .hero-art img { width: auto; height: 100%; }
+@media (min-width: 600px) {
+  .hero-art { --logo-w: calc(var(--space-10) + var(--space-8)); --card-w: calc(var(--space-10) + var(--space-8)); --fan-spread: var(--space-10); --fan-r: 10deg; padding: var(--space-7); }
 }
 @media (min-width: 1024px) {
   .hero { padding-block: var(--space-8) var(--pad-section); }
   .hero-grid { grid-template-columns: 7fr 5fr; gap: var(--layout-gutter); }
-  .hero-art { aspect-ratio: 1 / 1; padding: var(--space-8); }
+  .hero-art { --logo-w: calc(var(--space-10) + var(--space-8)); --card-w: calc(var(--space-10) + var(--space-4)); --fan-spread: var(--space-8); --fan-r: 8deg; padding: var(--space-7) var(--space-5); }
 }
 @media (min-width: 1200px) {
   .hero-grid { grid-template-columns: 6fr 5fr; gap: var(--space-8); }
+  .hero-art { --logo-w: calc(var(--space-10) * 2); --card-w: calc(var(--space-10) + var(--space-8)); --fan-spread: calc(var(--space-9) + var(--space-4)); --fan-r: 10deg; padding: var(--space-8) var(--space-7); }
+}
+
+/* The hero logo. js initLogoTravel() makes it position: fixed (html.logo-travel) and moves it from this spot
+   into the navbar slot over the first 320px of scroll; at the end (html.logo-docked) the navbar's own logo,
+   the "Crisp home" link, takes over at the same rect. One logo at a time: on Home the slot's logo is hidden
+   until then. No JS or reduced motion: no hero logo, the navbar logo shows as on every other page. */
+.hero-logo-spot { position: relative; flex: none; width: var(--logo-w); aspect-ratio: 120 / 81; }
+.hero-logo {
+  position: absolute; inset: 0; width: 100%; height: 100%; max-width: none;
+  filter: drop-shadow(var(--shadow-logo)); pointer-events: none;
+}
+html.logo-travel .hero-logo {
+  position: fixed; inset: auto; left: 0; top: 0; height: auto; z-index: 60;
+  transform-origin: 0 0; will-change: transform;
+  /* --shadow-logo (0 24px 30px rgba(2, 31, 83, 0.14)) fading out as the logo docks (--logo-k: 1 -> 0) */
+  filter: drop-shadow(0 calc(24px * var(--logo-k, 1)) calc(30px * var(--logo-k, 1)) rgba(2, 31, 83, calc(0.14 * var(--logo-k, 1))));
+}
+html.logo-travel body.nav-open .hero-logo { z-index: 40; } /* the open mobile menu sits above a travelling logo */
+html.logo-docked .hero-logo { visibility: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  body[data-page="home"] [data-logo-slot] img { visibility: hidden; }
+}
+html.logo-docked body[data-page="home"] [data-logo-slot] img { visibility: visible; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-logo-spot { display: none; }
+}
+@media (scripting: none) {
+  .hero-logo-spot { display: none; }
+  body[data-page="home"] [data-logo-slot] img { visibility: visible; }
+}
+
+/* The fan: three client cards share one grid cell, tilted out from the bottom centre (HDFC in front).
+   They fan out once on load from a stacked pile and lift on hover, only when motion is fine. */
+.fan { display: grid; justify-items: center; align-items: end; width: 100%; padding-top: var(--space-4); }
+.fan-card {
+  grid-area: 1 / 1; width: var(--card-w); min-width: 0;
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2);
+  padding: var(--space-3); border-radius: var(--radius-xl); background: var(--surface); box-shadow: var(--shadow-sm);
+  transform-origin: 50% 100%;
+  transform: translateX(var(--fan-x, 0)) translateY(var(--fan-y, 0)) rotate(var(--fan-rot, 0deg));
+}
+.fan-card:nth-child(1) { z-index: 3; }
+.fan-card:nth-child(2) { z-index: 1; --fan-x: calc(-1 * var(--fan-spread)); --fan-y: var(--space-3); --fan-rot: calc(-1 * var(--fan-r)); }
+.fan-card:nth-child(3) { z-index: 2; --fan-x: var(--fan-spread); --fan-y: var(--space-3); --fan-rot: var(--fan-r); }
+.fan-visual {
+  display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3;
+  padding: var(--space-3); border-radius: var(--radius-lg); background: var(--surface-2);
+}
+.fan-visual img { width: auto; height: var(--space-5); max-width: 100%; object-fit: contain; }
+.fan-name { font-size: var(--fs-small); line-height: var(--lh-small); font-weight: 600; padding-inline: var(--space-1); }
+.fan-card .tag { margin-inline-start: var(--space-1); }
+@media (max-width: 599px) {
+  .fan-card .tag { display: none; } /* 128px cards: name only */
+}
+@media (min-width: 600px) {
+  .fan-card { padding: var(--space-4); gap: var(--space-3); }
+  .fan-visual img { height: var(--space-6); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fan-card {
+    animation: fan-out .7s var(--ease) backwards;
+    transition: translate .35s var(--ease), box-shadow .35s var(--ease);
+  }
+  .fan-card:nth-child(2) { animation-delay: .1s; }
+  .fan-card:nth-child(3) { animation-delay: .2s; }
+  .fan-card:hover { translate: 0 calc(-1 * var(--space-3)); box-shadow: var(--shadow-md); }
+  @keyframes fan-out { from { transform: translateY(var(--space-5)) rotate(0deg); } }
 }
 
 .work-grid { display: grid; gap: var(--layout-gutter); grid-template-columns: minmax(0, 1fr); }
@@ -616,7 +688,7 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 
 /* Motion: hover/tap feedback and the loops (blink every few seconds, gentle tail sway) only when motion is fine */
 @media (prefers-reduced-motion: no-preference) {
-  .cat, .cat--body { transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+  .cat, .cat--body { transition: transform .35s var(--ease); }
   .cat:hover { transform: rotate(-8deg); }
   .cat:active { transform: scale(1.06, .9); transition-duration: .12s; }
   .cat-tail { animation: cat-sway 3.2s ease-in-out infinite; }
