@@ -6,6 +6,7 @@ A page file starts with optional front matter, then the <main> body:
     ---
     title: Work — Crisp
     desc: One-sentence description.
+    ogdesc: Social-card description   (optional, defaults to desc)
     robots: noindex        (optional)
     ---
     <main id="main"> ... </main>
@@ -33,7 +34,14 @@ def split_front_matter(text, source):
     if not m:
         raise SystemExit(f"{source}: missing front matter (title, desc)")
     meta = dict(line.split(":", 1) for line in m.group(1).splitlines() if ":" in line)
-    return {k.strip(): v.strip() for k, v in meta.items()}, text[m.end():]
+    return {k.strip(): unquote(v.strip()) for k, v in meta.items()}, text[m.end():]
+
+
+def unquote(value):
+    """Front matter is YAML: a value holding ": " must be double-quoted, so drop the quotes here."""
+    if len(value) >= 2 and value[0] == value[-1] == '"':
+        return value[1:-1].replace('\\"', '"').replace("\\\\", "\\")
+    return value
 
 
 def output_path(slug):
@@ -46,10 +54,13 @@ def output_path(slug):
 
 def render(slug, meta, body):
     _, path = output_path(slug)
-    head = read("head.html").replace("{{title}}", meta["title"]).replace("{{desc}}", meta["desc"])
+    head = read("head.html").replace("{{title}}", meta["title"]).replace("{{ogdesc}}", meta.get("ogdesc", meta["desc"]))
+    head = head.replace("{{desc}}", meta["desc"])
     head = head.replace("{{slug}}", slug).replace("{{path}}", path)
     if meta.get("robots"):  # optional front matter, e.g. "robots: noindex" on the 404 page
         head = head.replace("<meta name=\"description\"", f'<meta name="robots" content="{meta["robots"]}">\n<meta name="description"', 1)
+    if "noindex" in meta.get("robots", ""):  # a page kept out of the index gets no canonical or og:url
+        head = re.sub(r'<link rel="canonical"[^>]*>\n|<meta property="og:url"[^>]*>\n', "", head)
     header = read("header.html")
     for s in NAV_SLUGS:
         header = header.replace("{{cur:%s}}" % s, ' aria-current="page"' if s == slug else "")

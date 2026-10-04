@@ -295,7 +295,7 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 .why-copy .t-h3 { font-weight: 400; max-width: var(--layout-measure); }
 @media (min-width: 1024px) {
   .why-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--layout-gutter); align-items: start; }
-  .why-grid > h2 { grid-column: 1 / span 7; }
+  .why-grid > .section-head { grid-column: 1 / span 7; }
   .why-copy { grid-column: 8 / span 5; padding-top: var(--space-3); }
 }
 
