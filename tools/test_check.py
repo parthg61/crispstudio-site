@@ -70,6 +70,23 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(html('<img src="a.png" alt=""><svg fill="currentColor" stroke="none"></svg><p class="card">x</p>'), [])
         self.assertEqual(html('<svg fill="url(#g)"></svg><a href="#strategy">x</a>'), [])
 
+    def test_focus_outline(self):
+        self.assertEqual(css("a:focus-visible{outline: 2px solid var(--focus); outline-offset: 2px}"), [])
+        self.assertEqual(css("a{outline-width: 2px}"), [])
+        self.bad(css("a{outline: 3px solid var(--focus)}"), "3px outline")
+        self.bad(css("a{outline-width: 2.5px}"), "2.5px outline")
+        self.bad(css("a{border: 2px solid #021F53}"), "2px border still fails")
+
+    def test_page_copy(self):
+        good = "<h1>Design with a crunch!</h1>" + "".join(f"<h2>{s}</h2>" for s in check.PAGE_COPY["home"][1:])
+        self.assertEqual(check.check_copy("home", good, "t"), [])
+        self.bad(check.check_copy("home", "<h1>Design with a crunch!</h1>", "t"), "missing home strings")
+        self.assertEqual(check.check_copy("home", good.replace("we've", "we&#39;ve"), "t"), [])
+        self.assertEqual(check.check_copy("home", good.replace("with a crunch!", 'with <span class="nowrap">a crunch!</span>'), "t"), [])
+
+    def test_home_source_copy(self):
+        self.assertEqual(check.check_sources(), [])
+
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
 

@@ -4,6 +4,7 @@
 Usage: python3 tools/check.py            (checks css/*.css and every built HTML page)
        python3 tools/check.py file ...   (checks only the given .css/.html files)
 """
+import html as htmllib
 import re
 import sys
 from pathlib import Path
@@ -14,6 +15,17 @@ ALLOWED_COLOURS = {c.upper() for c in (
     "#021F53 #FF8A00 #FF6A00 #CC4806 #FECA98 #FD9F0F #FFFFFF "
     "#F4F4F2 #ECECE9 #DEDEDA #E6E6E2 #4A5675 #FFF"
 ).split()}
+# Copy that must appear verbatim on each page (checked in src/pages/<slug>.html and the built page).
+PAGE_COPY = {
+    "home": [
+        "Design with a crunch!",
+        "Good work speaks for itself.",
+        "Brands we've been baking for!",
+        "Strategy. Brand. Product. Build.",
+        "Design that has a job to do.",
+        "Got something worth making?",
+    ],
+}
 ALLOWED_RADII = {"8px", "12px", "16px", "24px", "32px", "50%", "0"}
 
 HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
@@ -164,9 +176,11 @@ def check_style_text(text, label):
         value = strip_colours(m.group(2))
         if re.search(r"(?<![\w-])(thick|medium)(?![\w-])", value, flags=re.I):
             out.append(f"{where}: {m.group(1)} width keyword (thick/medium) is not allowed")
+        # borders max 1.5px; outline max 2px (the orange focus ring)
+        limit = 2 if m.group(1).lower().startswith("outline") else 1.5
         for w, unit in re.findall(r"(\d*\.?\d+)(px|rem|em)", value):
-            if float(w) * (1 if unit == "px" else 16) > 1.5:
-                out.append(f"{where}: {m.group(1)} width {w}{unit} is above 1.5px")
+            if float(w) * (1 if unit == "px" else 16) > limit:
+                out.append(f"{where}: {m.group(1)} width {w}{unit} is above {limit}px")
                 break
 
     return out
@@ -202,10 +216,41 @@ def check_html(path):
             if "reveal" in cls or "squiggle" in cls:
                 out.append(f"{label}:{line_of(text, m.start())}: class '{cls}' is banned (no reveal/squiggle)")
 
+    out += check_copy(page_slug(path), text, label)
+
     for m in re.finditer(r"<img\b[^>]*>", text, flags=re.I):
         if not re.search(r"(?<![\w-])alt\s*=", m.group(0), flags=re.I):
             out.append(f"{label}:{line_of(text, m.start())}: <img> without alt")
 
+    return out
+
+
+def page_slug(path):
+    path = Path(path).resolve()
+    if path == ROOT / "index.html":
+        return "home"
+    if path == ROOT / "404.html":
+        return "404"
+    if path.name == "index.html" and path.parent.parent == ROOT:
+        return path.parent.name
+    return None
+
+
+def check_copy(slug, text, label):
+    """Every required string for the page must appear verbatim (entities decoded)."""
+    plain = htmllib.unescape(re.sub(r"<[^>]+>", "", text)).replace("\u2019", "'")
+    plain = re.sub(r"\s+", " ", plain.replace("\u00a0", " "))
+    return [f"{label}: missing required copy '{s}'" for s in PAGE_COPY.get(slug, []) if s not in plain]
+
+
+def check_sources():
+    out = []
+    for slug in PAGE_COPY:
+        src = ROOT / "src" / "pages" / f"{slug}.html"
+        if not src.exists():
+            out.append(f"src/pages/{slug}.html: missing (required page)")
+            continue
+        out += check_copy(slug, src.read_text(encoding="utf-8"), label_for(src))
     return out
 
 
@@ -220,7 +265,7 @@ def main(argv):
         targets = [Path(a).resolve() for a in argv]
     else:
         targets = sorted((ROOT / "css").glob("*.css")) + built_pages()
-    problems = []
+    problems = check_sources()
     for t in targets:
         problems += check_css(t) if t.suffix == ".css" else check_html(t)
     for p in problems:

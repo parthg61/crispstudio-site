@@ -12,31 +12,32 @@ const LOGOS = [
   { name: 'NMIMS', h: 42, src: '/assets/clients/nmims.png' },
 ];
 
-// Mobile nav
+// Mobile nav: toggle, close on link click and on Escape
 const head = document.querySelector('.site-head');
 const toggle = document.querySelector('.nav-toggle');
 if (toggle) {
-  toggle.addEventListener('click', () => {
-    const open = document.body.classList.toggle('nav-open');
-    toggle.setAttribute('aria-expanded', open);
-  });
-  document.querySelectorAll('.nav a').forEach(a => a.addEventListener('click', () => {
-    document.body.classList.remove('nav-open');
-    toggle.setAttribute('aria-expanded', 'false');
-  }));
+  const setOpen = open => {
+    document.body.classList.toggle('nav-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+  };
+  toggle.addEventListener('click', () => setOpen(!document.body.classList.contains('nav-open')));
+  document.querySelectorAll('.nav a').forEach(a => a.addEventListener('click', () => setOpen(false)));
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && document.body.classList.contains('nav-open')) toggle.click();
+    if (e.key === 'Escape' && document.body.classList.contains('nav-open')) {
+      setOpen(false);
+      toggle.focus();
+    }
   });
 }
 
-// Header border once the page scrolls
+// Header hairline once the page scrolls
 if (head) {
   const onScroll = () => head.classList.toggle('scrolled', window.scrollY > 8);
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
 }
 
-// Rolling logos (list repeated so the loop is seamless)
+// Rolling logos (list repeated so the loop is seamless; CSS pauses it for reduced motion)
 const track = document.getElementById('track');
 if (track) {
   const item = (l, hide) => `<div class="logo"${hide ? ' aria-hidden="true"' : ''}><img src="${l.src}" alt="${hide ? '' : l.name}" style="height:${l.h || 32}px" loading="lazy"></div>`;
@@ -44,7 +45,7 @@ if (track) {
   track.innerHTML = set.map(l => item(l)).join('') + set.map(l => item(l, true)).join('');
 }
 
-// "From the blog" — only shown once at least three posts are live
+// "From the blog": only shown once at least three posts are live
 const blogBlock = document.getElementById('from-the-blog');
 if (blogBlock) {
   fetch('/blog/posts.json')
@@ -53,7 +54,7 @@ if (blogBlock) {
       if (!Array.isArray(posts) || posts.length < 3) return;
       const fmt = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
       const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-      blogBlock.querySelector('.post-grid').innerHTML = posts
+      blogBlock.querySelector('.post-grid').innerHTML = [...posts]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 3)
         .map(p => `<a class="post" href="${esc(p.url)}"><time datetime="${esc(p.date)}">${fmt(p.date)}</time><h3>${esc(p.title)}</h3><p>${esc(p.excerpt || '')}</p></a>`)
@@ -61,197 +62,6 @@ if (blogBlock) {
       blogBlock.hidden = false;
     })
     .catch(() => {});
-}
-
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// Tape bands — words repeated so the scroll loops seamlessly
-document.querySelectorAll('[data-tape]').forEach(t => {
-  const words = t.dataset.tape.split(',');
-  const one = words.map(w => `<span>${w}</span><svg viewBox="0 0 24 24"><use href="#spark"/></svg>`).join('');
-  t.innerHTML = one.repeat(4) + one.repeat(4);
-});
-
-// Why Crisp — cycle the job word and light up the matching pill
-const cycle = document.getElementById('cycle');
-const jobs = document.querySelectorAll('#jobs li');
-if (cycle && !reduceMotion) {
-  const words = [...cycle.children];
-  let i = 0;
-  const fit = () => (cycle.style.width = words[i].getBoundingClientRect().width + 'px');
-  fit();
-  window.addEventListener('resize', fit);
-  document.fonts && document.fonts.ready.then(fit);
-  setInterval(() => {
-    const prev = words[i];
-    i = (i + 1) % words.length;
-    prev.classList.remove('on');
-    prev.classList.add('out');
-    setTimeout(() => prev.classList.remove('out'), 600);
-    words[i].classList.add('on');
-    fit();
-    jobs.forEach((j, k) => j.classList.toggle('on', k === i));
-  }, 2000);
-}
-
-// Hero video: Remotion intro plays once, then hands off to the preloaded crunch loop.
-// Both clips share the same frame at the seam, so the swap is invisible.
-const crunch = document.getElementById('crunch');
-const assemble = document.getElementById('assemble');
-if (crunch && assemble) {
-  if (reduceMotion) {
-    assemble.removeAttribute('autoplay');
-    assemble.pause();
-    assemble.classList.add('done');
-  } else {
-    let done = false;
-    const handoff = () => {
-      if (done) return;
-      done = true;
-      crunch.currentTime = 0;
-      crunch.play().catch(() => {});
-      assemble.classList.add('done');
-    };
-    // Also catches an intro that finished before this script ran
-    if (assemble.ended) handoff();
-    assemble.addEventListener('ended', handoff);
-    assemble.addEventListener('timeupdate', () => {
-      if (assemble.duration && assemble.currentTime >= assemble.duration - 0.06) handoff();
-    });
-    // Autoplay blocked or media suspended: resume, or skip straight to the loop
-    const resume = () => { if (!done && assemble.paused) assemble.play().catch(handoff); };
-    resume();
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) { resume(); if (done && crunch.paused) crunch.play().catch(() => {}); } });
-  }
-}
-
-// Smooth scroll (board norm) — Lenis, skipped for reduced motion
-if (window.Lenis && !reduceMotion) {
-  const lenis = new Lenis({ duration: 1.1, easing: t => 1 - Math.pow(1 - t, 4) });
-  const raf = time => { lenis.raf(time); requestAnimationFrame(raf); };
-  requestAnimationFrame(raf);
-  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) { e.preventDefault(); lenis.scrollTo(target, { offset: document.querySelector('.subnav') ? -150 : -110 }); }
-  }));
-}
-
-// Services sub-nav — highlight the section in view
-const subLinks = [...document.querySelectorAll('.subnav-list a')];
-if (subLinks.length && 'IntersectionObserver' in window) {
-  const byId = Object.fromEntries(subLinks.map(a => [a.getAttribute('href').slice(1), a]));
-  const spy = new IntersectionObserver(entries => entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    subLinks.forEach(a => a.classList.remove('active'));
-    const a = byId[e.target.id];
-    if (a) {
-      a.classList.add('active');
-      const list = a.parentElement.parentElement;
-      list.scrollTo({ left: a.offsetLeft - (list.clientWidth - a.offsetWidth) / 2, behavior: 'smooth' });
-    }
-  }), { rootMargin: '-45% 0px -50% 0px' });
-  Object.keys(byId).forEach(id => { const el = document.getElementById(id); if (el) spy.observe(el); });
-}
-
-// Work filter — show strips that include the chosen service
-const filters = document.querySelectorAll('.filter');
-if (filters.length) {
-  const strips = [...document.querySelectorAll('.strip')];
-  const count = document.getElementById('work-count');
-  filters.forEach(btn => btn.addEventListener('click', () => {
-    const f = btn.dataset.filter;
-    filters.forEach(b => { const on = b === btn; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
-    let shown = 0;
-    strips.forEach(s => {
-      const show = f === 'all' || s.dataset.services.split(' ').includes(f);
-      s.classList.toggle('is-hidden', !show);
-      if (show) { shown++; s.classList.add('in'); }
-    });
-    if (count) count.textContent = String(shown).padStart(2, '0');
-  }));
-}
-
-// Blog index — render posts.json, hide the empty state once there is something to show
-const blogList = document.getElementById('blog-list');
-if (blogList) {
-  fetch('/blog/posts.json')
-    .then(r => (r.ok ? r.json() : []))
-    .then(posts => {
-      if (!Array.isArray(posts) || !posts.length) return;
-      const fmt = d => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-      const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-      blogList.innerHTML = [...posts]
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .map(p => `<a class="post" href="${esc(p.url)}"><time datetime="${esc(p.date)}">${fmt(p.date)}</time><h3>${esc(p.title)}</h3><p>${esc(p.excerpt || '')}</p></a>`)
-        .join('');
-      document.getElementById('blog-empty').hidden = true;
-    })
-    .catch(() => {});
-}
-
-// Contact form — validate, then post to data-endpoint (or fall back to a pre-filled email)
-const form = document.getElementById('contact-form');
-if (form) {
-  const setErr = (el, msg) => {
-    const box = el.closest('.field');
-    const out = box.querySelector('.err');
-    out.textContent = msg || '';
-    out.hidden = !msg;
-    box.querySelectorAll('input:not([type=checkbox]),textarea').forEach(i => i.setAttribute('aria-invalid', !!msg));
-  };
-  const check = () => {
-    const f = form.elements;
-    let bad = null;
-    const rules = [
-      [f.name, !f.name.value.trim(), 'Tell us your name.'],
-      [f.email, !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim()), 'Add a valid work email.'],
-      [document.getElementById('f-needs'), !form.querySelector('[name=need]:checked'), 'Pick at least one.'],
-      [f.message, !f.message.value.trim(), 'Tell us a bit about it.'],
-    ];
-    rules.forEach(([el, fail, msg]) => { setErr(el, fail ? msg : ''); if (fail && !bad) bad = el; });
-    return bad;
-  };
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const bad = check();
-    if (bad) { (bad.id === 'f-needs' ? bad.querySelector('input') : bad).focus(); return; }
-    const d = new FormData(form);
-    if (d.get('website')) return; // honeypot
-    const needs = d.getAll('need').join(', ');
-    const note = document.getElementById('form-note');
-    const btn = form.querySelector('button[type=submit]');
-    const done = () => { form.hidden = true; document.getElementById('form-done').hidden = false; };
-    const endpoint = form.dataset.endpoint;
-    if (!endpoint) {
-      const body = `Name: ${d.get('name')}\nEmail: ${d.get('email')}\nCompany: ${d.get('company') || '-'}\nNeeds: ${needs}\n\n${d.get('message')}`;
-      location.href = `mailto:team@crispstudio.in?subject=${encodeURIComponent('Hello from ' + d.get('name'))}&body=${encodeURIComponent(body)}`;
-      note.textContent = 'Your email app should open. If it doesn\'t, write to team@crispstudio.in.';
-      note.hidden = false;
-      return;
-    }
-    btn.disabled = true;
-    try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: (d.set('need', needs), d) });
-      if (!res.ok) throw new Error();
-      done();
-    } catch {
-      btn.disabled = false;
-      note.textContent = 'That didn\'t go through. Try again, or write to team@crispstudio.in.';
-      note.hidden = false;
-    }
-  });
-  form.addEventListener('input', e => { const f = e.target.closest('.field'); if (f) { const o = f.querySelector('.err'); if (o && !o.hidden) setErr(e.target, ''); } });
-}
-
-// Reveal on scroll
-const reveals = document.querySelectorAll('.reveal');
-if ('IntersectionObserver' in window) {
-  const io = new IntersectionObserver(entries => entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-  }), { rootMargin: '0px 0px -8% 0px' });
-  reveals.forEach(el => io.observe(el));
-} else {
-  reveals.forEach(el => el.classList.add('in'));
 }
 
 // Footer year
