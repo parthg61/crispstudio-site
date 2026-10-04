@@ -5,7 +5,9 @@ ogdesc: "Brands and digital products designed with a clear purpose. Strategy, br
 ---
 <main id="main">
 
-  <!-- Hero -->
+  <!-- Hero. The inline line marks JS as on before the hero paints (site.js is deferred and adds it again):
+       html:not(.js) is the no-JS fallback (navbar logo only, no hero logo). -->
+  <script>document.documentElement.classList.add('js');</script>
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap hero-grid">
       <div class="hero-copy">
@@ -19,7 +21,7 @@ ogdesc: "Brands and digital products designed with a clear purpose. Strategy, br
       <!-- Right column: the big logo (it travels into the navbar slot on scroll, js initLogoTravel) above
            three client cards that fan out once on load. Decorative: "Selected work" below has the real links. -->
       <div class="hero-art">
-        <div class="hero-logo-spot"><img data-hero-logo class="hero-logo" src="/assets/logo/Crisp_Logo_FullColour.svg" alt="" width="120" height="81"></div>
+        <div class="hero-logo-spot"><span class="hero-logo"><img data-hero-logo src="/assets/logo/Crisp_Logo_FullColour.svg" alt="" width="120" height="81"></span></div>
         <div class="fan" aria-hidden="true">
           <div class="fan-card">
             <div class="fan-visual"><img src="/assets/clients/hdfc-securities.png" alt="" width="572" height="96"></div>

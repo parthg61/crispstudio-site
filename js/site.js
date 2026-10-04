@@ -38,17 +38,20 @@ if (head) {
 }
 
 // Home: the big hero logo travels into the navbar logo slot over the first 320px of scroll, then docks.
-// It is one element (position: fixed via html.logo-travel) whose rect is interpolated from its hero spot to
-// the slot's logo: p = clamp(scrollY / 320, 0, 1). The slot's own logo stays hidden (CSS) until p === 1;
-// then html.logo-docked hides the travelling logo and shows the slot's, at the same rect, so there is never
-// a second logo and the navbar link ("Crisp home") is the logo from then on. Reduced motion: nothing moves,
-// the CSS hides the hero logo and the navbar logo shows as on every other page.
+// One box (.hero-logo, holding the <img data-hero-logo>; position: fixed via html.logo-travel) whose rect is
+// interpolated from its hero spot to the slot's logo: p = clamp(scrollY / 320, 0, 1), eased out (1 - (1 - p)^2)
+// so the logo slows into the slot and the hand-over at p === 1 is seamless. The slot's own logo stays hidden
+// (CSS) until p === 1; then html.logo-docked hides the travelling logo and shows the slot's at the same rect,
+// so there is never a second logo and the navbar link ("Crisp home") is the logo from then on. Its
+// --shadow-logo layer fades with --logo-k = 1 - p. Reduced motion: nothing moves, the CSS hides the hero logo
+// and the navbar logo shows as on every other page.
 function initLogoTravel() {
   const logo = document.querySelector('.hero [data-hero-logo]');
   const slot = document.querySelector('[data-logo-slot] img');
   if (!logo || !slot) return;
   const root = document.documentElement;
-  const spot = logo.parentElement;
+  const box = logo.parentElement; // .hero-logo: the image plus its shadow layer
+  const spot = box.parentElement; // .hero-logo-spot: holds the hero size and place in the layout
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   const DISTANCE = 320;
   const link = slot.closest('a');
@@ -56,18 +59,19 @@ function initLogoTravel() {
   const update = () => {
     if (reduce.matches) {
       root.classList.remove('logo-travel', 'logo-docked');
-      logo.style.removeProperty('width');
-      logo.style.removeProperty('transform');
+      ['width', 'height', 'transform', '--logo-k'].forEach(prop => box.style.removeProperty(prop));
       return;
     }
     const a = spot.getBoundingClientRect();
     const b = slot.getBoundingClientRect();
     if (!a.width || !b.width) return;
     const p = Math.min(Math.max(window.scrollY / DISTANCE, 0), 1);
-    const lerp = (from, to) => from + (to - from) * p;
-    logo.style.width = `${a.width}px`;
-    logo.style.transform = `translate(${lerp(a.left, b.left)}px, ${lerp(a.top, b.top)}px) scale(${lerp(a.width, b.width) / a.width})`;
-    logo.style.setProperty('--logo-k', String(1 - p));
+    const e = 1 - (1 - p) * (1 - p);
+    const lerp = (from, to) => from + (to - from) * e;
+    box.style.width = `${a.width}px`;
+    box.style.height = `${a.height}px`;
+    box.style.transform = `translate(${lerp(a.left, b.left)}px, ${lerp(a.top, b.top)}px) scale(${lerp(a.width, b.width) / a.width}, ${lerp(a.height, b.height) / a.height})`;
+    box.style.setProperty('--logo-k', String(1 - p));
     root.classList.add('logo-travel');
     root.classList.toggle('logo-docked', p === 1 || focused);
   };

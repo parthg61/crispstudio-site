@@ -249,6 +249,16 @@ def check_style_text(text, label):
             kind = "hard offset " if hard else ""
             out.append(f"{where}: {kind}box-shadow '{layer}' is not one of the design-system shadow tokens")
 
+    # filter: drop-shadow() takes a shadow token only (the logo uses --shadow-logo); no literal shadow numbers
+    for m in re.finditer(r"(?<![\w-])drop-shadow\(", text, flags=re.I):
+        depth, j = 1, m.end()
+        while j < len(text) and depth:
+            depth += {"(": 1, ")": -1}.get(text[j], 0)
+            j += 1
+        arg = text[m.end():j - 1].strip()
+        if not re.fullmatch(r"var\(--shadow-[\w-]+\)", arg):
+            out.append(f"{label}:{line_of(text, m.start())}: drop-shadow({arg}) is not a design-system shadow token (use var(--shadow-*))")
+
     for m in BORDER.finditer(text):
         where = f"{label}:{line_of(text, m.start())}"
         value = strip_colours(m.group(2))

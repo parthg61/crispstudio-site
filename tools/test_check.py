@@ -54,6 +54,16 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(css("a{box-shadow: 0 14px 30px -18px rgba(2, 31, 83, 0.30)}"), [])
         self.assertEqual(css("a{box-shadow: none}"), [])
 
+    def test_drop_shadow(self):
+        for v in ("filter: drop-shadow(0 24px 30px rgba(2, 31, 83, 0.14))",
+                  "filter: drop-shadow(0 calc(24px * var(--k)) calc(30px * var(--k)) rgba(2, 31, 83, calc(0.14 * var(--k))))",
+                  "filter: drop-shadow(var(--shadow-logo)) drop-shadow(0 1px 2px #021F53)",
+                  "filter: drop-shadow(var(--x))", "-webkit-filter: drop-shadow(4px 4px 0 #021F53)"):
+            self.bad(css(f"a{{{v}}}"), v)
+        self.assertEqual(css("a{filter: drop-shadow(var(--shadow-logo))}"), [])
+        self.assertEqual(css("a{filter: drop-shadow( var(--shadow-logo) ); transition: filter .2s}"), [])
+        self.assertEqual(check.check_css(check.ROOT / "css" / "site.css"), [])
+
     def test_radius(self):
         self.bad(css("a{border-radius: var(--a) 999px}"), "var plus 999px")
         self.bad(css("a{border-radius: 999px}"), "pill")

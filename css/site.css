@@ -285,20 +285,23 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
   .hero-art { --logo-w: calc(var(--space-10) * 2); --card-w: calc(var(--space-10) + var(--space-8)); --fan-spread: calc(var(--space-9) + var(--space-4)); --fan-r: 10deg; padding: var(--space-8) var(--space-7); }
 }
 
-/* The hero logo. js initLogoTravel() makes it position: fixed (html.logo-travel) and moves it from this spot
-   into the navbar slot over the first 320px of scroll; at the end (html.logo-docked) the navbar's own logo,
-   the "Crisp home" link, takes over at the same rect. One logo at a time: on Home the slot's logo is hidden
-   until then. No JS or reduced motion: no hero logo, the navbar logo shows as on every other page. */
+/* The hero logo. js initLogoTravel() makes the .hero-logo box position: fixed (html.logo-travel) and moves it
+   from this spot into the navbar slot over the first 320px of scroll; at the end (html.logo-docked) the navbar's
+   own logo, the "Crisp home" link, takes over at the same rect. One logo at a time: on Home the slot's logo is
+   hidden until then. No JS (html:not(.js)) or reduced motion: no hero logo, the navbar logo shows as on every
+   other page. The --shadow-logo drop-shadow sits on a ::before copy of the same file under the <img>; JS fades
+   that layer (--logo-k: 1 -> 0) as the logo docks, so the shadow goes without any shadow values of our own. */
 .hero-logo-spot { position: relative; flex: none; width: var(--logo-w); aspect-ratio: 120 / 81; }
-.hero-logo {
-  position: absolute; inset: 0; width: 100%; height: 100%; max-width: none;
-  filter: drop-shadow(var(--shadow-logo)); pointer-events: none;
+.hero-logo { position: absolute; inset: 0; pointer-events: none; }
+.hero-logo::before {
+  content: ""; position: absolute; inset: 0;
+  background: url("/assets/logo/Crisp_Logo_FullColour.svg") center / 100% 100% no-repeat;
+  filter: drop-shadow(var(--shadow-logo)); opacity: var(--logo-k, 1);
 }
+.hero-logo img { position: relative; width: 100%; height: 100%; max-width: none; }
 html.logo-travel .hero-logo {
-  position: fixed; inset: auto; left: 0; top: 0; height: auto; z-index: 60;
+  position: fixed; inset: auto; left: 0; top: 0; z-index: 60; /* width and height set by js */
   transform-origin: 0 0; will-change: transform;
-  /* --shadow-logo (0 24px 30px rgba(2, 31, 83, 0.14)) fading out as the logo docks (--logo-k: 1 -> 0) */
-  filter: drop-shadow(0 calc(24px * var(--logo-k, 1)) calc(30px * var(--logo-k, 1)) rgba(2, 31, 83, calc(0.14 * var(--logo-k, 1))));
 }
 html.logo-travel body.nav-open .hero-logo { z-index: 40; } /* the open mobile menu sits above a travelling logo */
 html.logo-docked .hero-logo { visibility: hidden; }
@@ -309,10 +312,8 @@ html.logo-docked body[data-page="home"] [data-logo-slot] img { visibility: visib
 @media (prefers-reduced-motion: reduce) {
   .hero-logo-spot { display: none; }
 }
-@media (scripting: none) {
-  .hero-logo-spot { display: none; }
-  body[data-page="home"] [data-logo-slot] img { visibility: visible; }
-}
+html:not(.js) .hero-logo-spot { display: none; }
+html:not(.js) body[data-page="home"] [data-logo-slot] img { visibility: visible; }
 
 /* The fan: three client cards share one grid cell, tilted out from the bottom centre (HDFC in front).
    They fan out once on load from a stacked pile and lift on hover, only when motion is fine. */
