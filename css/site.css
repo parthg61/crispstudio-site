@@ -62,6 +62,14 @@ h3, .t-h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: 
   letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--text-muted);
 }
 .nowrap { white-space: nowrap; }
+/* .t-fit: one step down the type scale where a long headline would otherwise end on a lone word
+   (Display XL -> Display below 1024px; H1 -> H2 below 600px). Sizes stay on tokens. */
+@media (max-width: 1023px) {
+  .t-display-xl.t-fit { font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); }
+}
+@media (max-width: 599px) {
+  .t-h1.t-fit { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); }
+}
 p { max-width: var(--layout-measure); }
 
 /* ── Layout ───────────────────────────────────────────────── */
@@ -429,6 +437,11 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
   .case-body { grid-column: 8 / span 5; padding: var(--space-2) 0; }
   .case-num { margin-bottom: auto; } /* number sits top, name/tags/line sit at the foot of the tile */
 }
+@media (min-width: 1024px) and (max-width: 1199px) {
+  /* 6/6 split so long client names ("HDB Financial Services") stay on one line */
+  .case-visual { grid-column: 1 / span 6; }
+  .case-body { grid-column: 7 / span 6; }
+}
 
 /* The Pandora's Box: lock panel inside the closing card */
 .vault {
@@ -485,7 +498,6 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 .contact-grid { display: grid; grid-template-columns: minmax(0, 1fr); }
 .contact-main { display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; }
 @media (min-width: 1024px) {
-  .nowrap-lg { white-space: nowrap; }
   .contact-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--layout-gutter); }
   .contact-main { grid-column: 1 / span 8; }
 }
