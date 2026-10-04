@@ -35,8 +35,16 @@ button { font: inherit; color: inherit; }
 .skip:focus { top: var(--space-4); }
 
 /* Inline text links: burnt orange only here */
-.link, .prose a { color: var(--link); text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+/* Inline text links. Burnt (--link) passes 4.5:1 on white only (4.67:1); on grey surfaces
+   (--surface 4.24:1, --surface-2 3.95:1) it fails, so any grey block resets --link-ink to navy
+   and links there change only their underline on hover. New grey blocks: add them to the
+   surface list below or put .on-surface on the container. */
+.link, .prose a {
+  color: var(--link-ink, var(--link));
+  text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1px;
+}
 .link:hover, .prose a:hover { text-decoration-thickness: 1.5px; }
+.on-surface, .card, .tile, .post, .hero-art, .closer-card, .table-wrap { --link-ink: var(--text); }
 
 /* ── Type ─────────────────────────────────────────────────── */
 h1, h2, h3, .t-display-xl, .t-display, .t-h1, .t-h2, .t-h3, .t-title { font-weight: 600; text-wrap: balance; }
