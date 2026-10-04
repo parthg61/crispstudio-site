@@ -151,6 +151,15 @@ if (form) {
   form.addEventListener('change', clear);
 }
 
+// Services index chip row (under 1024px): Chrome leaves a partly hidden chip unscrolled on Tab focus,
+// so bring the focused chip (and its ring) fully into the row
+const svcRow = document.querySelector('.svc-index ul');
+if (svcRow) {
+  svcRow.addEventListener('focusin', e => {
+    if (svcRow.scrollWidth > svcRow.clientWidth) e.target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
+}
+
 // Services index: mark the section currently in view (links work without this)
 const svcLinks = [...document.querySelectorAll('.svc-index a')];
 if (svcLinks.length && 'IntersectionObserver' in window) {

@@ -370,6 +370,7 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 .svc-index ul {
   list-style: none; display: flex; gap: var(--space-2);
   overflow-x: auto; padding: var(--space-2) var(--layout-margin); scrollbar-width: none; /* room for the focus ring */
+  scroll-padding-inline: var(--layout-margin); /* a chip scrolled into view keeps the margin, so its ring shows */
 }
 .svc-index ul::-webkit-scrollbar { display: none; }
 .svc-index a {
