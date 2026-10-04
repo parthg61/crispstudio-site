@@ -348,7 +348,9 @@ def norm_text(s):
 
 
 def check_pause_button(els, target, what, label):
-    """target needs an id and data-pausable; one <button data-pause aria-pressed aria-controls=id> reads Pause."""
+    """target needs an id and data-pausable; one <button type="button" data-pause aria-controls=id> whose visible
+    label (the first words of its text) is Pause or Play. No aria-pressed: the label itself is the state, so a
+    screen reader never hears "Play, pressed" and the visible label stays the start of the accessible name."""
     out = []
     tid = target["attrs"].get("id")
     if "data-pausable" not in target["attrs"] or not tid:
@@ -360,10 +362,10 @@ def check_pause_button(els, target, what, label):
     for b in btns:
         if b["tag"] != "button" or b["attrs"].get("type") != "button":
             out.append(f"{label}:{b['line']}: the {what} pause control must be a <button type=\"button\">")
-        if b["attrs"].get("aria-pressed") not in ("true", "false"):
-            out.append(f"{label}:{b['line']}: the {what} pause button needs aria-pressed")
-        if not re.search(r"\b(Pause|Play)\b", b["text"]):
-            out.append(f"{label}:{b['line']}: the {what} pause button must be labelled Pause/Play")
+        if "aria-pressed" in b["attrs"]:
+            out.append(f"{label}:{b['line']}: the {what} pause button must not use aria-pressed (its Pause/Play label is the state)")
+        if not re.match(r"(Pause|Play)\b", norm_text(b["text"])):
+            out.append(f"{label}:{b['line']}: the {what} pause button's text must start with Pause/Play")
     return out
 
 
@@ -425,6 +427,7 @@ def check_home_sections(text, label):
             out.append(f"{label}:{w['line']}: .why-statement must keep '{WHY_SENTENCE}' readable (outside aria-hidden)")
         if len(cycles) != 1 or not any(a.get("aria-hidden") == "true" for _, _, a in cycles[0]["ancestors"] + [(0, 0, cycles[0]["attrs"])]):
             out.append(f"{label}:{w['line']}: .why-statement needs one aria-hidden .cycle of the job words")
+        out += check_pause_button(els, w, "Why job-word cycle", label)
         for c in cycles:
             words = [norm_text(e["text"]).rstrip(".") for e in els if e["tag"] == "span" and any(a is c["attrs"] for _, _, a in e["ancestors"][-1:])]
             if words != JOB_WORDS:
@@ -658,29 +661,45 @@ def check_strips_css(text, label):
             out.append(f"{label}: no .{name} scroll animation inside @media (prefers-reduced-motion: no-preference)")
     if not any(".is-paused" in sel and re.search(r"animation-play-state\s*:\s*paused", body) for sel, body, _ in rules):
         out.append(f"{label}: no '.is-paused ... {{ animation-play-state: paused }}' rule for the pause buttons")
+    # a :hover pause would stick after a tap on touch and override an explicit Play: the button is the only control
+    for sel, body, _ in rules:
+        if ":hover" in sel and re.search(r"animation-play-state\s*:\s*paused", body):
+            out.append(f"{label}: '{sel}' pauses a strip on :hover; only the Pause/Play button may pause it")
+    # the 1.04 work-card zoom is for cards that are links only, so plain cards never look clickable
+    for sel, body, _ in rules:
+        if re.search(r"scale\(\s*1\.04\s*\)", body):
+            for part in split_top(sel):
+                if re.search(r"(?<![\w-])\.card(?![\w-])", part) and not re.search(r"(?<![\w-])a\.card(?![\w-])", part):
+                    out.append(f"{label}: '{part.strip()}' zooms a card that may not be a link; use a.card")
     return out
 
 
 def check_pausables_js(js, label="js/site.js"):
-    """initPausables() is defined once and called once; it flips aria-pressed, the Pause/Play label and the
-    .is-paused class on the [data-pausable] element its [data-pause] button controls. The Why job-word cycle
-    checks reduced motion before it starts."""
+    """initPausables() is defined once and called once; it flips the Pause/Play label and the .is-paused class on
+    the [data-pausable] element its [data-pause] button controls, and never uses aria-pressed. The Why job-word
+    cycle checks reduced motion and stops while its statement .is-paused."""
     js = re.sub(r"/\*.*?\*/|(?<![:'\"\\])//[^\n]*", "", js, flags=re.S)
     out = []
     m = re.search(r"function\s+initPausables\s*\(", js)
     if len(re.findall(r"function\s+initPausables\s*\(", js)) != 1:
         return [f"{label}: expected one 'function initPausables()'"]
     body = js[m.start():m.start() + 2500]
-    for need, why in ((r"\[data-pause\]", "find [data-pause] buttons"), (r"aria-pressed", "set aria-pressed"),
+    body = body[:body.find("\n}\n") + 3] if "\n}\n" in body else body
+    for need, why in ((r"\[data-pause\]", "find [data-pause] buttons"),
                       (r"'Pause'|\"Pause\"", "label the button Pause"), (r"'Play'|\"Play\"", "label the button Play"),
                       (r"is-paused", "toggle .is-paused"), (r"data-pausable|dataset\.pausable", "only control [data-pausable]")):
         if not re.search(need, body):
             out.append(f"{label}: initPausables must {why}")
+    if "aria-pressed" in body:
+        out.append(f"{label}: initPausables must not set aria-pressed (the Pause/Play label is the state)")
     if len(re.findall(r"(?<!function )(?<![\w.])initPausables\s*\(\s*\)", js)) != 1:
         out.append(f"{label}: initPausables() must be called once")
     cyc = re.search(r"\.cycle", js)
-    if not cyc or not re.search(r"prefers-reduced-motion: reduce", js[max(0, cyc.start() - 600):cyc.start() + 1500]):
+    near = js[cyc.start():cyc.start() + 2500] if cyc else ""
+    if not re.search(r"prefers-reduced-motion: reduce", near):
         out.append(f"{label}: the Why job-word .cycle must check matchMedia('(prefers-reduced-motion: reduce)')")
+    if not re.search(r"is-paused", near):
+        out.append(f"{label}: the Why job-word .cycle must stop while its statement is .is-paused (its Pause button)")
     return out
 
 

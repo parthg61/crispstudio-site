@@ -368,8 +368,9 @@ html:not(.js) body[data-page="home"] [data-logo-slot] img { visibility: visible;
 .work-grid .card > p { color: var(--text-muted); }
 .work-grid h3 { font-size: var(--fs-title); line-height: var(--lh-title); }
 
-/* Work cards: on hover (and keyboard focus on the linked card) the visual zooms to 1.04; a linked card also
-   shows the orange arrow circle (.card-go, navy arrow on orange). The zoom moves only when motion is fine. */
+/* Work cards that are links (a.card): on hover and keyboard focus the visual zooms to 1.04 and the orange arrow
+   circle (.card-go, navy arrow on orange) appears. Plain <article> cards stay still, so they never look clickable.
+   The zoom moves only when motion is fine. */
 .card-visual { position: relative; }
 .card-go {
   position: absolute; top: var(--space-3); right: var(--space-3); z-index: 1;
@@ -381,8 +382,8 @@ html:not(.js) body[data-page="home"] [data-logo-slot] img { visibility: visible;
 a:hover > .card-go, a:hover > .card-visual > .card-go, a:focus-visible > .card-go, a:focus-visible > .card-visual > .card-go { opacity: 1; }
 @media (hover: none) { .card-go { opacity: 1; } } /* touch: no hover, so the arrow always shows on links */
 @media (prefers-reduced-motion: no-preference) {
-  .work-grid .card-visual { transition: transform .35s var(--ease); }
-  .work-grid .card:hover .card-visual, .work-grid a.card:focus-visible .card-visual { transform: scale(1.04); }
+  .work-grid a.card .card-visual { transition: transform .35s var(--ease); }
+  .work-grid a.card:hover .card-visual, .work-grid a.card:focus-visible .card-visual { transform: scale(1.04); }
   .card-go { transform: scale(.6) rotate(-45deg); transition: opacity .2s ease, transform .35s var(--ease); }
   a:hover > .card-go, a:hover > .card-visual > .card-go, a:focus-visible > .card-go, a:focus-visible > .card-visual > .card-go { transform: none; }
 }
@@ -398,8 +399,8 @@ a:hover > .card-go, a:hover > .card-visual > .card-go, a:focus-visible > .card-g
 }
 .strip-pause { gap: var(--space-2); }
 .strip-pause svg { width: var(--space-4); height: var(--space-4); }
-.strip-pause .i-play, .strip-pause[aria-pressed="true"] .i-pause { display: none; }
-.strip-pause[aria-pressed="true"] .i-play { display: block; }
+.strip-pause .i-play, .strip-pause[data-paused] .i-pause { display: none; } /* js sets data-paused with the Play label */
+.strip-pause[data-paused] .i-play { display: block; }
 html:not(.js) .strip-pause { display: none; }
 @media (prefers-reduced-motion: reduce) { .strip-pause { display: none; } }
 
@@ -435,7 +436,7 @@ html:not(.js) .strip-pause { display: none; }
   html.js .marquee-set { flex: none; flex-wrap: nowrap; }
   html.js .marquee-set li { white-space: nowrap; }
   html.js .marquee-set[aria-hidden="true"] { display: flex; }
-  html.js .ticker {
+  html.js .ticker { /* an alpha mask that fades the logos out at the edges, not a colour gradient wash */
     -webkit-mask-image: linear-gradient(90deg, transparent, white var(--space-8), white calc(100% - var(--space-8)), transparent);
     mask-image: linear-gradient(90deg, transparent, white var(--space-8), white calc(100% - var(--space-8)), transparent);
   }
@@ -445,7 +446,7 @@ html:not(.js) .strip-pause { display: none; }
   @keyframes marquee-scroll { to { transform: translateX(-50%); } }
   @keyframes ticker-scroll { to { transform: translateX(calc(-50% - var(--space-9) / 2)); } }
 }
-.marquee:hover .marquee-track, .ticker:hover .track,
+/* The button is the only control: no :hover pause (it sticks after a tap on touch and would override Play). */
 [data-pausable].is-paused .marquee-track, [data-pausable].is-paused .track { animation-play-state: paused; }
 
 /* What we do: narrow heading column left, bento right (from 1200px); a 2-column bento from 600px (Strategy
@@ -495,6 +496,7 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
 .why-big .why-static { white-space: normal; }
 .why-crunch { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--text-muted); }
 .why-js, .why-statement .cycle { display: none; }
+.why-bar { display: flex; margin-top: calc(-1 * var(--space-5)); } /* sits close under the statement it controls */
 .why-statement.is-cycling .why-big { font-size: var(--fs-display-xl); line-height: var(--lh-display-xl); letter-spacing: var(--ls-display-xl); }
 .why-statement.is-cycling .why-js { display: inline; }
 .why-statement.is-cycling .why-static {
@@ -512,7 +514,7 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
   .wrap.why-layout { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-7) var(--layout-gutter); align-items: end; }
   .why-head { grid-column: 1 / span 5; }
   .why-not { grid-column: 7 / span 6; }
-  .why-statement { grid-column: 1 / -1; }
+  .why-statement, .why-bar { grid-column: 1 / -1; }
 }
 
 .post-grid { display: grid; gap: var(--layout-gutter); grid-template-columns: minmax(0, 1fr); }

@@ -137,7 +137,7 @@
         <ul class="marquee-set" aria-hidden="true"><li>Strategy &amp; Research</li><li>Branding</li><li>Product Design</li><li>Build</li></ul>
       </div>
     </div>
-    <div class="wrap strip-bar"><button class="btn btn--secondary btn--sm strip-pause" type="button" data-pause aria-pressed="false" aria-controls="svc-marquee"><svg class="i-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="i-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3.2v9.6a.8.8 0 0 0 1.2.7l7.6-4.8a.8.8 0 0 0 0-1.4L5.7 2.5a.8.8 0 0 0-1.2.7z"/></svg><span data-pause-label>Pause</span><span class="sr-only"> services strip</span></button></div>
+    <div class="wrap strip-bar"><button class="btn btn--secondary btn--sm strip-pause" type="button" data-pause aria-controls="svc-marquee"><svg class="i-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="i-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3.2v9.6a.8.8 0 0 0 1.2.7l7.6-4.8a.8.8 0 0 0 0-1.4L5.7 2.5a.8.8 0 0 0-1.2.7z"/></svg><span data-pause-label>Pause</span><span class="sr-only"> services strip</span></button></div>
   </section>
 
   <!-- Brands -->
@@ -145,7 +145,7 @@
     <div class="wrap">
       <div class="strip-head">
         <h2 class="t-h3" id="brands-title">Brands we've been baking for!</h2>
-        <button class="btn btn--secondary btn--sm strip-pause" type="button" data-pause aria-pressed="false" aria-controls="client-ticker"><svg class="i-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="i-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3.2v9.6a.8.8 0 0 0 1.2.7l7.6-4.8a.8.8 0 0 0 0-1.4L5.7 2.5a.8.8 0 0 0-1.2.7z"/></svg><span data-pause-label>Pause</span><span class="sr-only"> client logos</span></button>
+        <button class="btn btn--secondary btn--sm strip-pause" type="button" data-pause aria-controls="client-ticker"><svg class="i-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="i-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3.2v9.6a.8.8 0 0 0 1.2.7l7.6-4.8a.8.8 0 0 0 0-1.4L5.7 2.5a.8.8 0 0 0-1.2.7z"/></svg><span data-pause-label>Pause</span><span class="sr-only"> client logos</span></button>
       </div>
       <div class="ticker" id="client-ticker" data-pausable><div class="track" id="track"></div></div>
     </div>
@@ -205,7 +205,8 @@
 
   <!-- Why Crisp: one very large statement. Screen readers (and no JS / reduced motion) get the original sentence
        (.why-static); with motion, js adds .is-cycling: the static tail is visually hidden and the aria-hidden
-       job word swaps in place (opacity and a small shift only, no highlight). -->
+       job word swaps in place (opacity and a small shift only, no highlight). Its Pause/Play button
+       (initPausables) stops the swap on the word shown; no JS or reduced motion: nothing cycles, no button. -->
   <section class="section section--lg" aria-labelledby="why-title">
     <div class="wrap why-layout">
       <div class="section-head why-head">
@@ -213,11 +214,12 @@
         <h2 class="t-h1" id="why-title">Design that has a job to do.</h2>
       </div>
       <p class="t-h2 why-not">A pretty interface isn't enough. A clever logo isn't enough.</p>
-      <p class="why-statement">
+      <p class="why-statement" id="why-statement" data-pausable>
         <span class="why-big">Everything we make has a <span class="nowrap">job<span class="why-static">, to clarify, engage, convert, simplify or move someone to act.</span><span class="why-js" aria-hidden="true">, to</span></span>
           <span class="cycle" aria-hidden="true"><span class="on">clarify.</span><span>engage.</span><span>convert.</span><span>simplify.</span><span>move someone to act.</span></span></span>
         <span class="why-crunch">That's the crunch.</span>
       </p>
+      <div class="why-bar"><button class="btn btn--secondary btn--sm strip-pause" type="button" data-pause aria-controls="why-statement"><svg class="i-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="i-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3.2v9.6a.8.8 0 0 0 1.2.7l7.6-4.8a.8.8 0 0 0 0-1.4L5.7 2.5a.8.8 0 0 0-1.2.7z"/></svg><span data-pause-label>Pause</span><span class="sr-only"> changing job words</span></button></div>
     </div>
   </section>
 
