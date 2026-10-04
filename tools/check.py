@@ -281,7 +281,7 @@ def label_for(path):
 def check_css(path):
     path = Path(path)
     text = path.read_text(encoding="utf-8")
-    return check_style_text(text, label_for(path)) + check_cat_motion(text, label_for(path))
+    return check_style_text(text, label_for(path)) + check_cat_motion(text, label_for(path)) + check_all_motion(text, label_for(path))
 
 
 def check_html(path):
@@ -317,7 +317,118 @@ def check_html(path):
     out += check_images(text, label, page_slug(path))
     if page_slug(path) is not None:
         out += check_hero(text, label, page_slug(path))
+    if page_slug(path) == "home":
+        out += check_home_sections(text, label)
 
+    return out
+
+
+# Round 2, Task 3: Home "What we do" bento, the services marquee, the client ticker and the Why statement
+BENTO_TILES = {  # anchor -> (official icon file, service tags)
+    "/services/#strategy": ("Crisp_Icon_Strategy.svg", ("UX Audits", "User Research", "Journey Mapping", "Usability Testing")),
+    "/services/#branding": ("Crisp_Icon_Branding.svg", ("Positioning", "Visual Identity", "Guidelines", "Brand Architecture")),
+    "/services/#product": ("Crisp_Icon_UIUX.svg", ("UX & UI", "AI Experience", "Design Systems", "Prototyping")),
+    "/services/#build": ("Crisp_Icon_DesignToCode.svg", ("Front-end", "Web Development", "Framer")),
+}
+MARQUEE_NAMES = ["Strategy & Research", "Branding", "Product Design", "Build"]
+JOB_WORDS = ["clarify", "engage", "convert", "simplify", "move someone to act"]
+WHY_SENTENCE = "Everything we make has a job, to clarify, engage, convert, simplify or move someone to act."
+
+
+def classes(el):
+    return el["attrs"].get("class", "").split()
+
+
+def inside(el, parent):
+    return any(a is parent["attrs"] for _, _, a in el["ancestors"])
+
+
+def norm_text(s):
+    return re.sub(r"\s+", " ", s.replace(" ", " ")).strip()
+
+
+def check_pause_button(els, target, what, label):
+    """target needs an id and data-pausable; one <button data-pause aria-pressed aria-controls=id> reads Pause."""
+    out = []
+    tid = target["attrs"].get("id")
+    if "data-pausable" not in target["attrs"] or not tid:
+        out.append(f"{label}:{target['line']}: the {what} needs data-pausable and an id (its pause button points at it)")
+        return out
+    btns = [e for e in els if "data-pause" in e["attrs"] and e["attrs"].get("aria-controls") == tid]
+    if len(btns) != 1:
+        out.append(f"{label}:{target['line']}: the {what} needs one [data-pause] button with aria-controls=\"{tid}\", found {len(btns)}")
+    for b in btns:
+        if b["tag"] != "button" or b["attrs"].get("type") != "button":
+            out.append(f"{label}:{b['line']}: the {what} pause control must be a <button type=\"button\">")
+        if b["attrs"].get("aria-pressed") not in ("true", "false"):
+            out.append(f"{label}:{b['line']}: the {what} pause button needs aria-pressed")
+        if not re.search(r"\b(Pause|Play)\b", b["text"]):
+            out.append(f"{label}:{b['line']}: the {what} pause button must be labelled Pause/Play")
+    return out
+
+
+def check_home_sections(text, label):
+    """Home: (1) four .bento tiles linking to the four Services anchors, each with its official icon in an
+    .icon-chip and its service tags; (2) one .marquee listing exactly the four service names (copies after the
+    first set aria-hidden) with a pause button; (3) the client ticker (#track) is pausable too; (4) .why-statement
+    carries the full Why sentence for screen readers and an aria-hidden .cycle of the five job words."""
+    out = []
+    els = tag_contexts(text)
+    bentos = [e for e in els if "bento" in classes(e)]
+    if len(bentos) != 1:
+        out.append(f"{label}: Home needs one .bento grid for What we do, found {len(bentos)}")
+    for bento in bentos:
+        links = [e for e in els if e["tag"] == "a" and inside(e, bento)]
+        hrefs = [e["attrs"].get("href") for e in links]
+        if sorted(hrefs) != sorted(BENTO_TILES):
+            out.append(f"{label}:{bento['line']}: .bento tiles must link to {list(BENTO_TILES)}, found {hrefs}")
+        for a in links:
+            icon, tags = BENTO_TILES.get(a["attrs"].get("href"), (None, ()))
+            if icon is None:
+                continue
+            imgs = [e for e in els if e["tag"] == "img" and inside(e, a) and in_class(e, "icon-chip")]
+            if not any(e["attrs"].get("src", "").endswith("/assets/icons/" + icon) for e in imgs):
+                out.append(f"{label}:{a['line']}: tile {a['attrs']['href']} needs the official {icon} in an .icon-chip")
+            tag_texts = [norm_text(e["text"]) for e in els if inside(e, a) and "tag" in classes(e)]
+            missing = [t for t in tags if t not in tag_texts]
+            if missing:
+                out.append(f"{label}:{a['line']}: tile {a['attrs']['href']} lost its tags {missing}")
+    marquees = [e for e in els if "marquee" in classes(e)]
+    if len(marquees) != 1:
+        out.append(f"{label}: Home needs one services .marquee, found {len(marquees)}")
+    for mq in marquees:
+        sets = [e for e in els if e["tag"] == "ul" and inside(e, mq)]
+        live = [s for s in sets if s["attrs"].get("aria-hidden") != "true"]
+        if len(live) != 1 or len(sets) < 2:
+            out.append(f"{label}:{mq['line']}: .marquee needs one readable <ul> of names plus aria-hidden copies for the loop")
+        for s in sets:
+            names = [norm_text(e["text"]) for e in els if e["tag"] == "li" and inside(e, s)]
+            if names != MARQUEE_NAMES:
+                out.append(f"{label}:{s['line']}: .marquee names must be exactly {MARQUEE_NAMES}, found {names}")
+        out += check_pause_button(els, mq, "services marquee", label)
+    tracks = [e for e in els if e["attrs"].get("id") == "track"]
+    if len(tracks) != 1:
+        out.append(f"{label}: Home needs the client logo ticker (#track)")
+    for tr in tracks:
+        hosts = [e for e in els if "data-pausable" in e["attrs"] and inside(tr, e)]
+        if not hosts:
+            out.append(f"{label}:{tr['line']}: the client logo ticker needs a [data-pausable] wrapper with a pause button")
+        for h in hosts:
+            out += check_pause_button(els, h, "client logo ticker", label)
+    whys = [e for e in els if "why-statement" in classes(e)]
+    if len(whys) != 1:
+        out.append(f"{label}: Home needs one .why-statement, found {len(whys)}")
+    for w in whys:
+        cycles = [e for e in els if "cycle" in classes(e) and inside(e, w)]
+        spoken = w["spoken"]
+        if WHY_SENTENCE not in norm_text(spoken):
+            out.append(f"{label}:{w['line']}: .why-statement must keep '{WHY_SENTENCE}' readable (outside aria-hidden)")
+        if len(cycles) != 1 or not any(a.get("aria-hidden") == "true" for _, _, a in cycles[0]["ancestors"] + [(0, 0, cycles[0]["attrs"])]):
+            out.append(f"{label}:{w['line']}: .why-statement needs one aria-hidden .cycle of the job words")
+        for c in cycles:
+            words = [norm_text(e["text"]).rstrip(".") for e in els if e["tag"] == "span" and any(a is c["attrs"] for _, _, a in e["ancestors"][-1:])]
+            if words != JOB_WORDS:
+                out.append(f"{label}:{c['line']}: .cycle job words must be {JOB_WORDS}, found {words}")
     return out
 
 
@@ -329,7 +440,8 @@ VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link",
 
 def tag_contexts(text):
     """Every start tag as a dict: line, tag, attrs, ancestors ((tag, classes, attrs) tuples) and text
-    (the element's own text content, gathered until it closes; empty for void tags)."""
+    (the element's own text content, gathered until it closes; empty for void tags) and spoken (the same text
+    minus anything inside an aria-hidden="true" descendant: what a screen reader gets)."""
     from html.parser import HTMLParser
 
     class P(HTMLParser):
@@ -339,7 +451,7 @@ def tag_contexts(text):
 
         def handle_starttag(self, tag, attrs):
             a = {k: (v or "") for k, v in attrs}
-            el = {"line": self.getpos()[0], "tag": tag, "attrs": a, "ancestors": list(self.stack), "text": ""}
+            el = {"line": self.getpos()[0], "tag": tag, "attrs": a, "ancestors": list(self.stack), "text": "", "spoken": ""}
             self.els.append(el)
             if tag not in VOID_TAGS:
                 self.stack.append((tag, a.get("class", "").split(), a))
@@ -351,8 +463,11 @@ def tag_contexts(text):
                 self.handle_endtag(tag)
 
         def handle_data(self, data):
-            for el in self.open:
+            hidden = [k for k, el in enumerate(self.open) if el["attrs"].get("aria-hidden") == "true"]
+            for k, el in enumerate(self.open):
                 el["text"] += data
+                if not any(h > k for h in hidden):  # "spoken": text outside aria-hidden descendants
+                    el["spoken"] += data
 
         def handle_endtag(self, tag):
             for i in range(len(self.stack) - 1, -1, -1):
@@ -510,6 +625,62 @@ def check_cat_motion(text, label):
     for name, what in (("cat", "cat"), ("fan", "hero card fan")):
         out += [f"{label}: {what} animation on '{sel}' is not inside @media (prefers-reduced-motion: no-preference)"
                 for sel, safe in motion_rules(text, name) if not safe]
+    return out
+
+
+NO_PREF = re.compile(r"prefers-reduced-motion\s*:\s*no-preference", re.I)
+
+
+def check_all_motion(text, label):
+    """Everything that moves on its own (marquee, ticker, and any other animation) runs only under
+    @media (prefers-reduced-motion: no-preference): every animation declaration and every @keyframes."""
+    out = []
+    for sel, body, ats in css_rules(text):
+        kf = [i for i, a in enumerate(ats) if a.lower().startswith("@keyframes")]
+        if kf:
+            if not any(NO_PREF.search(a) for a in ats[:kf[0]]):
+                out.append(f"{label}: {ats[kf[0]]} is not inside @media (prefers-reduced-motion: no-preference)")
+            continue
+        anim = re.search(r"(?<![\w-])animation(?:-name)?\s*:\s*([^;}]+)", body, flags=re.I)
+        if anim and not re.fullmatch(r"\s*none\s*(!important)?\s*", anim.group(1)) and not any(NO_PREF.search(a) for a in ats):
+            out.append(f"{label}: animation on '{sel}' is not inside @media (prefers-reduced-motion: no-preference)")
+    return sorted(set(out), key=out.index)
+
+
+def check_strips_css(text, label):
+    """The services .marquee and the client .track scroll only under no-preference, and a paused strip
+    ([data-pausable].is-paused) really stops its animation (animation-play-state: paused)."""
+    out = []
+    rules = list(css_rules(text))
+    for name in ("marquee", "track"):
+        if not any(re.search(rf"\.{name}(?![\w])|\.{name}-", sel) and NO_PREF.search(" ".join(ats))
+                   and re.search(r"(?<![\w-])animation\s*:\s*(?!none)", body) for sel, body, ats in rules):
+            out.append(f"{label}: no .{name} scroll animation inside @media (prefers-reduced-motion: no-preference)")
+    if not any(".is-paused" in sel and re.search(r"animation-play-state\s*:\s*paused", body) for sel, body, _ in rules):
+        out.append(f"{label}: no '.is-paused ... {{ animation-play-state: paused }}' rule for the pause buttons")
+    return out
+
+
+def check_pausables_js(js, label="js/site.js"):
+    """initPausables() is defined once and called once; it flips aria-pressed, the Pause/Play label and the
+    .is-paused class on the [data-pausable] element its [data-pause] button controls. The Why job-word cycle
+    checks reduced motion before it starts."""
+    js = re.sub(r"/\*.*?\*/|(?<![:'\"\\])//[^\n]*", "", js, flags=re.S)
+    out = []
+    m = re.search(r"function\s+initPausables\s*\(", js)
+    if len(re.findall(r"function\s+initPausables\s*\(", js)) != 1:
+        return [f"{label}: expected one 'function initPausables()'"]
+    body = js[m.start():m.start() + 2500]
+    for need, why in ((r"\[data-pause\]", "find [data-pause] buttons"), (r"aria-pressed", "set aria-pressed"),
+                      (r"'Pause'|\"Pause\"", "label the button Pause"), (r"'Play'|\"Play\"", "label the button Play"),
+                      (r"is-paused", "toggle .is-paused"), (r"data-pausable|dataset\.pausable", "only control [data-pausable]")):
+        if not re.search(need, body):
+            out.append(f"{label}: initPausables must {why}")
+    if len(re.findall(r"(?<!function )(?<![\w.])initPausables\s*\(\s*\)", js)) != 1:
+        out.append(f"{label}: initPausables() must be called once")
+    cyc = re.search(r"\.cycle", js)
+    if not cyc or not re.search(r"prefers-reduced-motion: reduce", js[max(0, cyc.start() - 600):cyc.start() + 1500]):
+        out.append(f"{label}: the Why job-word .cycle must check matchMedia('(prefers-reduced-motion: reduce)')")
     return out
 
 
@@ -729,7 +900,7 @@ def check_js():
     # Tab focus on a half-hidden Services index chip must scroll the chip row (Chrome does not on its own)
     if not re.search(r"\.svc-index ul'\)[\s\S]{0,400}focusin[\s\S]{0,200}scrollIntoView", js):
         out.append("js/site.js: Services index chip row no longer scrolls the focused chip into view")
-    return out + check_logo_travel_js(js)
+    return out + check_logo_travel_js(js) + check_pausables_js(js)
 
 
 LOGO_TRAVEL_GUARD = re.compile(
@@ -775,6 +946,7 @@ def main(argv):
         site_css = ROOT / "css" / "site.css"
         problems += check_fan_present(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_mobile_hero_order(site_css.read_text(encoding="utf-8"), label_for(site_css))
+        problems += check_strips_css(site_css.read_text(encoding="utf-8"), label_for(site_css))
     for t in targets:
         problems += check_css(t) if t.suffix == ".css" else check_html(t)
     for p in problems:

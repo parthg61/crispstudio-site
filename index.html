@@ -112,6 +112,7 @@
         </article>
         <a class="card" href="/contact/">
           <div class="card-visual">
+            <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2"/></svg>
           </div>
           <div class="card-body">
@@ -126,49 +127,69 @@
     </div>
   </section>
 
+  <!-- Services marquee: the four services at Display size, the official curl between, scrolling slowly. The second
+       set is an aria-hidden copy so the loop is seamless; js initPausables() wires the Pause/Play button.
+       Reduced motion or no JS: a static wrapped list and no button. -->
+  <section class="svc-band" aria-label="Services">
+    <div class="marquee" id="svc-marquee" data-pausable>
+      <div class="marquee-track">
+        <ul class="marquee-set"><li>Strategy &amp; Research</li><li>Branding</li><li>Product Design</li><li>Build</li></ul>
+        <ul class="marquee-set" aria-hidden="true"><li>Strategy &amp; Research</li><li>Branding</li><li>Product Design</li><li>Build</li></ul>
+      </div>
+    </div>
+    <div class="wrap strip-bar"><button class="btn btn--secondary btn--sm strip-pause" type="button" data-pause aria-pressed="false" aria-controls="svc-marquee"><svg class="i-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="i-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3.2v9.6a.8.8 0 0 0 1.2.7l7.6-4.8a.8.8 0 0 0 0-1.4L5.7 2.5a.8.8 0 0 0-1.2.7z"/></svg><span data-pause-label>Pause</span><span class="sr-only"> services strip</span></button></div>
+  </section>
+
   <!-- Brands -->
   <section class="brands" aria-labelledby="brands-title">
     <div class="wrap">
-      <h2 class="t-h3" id="brands-title">Brands we've been baking for!</h2>
-      <div class="marquee"><div class="track" id="track"></div></div>
+      <div class="strip-head">
+        <h2 class="t-h3" id="brands-title">Brands we've been baking for!</h2>
+        <button class="btn btn--secondary btn--sm strip-pause" type="button" data-pause aria-pressed="false" aria-controls="client-ticker"><svg class="i-pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg><svg class="i-play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 3.2v9.6a.8.8 0 0 0 1.2.7l7.6-4.8a.8.8 0 0 0 0-1.4L5.7 2.5a.8.8 0 0 0-1.2.7z"/></svg><span data-pause-label>Pause</span><span class="sr-only"> client logos</span></button>
+      </div>
+      <div class="ticker" id="client-ticker" data-pausable><div class="track" id="track"></div></div>
     </div>
   </section>
 
-  <!-- What we do -->
-  <section class="section" aria-labelledby="do-title">
-    <div class="wrap">
-      <div class="section-head">
+  <!-- What we do: a bento of the four services (Strategy tall, Branding and Product small, Build wide) -->
+  <section class="section section--lg" aria-labelledby="do-title">
+    <div class="wrap do-layout">
+      <div class="section-head do-head">
         <p class="label">What we do</p>
         <h2 class="t-h1" id="do-title">Strategy. Brand. Product. Build.</h2>
         <p class="t-lead t-muted">From finding what needs fixing to shipping what comes next.</p>
       </div>
-      <div class="do-grid">
-        <a class="tile" href="/services/#strategy">
-          <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.6-4.6M8 10.5h5M10.5 8v5"/></svg>
+      <div class="bento">
+        <a class="tile bento-tile bento-tile--tall" href="/services/#strategy">
+          <span class="icon-chip" aria-hidden="true"><img src="/assets/icons/Crisp_Icon_Strategy.svg" alt="" width="56" height="56"></span>
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
           <div class="tile-text">
             <h3>Strategy &amp; Research</h3>
             <p>Find the problem before designing the solution.</p>
             <div class="tags"><span class="tag">UX Audits</span><span class="tag">User Research</span><span class="tag">Journey Mapping</span><span class="tag">Usability Testing</span></div>
           </div>
         </a>
-        <a class="tile" href="/services/#branding">
-          <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 9l8 12 8-12z"/><path d="M4 9h16M12 3v18"/></svg>
+        <a class="tile bento-tile bento-tile--small" href="/services/#branding">
+          <span class="icon-chip" aria-hidden="true"><img src="/assets/icons/Crisp_Icon_Branding.svg" alt="" width="56" height="56"></span>
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
           <div class="tile-text">
             <h3>Branding</h3>
             <p>Give your brand a clear point of view.</p>
             <div class="tags"><span class="tag">Positioning</span><span class="tag">Visual Identity</span><span class="tag">Guidelines</span><span class="tag">Brand Architecture</span></div>
           </div>
         </a>
-        <a class="tile" href="/services/#product">
-          <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11"/></svg>
+        <a class="tile bento-tile bento-tile--small" href="/services/#product">
+          <span class="icon-chip" aria-hidden="true"><img src="/assets/icons/Crisp_Icon_UIUX.svg" alt="" width="56" height="56"></span>
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
           <div class="tile-text">
             <h3>Product Design</h3>
             <p>Products people actually want to use.</p>
             <div class="tags"><span class="tag">UX &amp; UI</span><span class="tag">AI Experience</span><span class="tag">Design Systems</span><span class="tag">Prototyping</span></div>
           </div>
         </a>
-        <a class="tile" href="/services/#build">
-          <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></svg>
+        <a class="tile bento-tile bento-tile--wide" href="/services/#build">
+          <span class="icon-chip" aria-hidden="true"><img src="/assets/icons/Crisp_Icon_DesignToCode.svg" alt="" width="56" height="56"></span>
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
           <div class="tile-text">
             <h3>Build</h3>
             <p>Designed here. Built here.</p>
@@ -176,25 +197,27 @@
           </div>
         </a>
       </div>
-      <div class="section-foot">
+      <div class="section-foot do-foot">
         <a class="btn btn--secondary" href="/services/">All services</a>
       </div>
     </div>
   </section>
 
-  <!-- Why Crisp -->
-  <section class="section" aria-labelledby="why-title">
-    <div class="wrap">
-      <div class="why-grid">
-        <div class="section-head">
-          <p class="label">Why Crisp</p>
-          <h2 class="t-display" id="why-title">Design that has a job to do.</h2>
-        </div>
-        <div class="why-copy">
-          <p class="t-h3">A pretty interface isn't enough. A clever logo isn't enough.</p>
-          <p class="t-lead t-muted">Everything we make has a job, to clarify, engage, convert, simplify or move someone to act. That's the crunch.</p>
-        </div>
+  <!-- Why Crisp: one very large statement. Screen readers (and no JS / reduced motion) get the original sentence
+       (.why-static); with motion, js adds .is-cycling: the static tail is visually hidden and the aria-hidden
+       job word swaps in place (opacity and a small shift only, no highlight). -->
+  <section class="section section--lg" aria-labelledby="why-title">
+    <div class="wrap why-layout">
+      <div class="section-head why-head">
+        <p class="label">Why Crisp</p>
+        <h2 class="t-h1" id="why-title">Design that has a job to do.</h2>
       </div>
+      <p class="t-h2 why-not">A pretty interface isn't enough. A clever logo isn't enough.</p>
+      <p class="why-statement">
+        <span class="why-big">Everything we make has a <span class="nowrap">job<span class="why-static">, to clarify, engage, convert, simplify or move someone to act.</span><span class="why-js" aria-hidden="true">, to</span></span>
+          <span class="cycle" aria-hidden="true"><span class="on">clarify.</span><span>engage.</span><span>convert.</span><span>simplify.</span><span>move someone to act.</span></span></span>
+        <span class="why-crunch">That's the crunch.</span>
+      </p>
     </div>
   </section>
 

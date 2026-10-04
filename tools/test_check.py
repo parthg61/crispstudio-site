@@ -338,6 +338,102 @@ class Bypasses(unittest.TestCase):
         self.bad(mo(good.replace("max-width: 599px", "min-width: 600px")), "wrong breakpoint")
         self.assertEqual(mo((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
+    # ── Round 2, Task 3: bento, marquee, ticker pause, Why statement ──
+    @staticmethod
+    def tile(href, icon, tags):
+        return (f'<a class="tile" href="{href}"><span class="icon-chip" aria-hidden="true"><img src="/assets/icons/{icon}" alt=""></span>'
+                f'<h3>x</h3><div class="tags">' + "".join(f'<span class="tag">{html_lib.escape(t)}</span>' for t in tags) + "</div></a>")
+
+    def home_sections(self, bento=None, marquee=None, ticker=None, why=None):
+        if bento is None:
+            bento = '<div class="bento">' + "".join(self.tile(h, i, t) for h, (i, t) in check.BENTO_TILES.items()) + "</div>"
+        names = "".join(f"<li>{html_lib.escape(n)}</li>" for n in check.MARQUEE_NAMES)
+        if marquee is None:
+            marquee = (f'<div class="marquee" id="mq" data-pausable><div class="marquee-track"><ul>{names}</ul>'
+                       f'<ul aria-hidden="true">{names}</ul></div></div>'
+                       '<button type="button" data-pause aria-pressed="false" aria-controls="mq">Pause</button>')
+        if ticker is None:
+            ticker = ('<div class="ticker" id="tk" data-pausable><div class="track" id="track"></div></div>'
+                      '<button type="button" data-pause aria-pressed="false" aria-controls="tk">Pause</button>')
+        if why is None:
+            why = ('<p class="why-statement">Everything we make has a job<span class="why-static">, to clarify, engage, convert, '
+                   'simplify or move someone to act.</span><span class="why-cycle" aria-hidden="true">, to <span class="cycle">'
+                   + "".join(f"<span>{w}.</span>" for w in check.JOB_WORDS) + "</span></span> That's the crunch.</p>")
+        return "<main>" + marquee + ticker + bento + why + "</main>"
+
+    def test_home_sections(self):
+        hs = lambda t: check.check_home_sections(t, "t")
+        self.assertEqual(hs(self.home_sections()), [])
+        tiles = list(check.BENTO_TILES.items())
+        # bento: four tiles, right anchors, official icons in an .icon-chip, tags kept
+        self.bad(hs(self.home_sections(bento='<div class="do-grid">' + "".join(self.tile(h, i, t) for h, (i, t) in tiles) + "</div>")), "no .bento")
+        self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t) for h, (i, t) in tiles[:3]) + "</div>")), "three tiles")
+        swapped = [(h, (tiles[(k + 1) % 4][1][0], t)) for k, (h, (i, t)) in enumerate(tiles)]
+        self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t) for h, (i, t) in swapped) + "</div>")), "icons swapped")
+        self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t[:-1]) for h, (i, t) in tiles) + "</div>")), "a tag dropped")
+        no_chip = self.home_sections().replace('class="icon-chip"', 'class="icon"')
+        self.bad(hs(no_chip), "icon not in an .icon-chip")
+        # marquee: exactly the four names, a loop copy, a pause button
+        good = self.home_sections()
+        self.bad(hs(good.replace("<li>Build</li>", "<li>Development</li>", 1)), "renamed service")
+        self.bad(hs(good.replace("<li>Build</li>", "", 1)), "three names")
+        self.bad(hs(good.replace('<ul aria-hidden="true">', "<ul>", 1)), "copy not aria-hidden")
+        self.bad(hs(good.replace('aria-controls="mq"', 'aria-controls="nope"')), "no pause button for the marquee")
+        self.bad(hs(good.replace('aria-controls="mq">Pause', 'aria-controls="mq">Stop')), "button not labelled Pause/Play")
+        self.bad(hs(good.replace('aria-pressed="false" aria-controls="mq"', 'aria-controls="mq"')), "no aria-pressed")
+        self.bad(hs(good.replace('<div class="marquee" id="mq" data-pausable>', '<div class="marquee" id="mq">')), "marquee not pausable")
+        self.bad(hs(good.replace('<button type="button" data-pause aria-pressed="false" aria-controls="mq">',
+                                 '<span data-pause aria-pressed="false" aria-controls="mq">', 1)), "pause control not a button")
+        # ticker: needs its own pause button
+        self.bad(hs(good.replace('aria-controls="tk"', 'aria-controls="x"')), "ticker has no pause button")
+        self.bad(hs(good.replace('<div class="ticker" id="tk" data-pausable>', '<div class="ticker">')), "ticker not pausable")
+        # why: full sentence readable, cycle aria-hidden with the five words
+        self.bad(hs(self.home_sections(why="<p>Everything we make has a job.</p>")), "no .why-statement")
+        self.bad(hs(good.replace('<span class="why-static">', '<span class="why-static" aria-hidden="true">')), "sentence hidden from AT")
+        self.bad(hs(good.replace('<span class="why-cycle" aria-hidden="true">', '<span class="why-cycle">')), "cycle not aria-hidden")
+        self.bad(hs(good.replace("<span>convert.</span>", "")), "a job word missing")
+        self.bad(hs(good.replace("simplify or move", "simplify, or move")), "sentence reworded")
+        # the real Home page
+        home = check.ROOT / "index.html"
+        self.assertEqual(hs(home.read_text(encoding="utf-8")), [])
+
+    def test_all_motion_under_no_preference(self):
+        am = lambda t: check.check_all_motion(t, "t.css")
+        self.bad(am(".track { animation: ticker 40s linear infinite; } @keyframes ticker { to { transform: none; } }"), "ticker outside media")
+        self.bad(am("@media (prefers-reduced-motion: no-preference) { .x { animation: a 1s; } } @keyframes a { to { opacity: 0; } }"), "keyframes outside")
+        self.bad(am("@media (min-width: 600px) { .marquee-track { animation: m 60s linear infinite; } }"), "wrong media")
+        self.assertEqual(am("@media (prefers-reduced-motion: no-preference) { .marquee-track { animation: m 60s linear infinite; } "
+                            "@keyframes m { to { transform: translateX(-50%); } } } .x { animation: none; }"), [])
+        self.assertEqual(am("@media (prefers-reduced-motion: no-preference) { @media (min-width: 600px) { .a { animation: m 1s; } } }"), [])
+        sc = lambda t: check.check_strips_css(t, "t.css")
+        good = ("@media (prefers-reduced-motion: no-preference) { html.js .marquee-track { animation: m 60s linear infinite; } "
+                "html.js .track { animation: t 40s linear infinite; } } .is-paused .track { animation-play-state: paused; }")
+        self.assertEqual(sc(good), [])
+        self.bad(sc(good.replace(".is-paused .track", ".paused .track")), "no paused rule")
+        self.bad(sc(good.replace("html.js .marquee-track { animation: m 60s linear infinite; } ", "")), "marquee does not scroll")
+        site_css = check.ROOT / "css" / "site.css"
+        self.assertEqual(am(site_css.read_text(encoding="utf-8")), [])
+        self.assertEqual(sc(site_css.read_text(encoding="utf-8")), [])
+
+    def test_pausables_js(self):
+        pj = check.check_pausables_js
+        fn = ("function initPausables() {\n  document.querySelectorAll('[data-pause]').forEach(btn => {\n"
+              "    const el = document.getElementById(btn.getAttribute('aria-controls'));\n"
+              "    if (!el || !el.hasAttribute('data-pausable')) return;\n"
+              "    btn.addEventListener('click', () => { const p = !el.classList.contains('is-paused');\n"
+              "      el.classList.toggle('is-paused', p); btn.setAttribute('aria-pressed', String(p));\n"
+              "      btn.textContent = p ? 'Play' : 'Pause'; });\n  });\n}\ninitPausables();\n")
+        cyc = "const cycle = document.querySelector('.why-statement .cycle');\nif (cycle && !matchMedia('(prefers-reduced-motion: reduce)').matches) {}\n"
+        self.assertEqual(pj(fn + cyc), [])
+        self.bad(pj(cyc), "not defined")
+        self.bad(pj(fn.replace("initPausables();\n", "") + cyc), "never called")
+        self.bad(pj(fn.replace("aria-pressed", "data-state") + cyc), "no aria-pressed")
+        self.bad(pj(fn.replace("'Play'", "'Go'") + cyc), "no Play label")
+        self.bad(pj(fn.replace("is-paused", "off") + cyc), "no .is-paused")
+        self.bad(pj(fn), "no job-word cycle")
+        self.bad(pj(fn + cyc.replace("reduce", "no-preference")), "cycle ignores reduced motion")
+        self.assertEqual(check.check_js(), [])
+
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
 

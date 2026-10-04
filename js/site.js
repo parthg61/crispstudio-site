@@ -90,12 +90,75 @@ function initLogoTravel() {
 }
 if (document.querySelector('.hero [data-hero-logo]')) initLogoTravel();
 
-// Rolling logos (list repeated so the loop is seamless; CSS pauses it for reduced motion)
+// Rolling logos (list repeated so the loop is seamless; CSS scrolls it only when motion is fine)
 const track = document.getElementById('track');
 if (track) {
   const item = (l, hide) => `<div class="logo"${hide ? ' aria-hidden="true"' : ''}><img src="${l.src}" alt="${hide ? '' : l.name}" style="height:${l.h || 32}px" loading="lazy"></div>`;
   const set = LOGOS.length < 6 ? [...LOGOS, ...LOGOS] : LOGOS;
   track.innerHTML = set.map(l => item(l)).join('') + set.map(l => item(l, true)).join('');
+}
+
+// Pause/Play for anything that scrolls on its own: a <button data-pause aria-controls="id" aria-pressed> stops and
+// restarts the [data-pausable] element with that id. .is-paused sets animation-play-state: paused in CSS, so the
+// animation really stops; aria-pressed and the visible label (Pause / Play) carry the state. A native button, so
+// Space and Enter work. Reduced motion or no JS: the strips do not move and CSS hides the buttons.
+function initPausables() {
+  document.querySelectorAll('[data-pause]').forEach(btn => {
+    const el = document.getElementById(btn.getAttribute('aria-controls') || '');
+    if (!el || !el.hasAttribute('data-pausable')) return;
+    const label = btn.querySelector('[data-pause-label]') || btn;
+    const set = paused => {
+      el.classList.toggle('is-paused', paused);
+      btn.setAttribute('aria-pressed', String(paused));
+      label.textContent = paused ? 'Play' : 'Pause';
+    };
+    set(btn.getAttribute('aria-pressed') === 'true');
+    btn.addEventListener('click', () => set(!el.classList.contains('is-paused')));
+  });
+}
+initPausables();
+
+// Why Crisp: the job word swaps in place (clarify, engage, convert, simplify, move someone to act) every 2.6s
+// while the statement is on screen and not hovered, for two rounds, then rests on the first word. Opacity and a
+// small shift only (CSS). Reduced motion: no .is-cycling, so the full original sentence shows and nothing moves.
+const cycle = document.querySelector('.why-statement .cycle');
+if (cycle) {
+  const statement = cycle.closest('.why-statement');
+  const words = [...cycle.children];
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const ROUNDS = 2;
+  let i = 0, steps = 0, timer = null, seen = false, hovered = false;
+  const show = n => {
+    const prev = words[i];
+    if (n === i) return;
+    prev.classList.remove('on');
+    prev.classList.add('out');
+    setTimeout(() => prev.classList.remove('out'), 700);
+    i = n;
+    words[i].classList.add('on');
+  };
+  const stop = () => { clearInterval(timer); timer = null; };
+  const run = () => {
+    if (timer || reduce.matches || !seen || hovered || steps >= words.length * ROUNDS) return;
+    timer = setInterval(() => {
+      steps++;
+      show((i + 1) % words.length);
+      if (steps >= words.length * ROUNDS) stop();
+    }, 2600);
+  };
+  const mode = () => {
+    statement.classList.toggle('is-cycling', !reduce.matches);
+    if (reduce.matches) { stop(); show(0); } else run();
+  };
+  statement.addEventListener('mouseenter', () => { hovered = true; stop(); });
+  statement.addEventListener('mouseleave', () => { hovered = false; run(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => { seen = e.isIntersecting; seen ? run() : stop(); }, { threshold: 0.4 }).observe(statement);
+  } else {
+    seen = true;
+  }
+  if (reduce.addEventListener) reduce.addEventListener('change', mode);
+  mode();
 }
 
 // "From the blog": only shown once at least three posts are live
