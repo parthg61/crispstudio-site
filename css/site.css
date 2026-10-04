@@ -320,3 +320,78 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
   .closer-card { padding: var(--space-9); }
   .closer-art { width: calc(var(--space-10) * 2); }
 }
+
+/* ── Services ─────────────────────────────────────────────── */
+.page-hero { max-width: calc(var(--layout-measure) + var(--space-10)); }
+.chips { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.bullets--lg { font-size: var(--fs-title); line-height: var(--lh-title); }
+.bullets--lg li::before { margin-top: var(--space-1); }
+
+.svc-layout { display: grid; grid-template-columns: minmax(0, 1fr); }
+.svc-main { display: flex; flex-direction: column; min-width: 0; }
+.svc {
+  display: flex; flex-direction: column; gap: var(--space-7);
+  padding-block: var(--pad-section); border-top: 1px solid var(--border);
+  /* html scroll-padding-top already clears the sticky header; pull the section up a little
+     so its own top padding, not padding + header offset, is the gap above the label */
+  scroll-margin-top: calc(-1 * var(--space-6));
+}
+.svc-head { display: flex; flex-direction: column; gap: var(--gap-heading-body); }
+.svc-head .label { margin-bottom: calc(var(--gap-label-heading) - var(--gap-heading-body)); }
+.svc-block { display: flex; flex-direction: column; gap: var(--space-4); }
+.svc-card { gap: var(--space-4); }
+.svc-card p { color: var(--text); }
+.svc-card .tags { list-style: none; padding-top: var(--space-2); }
+.fit-note { gap: var(--space-3); }
+
+.cap-table thead th:first-child, .cap-table tbody th { width: 34%; }
+.stage-table .stage-num { width: var(--space-7); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.stage-table tbody th { width: 28%; }
+@media (max-width: 599px) {
+  .table-wrap { padding-inline: var(--space-4); }
+  .cap-table thead { display: none; }
+  .cap-table tr, .stage-table tr { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-1); padding-block: var(--space-4); border-bottom: 1px solid var(--surface-3); }
+  .stage-table tr { grid-template-columns: var(--space-7) minmax(0, 1fr); }
+  .stage-table td:last-child { grid-column: 2; }
+  .cap-table tr:last-child, .stage-table tr:last-child { border-bottom: 0; }
+  .cap-table th, .cap-table td, .stage-table th, .stage-table td { width: auto; padding: 0; border: 0; }
+}
+
+/* Index: horizontal chip row under 1024px, sticky column from 1024px */
+.svc-index { margin-inline: calc(-1 * var(--layout-margin)); padding-bottom: var(--space-5); }
+.svc-index ul {
+  list-style: none; display: flex; gap: var(--space-2);
+  overflow-x: auto; padding: var(--space-2) var(--layout-margin); scrollbar-width: none; /* room for the focus ring */
+}
+.svc-index ul::-webkit-scrollbar { display: none; }
+.svc-index a {
+  display: inline-flex; align-items: center; gap: var(--space-2); white-space: nowrap;
+  min-height: var(--size-button-sm); padding: 0 var(--pad-button-sm-x);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-outline);
+  font-size: var(--fs-small); line-height: var(--lh-small); font-weight: 600;
+  transition: box-shadow .15s ease, color .15s ease;
+}
+.svc-index a:hover { box-shadow: var(--shadow-outline-hover); }
+.svc-num { color: var(--text-muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+
+@media (min-width: 1024px) {
+  .svc-layout { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--layout-gutter); align-items: start; }
+  .svc-index {
+    grid-column: 1 / span 3; margin: var(--pad-section) 0 0; padding: 0;
+    position: sticky; top: calc(var(--layout-nav-height) + var(--pad-section) - var(--space-6)); /* lines up with a section label after an anchor jump */
+  }
+  .svc-index ul { flex-direction: column; gap: var(--space-1); overflow: visible; padding: 0; }
+  .svc-index a {
+    display: flex; gap: var(--space-3); min-height: 0; padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md); box-shadow: none; white-space: normal;
+    font-size: var(--fs-body); line-height: var(--lh-body); font-weight: 400; color: var(--text-muted);
+  }
+  .svc-index a:hover { box-shadow: none; color: var(--text); background: var(--surface); }
+  .svc-index a[aria-current="true"] { color: var(--text); font-weight: 600; background: var(--surface); }
+  .svc-index a[aria-current="true"] .svc-num { color: var(--text); }
+  .svc-main { grid-column: 4 / span 9; }
+  .svc:first-child { border-top: 0; }
+}
+@media (min-width: 1200px) {
+  .svc-main { grid-column: 5 / span 8; }
+}

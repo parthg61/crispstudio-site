@@ -64,5 +64,21 @@ if (blogBlock) {
     .catch(() => {});
 }
 
+// Services index: mark the section currently in view (links work without this)
+const svcLinks = [...document.querySelectorAll('.svc-index a')];
+if (svcLinks.length && 'IntersectionObserver' in window) {
+  const byId = new Map(svcLinks.map(a => [a.getAttribute('href').slice(1), a]));
+  const visible = new Set();
+  const mark = () => {
+    const first = [...byId.keys()].find(id => visible.has(id));
+    if (first) svcLinks.forEach(a => (a === byId.get(first) ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
+  };
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
+    mark();
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  byId.forEach((_, id) => { const el = document.getElementById(id); if (el) io.observe(el); });
+}
+
 // Footer year
 document.querySelectorAll('[data-year]').forEach(el => (el.textContent = new Date().getFullYear()));
