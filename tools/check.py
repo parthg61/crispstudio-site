@@ -17,11 +17,61 @@ ALLOWED_COLOURS = {c.upper() for c in (
 ALLOWED_RADII = {"8px", "12px", "16px", "24px", "32px", "50%", "0"}
 
 HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
-FONT_FAMILY = re.compile(r"font-family\s*:\s*([^;}]+)", re.I)
-RADIUS = re.compile(r"border(?:-[a-z]+){0,2}-radius\s*:\s*([^;}]+)", re.I)
-SHADOW = re.compile(r"box-shadow\s*:\s*([^;}]+)", re.I)
-BORDER = re.compile(r"(?<![\w-])border(?:-(?:top|right|bottom|left))?(?:-width)?\s*:\s*([^;}]+)", re.I)
-NUM = r"(-?\d*\.?\d+)(?:px)?"
+FONT_FAMILY = re.compile(r"(?<![\w-])font-family\s*:\s*([^;}]+)", re.I)
+FONT_SHORTHAND = re.compile(r"(?<![\w-])font\s*:\s*([^;}]+)", re.I)
+RADIUS = re.compile(r"(?<![\w-])border(?:-[a-z]+){0,2}-radius\s*:\s*([^;}]+)", re.I)
+SHADOW = re.compile(r"(?<![\w-])box-shadow\s*:\s*([^;}]+)", re.I)
+BORDER = re.compile(
+    r"(?<![\w-])((?:border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?(?:-width)?)"
+    r"|outline(?:-width)?)\s*:\s*([^;}]+)", re.I)
+COLOUR_PROP = re.compile(
+    r"(?<![\w-])(color|background(?:-color|-image)?|border(?:-[a-z]+)*-color|border(?:-[a-z]+)?|outline(?:-color)?|"
+    r"fill|stroke|stop-color|flood-color|text-decoration(?:-color)?|caret-color|accent-color|column-rule(?:-color)?)"
+    r"\s*:\s*([^;}]+)", re.I)
+COLOUR_FUNC = re.compile(r"(?<![\w-])(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(", re.I)
+ALLOWED_RGBA = re.compile(r"rgba\(\s*2\s*,\s*31\s*,\s*83\s*,[^)]*\)", re.I)
+NUM = r"(-?\d*\.?\d+)"
+
+ALLOWED_FAMILIES = {"schibsted grotesk", "system-ui", "-apple-system", "segoe ui", "arial", "sans-serif",
+                    "ui-sans-serif", "inherit", "initial", "unset"}
+ALLOWED_NAMED = {"white", "transparent", "currentcolor", "inherit"}
+NAMED_COLOURS = set("""aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown
+burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray
+darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue
+darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite
+forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory
+khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen
+lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime
+limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue
+mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive
+olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum
+powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue
+slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat whitesmoke yellow
+yellowgreen""".split())
+
+
+def load_shadow_tokens():
+    import json
+    data = json.loads((ROOT / "tools" / "tokens.json").read_text(encoding="utf-8"))
+    return {norm_layer(t["value"]) for t in data["shadow"]["tokens"]}
+
+
+def norm_layer(layer):
+    return re.sub(r"\s*,\s*", ",", re.sub(r"\s+", " ", layer.strip().lower()))
+
+
+def split_top(value, sep=","):
+    """Split on sep outside of parentheses."""
+    parts, depth, cur = [], 0, ""
+    for ch in value:
+        depth += ch == "("
+        depth -= ch == ")"
+        if ch == sep and depth == 0:
+            parts.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    return parts + [cur]
 
 
 def strip_comments(text):
@@ -32,42 +82,91 @@ def line_of(text, pos):
     return text.count("\n", 0, pos) + 1
 
 
+def strip_colours(value):
+    value = re.sub(r"(?:rgba?|hsla?)\([^)]*\)|var\([^)]*\)", " ", value, flags=re.I)
+    return HEX.sub(" ", value)
+
+
+def check_families(value, where):
+    """Every family in a font-family list must be Schibsted, a generic keyword or a --font* token."""
+    out = []
+    for fam in split_top(value):
+        fam = fam.strip().strip("\"'").lower() if not fam.strip().lower().startswith("var(") else fam.strip()
+        fam = re.sub(r"\s*!important$", "", fam)
+        if fam in ALLOWED_FAMILIES or re.fullmatch(r"var\(--font[\w-]*\)", fam, flags=re.I):
+            continue
+        out.append(f"{where}: font family '{fam}' is not Schibsted Grotesk, a generic keyword or a --font token")
+    return out
+
+
+FONT_SIZE_PART = (r"(?:var\([^)]*\)|[\d.]+(?:px|rem|em|%|pt|vw)|(?:xx?-)?(?:small|large)|medium|larger|smaller|xxx-large)"
+                  r"(?:\s*/\s*(?:var\([^)]*\)|[\w.%]+))?")
+FONT_SHORT_RE = re.compile(
+    r"^(?:(?:italic|oblique|normal|bold|bolder|lighter|small-caps|\d{3}|var\(--fw[^)]*\))\s+)*" + FONT_SIZE_PART + r"\s+(.+)$", re.I)
+
+
 def check_style_text(text, label):
     """Rules shared by .css files and inline/<style> CSS in HTML."""
     out = []
     text = strip_comments(text)
+    shadow_tokens = load_shadow_tokens()
 
     for m in HEX.finditer(text):
         if m.group(0).upper() not in ALLOWED_COLOURS:
             out.append(f"{label}:{line_of(text, m.start())}: colour {m.group(0)} is not a design-system colour")
 
+    for m in COLOUR_FUNC.finditer(ALLOWED_RGBA.sub("", text)):
+        out.append(f"{label}: colour function {m.group(1)}() is not allowed (only rgba(2,31,83,*) for shadows)")
+
+    for m in COLOUR_PROP.finditer(text):
+        value = strip_colours(re.sub(r"url\([^)]*\)", " ", m.group(2)))
+        for word in re.findall(r"[a-z]+", value.lower()):
+            if word in NAMED_COLOURS and word not in ALLOWED_NAMED:
+                out.append(f"{label}:{line_of(text, m.start())}: named colour '{word}' in {m.group(1)} is not allowed")
+
     for m in FONT_FAMILY.finditer(text):
-        v = m.group(1)
-        if "schibsted" not in v.lower() and v.strip() not in ("inherit", "initial", "unset") and not v.strip().startswith("var("):
-            out.append(f"{label}:{line_of(text, m.start())}: font-family '{v.strip()}' is not Schibsted Grotesk")
+        out += check_families(m.group(1), f"{label}:{line_of(text, m.start())}")
+
+    for m in FONT_SHORTHAND.finditer(text):
+        v = re.sub(r"\s*!important$", "", m.group(1).strip())
+        where = f"{label}:{line_of(text, m.start())}"
+        if v.lower() in ("inherit", "initial", "unset", "caption", "menu", "status-bar"):
+            continue
+        fm = FONT_SHORT_RE.match(v)
+        if fm:
+            out += check_families(fm.group(1), where)
+        else:
+            out.append(f"{where}: cannot read font shorthand '{v}'; use font-family with tokens")
 
     for m in RADIUS.finditer(text):
-        v = m.group(1).strip()
-        if "var(" in v:
-            continue
-        for part in re.split(r"[\s/]+", re.sub(r"!important", "", v).strip()):
-            if part and part not in ALLOWED_RADII and part not in ("0px",):
-                out.append(f"{label}:{line_of(text, m.start())}: border-radius '{part}' is not an allowed radius")
-        if re.search(r"999", v):
-            out.append(f"{label}:{line_of(text, m.start())}: pill radius (999px) is not allowed")
+        where = f"{label}:{line_of(text, m.start())}"
+        v = re.sub(r"\s*!important$", "", m.group(1).strip())
+        for part in re.findall(r"var\([^)]*\)|[^\s/]+", v):
+            if part in ALLOWED_RADII or part in ("0px", "inherit", "initial", "unset") or re.fullmatch(r"var\(--radius-[\w-]+\)", part):
+                continue
+            out.append(f"{where}: border-radius '{part}' is not an allowed radius")
 
     for m in SHADOW.finditer(text):
-        for layer in re.split(r",(?![^()]*\))", m.group(1)):
-            nums = re.findall(NUM, re.sub(r"rgba?\([^)]*\)", "", layer.replace("inset", "")))
-            if len(nums) >= 3:
-                x, y, blur = float(nums[0]), float(nums[1]), float(nums[2])
-                if (x > 0 or y > 0) and blur == 0:
-                    out.append(f"{label}:{line_of(text, m.start())}: hard offset box-shadow '{layer.strip()}'")
+        where = f"{label}:{line_of(text, m.start())}"
+        for layer in split_top(re.sub(r"\s*!important$", "", m.group(1).strip())):
+            layer = layer.strip()
+            if layer.lower() in ("none", "inherit", "initial", "unset") or re.fullmatch(r"var\(--shadow-[\w-]+\)", layer):
+                continue
+            if norm_layer(layer) in shadow_tokens:
+                continue
+            nums = [float(n) for n in re.findall(NUM, strip_colours(layer.lower().replace("inset", "")))]
+            hard = len(nums) >= 2 and (nums[0] != 0 or nums[1] != 0) and (len(nums) < 3 or nums[2] == 0)
+            kind = "hard offset " if hard else ""
+            out.append(f"{where}: {kind}box-shadow '{layer}' is not one of the design-system shadow tokens")
 
     for m in BORDER.finditer(text):
-        for w in re.findall(r"(\d*\.?\d+)px", m.group(1)):
-            if float(w) > 1.5:
-                out.append(f"{label}:{line_of(text, m.start())}: border width {w}px is above 1.5px")
+        where = f"{label}:{line_of(text, m.start())}"
+        value = strip_colours(m.group(2))
+        if re.search(r"(?<![\w-])(thick|medium)(?![\w-])", value, flags=re.I):
+            out.append(f"{where}: {m.group(1)} width keyword (thick/medium) is not allowed")
+        for w, unit in re.findall(r"(\d*\.?\d+)(px|rem|em)", value):
+            if float(w) * (1 if unit == "px" else 16) > 1.5:
+                out.append(f"{where}: {m.group(1)} width {w}{unit} is above 1.5px")
                 break
 
     return out
@@ -89,17 +188,22 @@ def check_html(path):
     out = []
 
     # inline styles and <style> blocks follow the same rules as CSS files
-    css_bits = re.findall(r"style=\"([^\"]*)\"", text) + re.findall(r"<style[^>]*>(.*?)</style>", text, flags=re.S)
+    css_bits = [m[1] for m in re.findall(r"(?<![\w-])style\s*=\s*([\"'])(.*?)\1", text, flags=re.S)]
+    css_bits += re.findall(r"<style[^>]*>(.*?)</style>", text, flags=re.S)
     for bit in css_bits:
         out += check_style_text(bit, label)
 
-    for m in re.finditer(r"class=\"([^\"]*)\"", text):
-        for cls in m.group(1).split():
+    # colour-bearing attributes (svg fill/stroke etc.) are checked as if they were CSS declarations
+    for m in re.finditer(r"(?<![\w-])(fill|stroke|stop-color|flood-color|color|bgcolor)\s*=\s*([\"'])(.*?)\2", text, flags=re.S):
+        out += check_style_text(f"{m.group(1)}: {re.sub(r'url[(][^)]*[)]', 'none', m.group(3))};", f"{label}:{line_of(text, m.start())}")
+
+    for m in re.finditer(r"(?<![\w-])class\s*=\s*([\"'])(.*?)\1", text, flags=re.S):
+        for cls in m.group(2).split():
             if "reveal" in cls or "squiggle" in cls:
                 out.append(f"{label}:{line_of(text, m.start())}: class '{cls}' is banned (no reveal/squiggle)")
 
     for m in re.finditer(r"<img\b[^>]*>", text, flags=re.I):
-        if not re.search(r"\balt\s*=", m.group(0), flags=re.I):
+        if not re.search(r"(?<![\w-])alt\s*=", m.group(0), flags=re.I):
             out.append(f"{label}:{line_of(text, m.start())}: <img> without alt")
 
     return out
