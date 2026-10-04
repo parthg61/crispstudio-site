@@ -367,6 +367,57 @@ def check_sources():
     return out
 
 
+SITE = "https://crispstudio.in"
+REF_ATTR = re.compile(r"<(\w+)\b[^>]*?\s(href|src|poster)\s*=\s*\"([^\"]*)\"", re.I)
+OG_URL = re.compile(r"<meta\b[^>]*property=\"og:(?:url|image)\"[^>]*content=\"([^\"]*)\"", re.I)
+
+
+def target_file(path):
+    """Site path (/about/, /404.html, /css/site.css) -> file under ROOT."""
+    rel = path.lstrip("/")
+    return ROOT / (rel + "index.html" if rel == "" or rel.endswith("/") else rel)
+
+
+def check_links(pages):
+    """Every internal href/src (and og:url/og:image) on a built page must exist, and #anchors must
+    match an id on the target page. External, mailto: and tel: links are not followed."""
+    out, ids = [], {}
+    def ids_of(f):
+        if f not in ids:
+            ids[f] = set(re.findall(r"(?<![\w-])id\s*=\s*[\"']([^\"']+)[\"']", f.read_text(encoding="utf-8")))
+        return ids[f]
+    for page in pages:
+        text = page.read_text(encoding="utf-8")
+        label = label_for(page)
+        refs = [m.group(3) for m in REF_ATTR.finditer(text)] + OG_URL.findall(text)
+        for ref in refs:
+            ref = htmllib.unescape(ref)
+            if ref.startswith(SITE):
+                ref = ref[len(SITE):] or "/"
+            if ref in ("", "#") or re.match(r"(?:[a-z][\w+.-]*:|//)", ref, flags=re.I):
+                continue  # social placeholders, external, mailto:, tel:
+            path, _, frag = ref.split("?")[0].partition("#")
+            if path and not path.startswith("/"):
+                out.append(f"{label}: relative link '{ref}' (use a root-relative path)")
+                continue
+            f = target_file(path) if path else page
+            if not f.is_file():
+                out.append(f"{label}: link '{ref}' points to a missing file")
+            elif frag and f.suffix == ".html" and frag not in ids_of(f):
+                out.append(f"{label}: link '{ref}' points to a missing anchor #{frag}")
+    return out
+
+
+def check_js():
+    """Regressions found in whole-site verification that only show in the browser."""
+    js = (ROOT / "js" / "site.js").read_text(encoding="utf-8")
+    out = []
+    # Tab focus on a half-hidden Services index chip must scroll the chip row (Chrome does not on its own)
+    if not re.search(r"\.svc-index ul'\)[\s\S]{0,400}focusin[\s\S]{0,200}scrollIntoView", js):
+        out.append("js/site.js: Services index chip row no longer scrolls the focused chip into view")
+    return out
+
+
 def built_pages():
     pages = [p for p in ROOT.glob("*/index.html") if p.parts[len(ROOT.parts)] not in ("src", "docs", "node_modules", "motion", "assets")]
     pages += [ROOT / "index.html", ROOT / "404.html"]
@@ -379,6 +430,8 @@ def main(argv):
     else:
         targets = sorted((ROOT / "css").glob("*.css")) + built_pages()
     problems = check_sources()
+    if not argv:
+        problems += check_links(built_pages()) + check_js()
     for t in targets:
         problems += check_css(t) if t.suffix == ".css" else check_html(t)
     for p in problems:

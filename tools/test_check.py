@@ -138,6 +138,24 @@ class Bypasses(unittest.TestCase):
     def test_home_source_copy(self):
         self.assertEqual(check.check_sources(), [])
 
+    def test_links(self):
+        self.assertEqual(check.check_links(check.built_pages()), [])
+        self.assertEqual(check.check_js(), [])
+
+        def links(body):
+            with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:
+                f.write(f'<div id="here"></div>{body}')
+            return check.check_links([Path(f.name)])
+        self.assertEqual(links('<a href="/services/#strategy"></a><a href="#here"></a><a href="#"></a>'
+                               '<a href="mailto:team@crispstudio.in"></a><a href="https://x.com/"></a>'
+                               '<meta property="og:url" content="https://crispstudio.in/about/">'), [])
+        self.bad(links('<a href="/services/#nope"></a>'), "missing anchor on another page")
+        self.bad(links('<a href="#nope"></a>'), "missing anchor on the same page")
+        self.bad(links('<a href="/pricing/"></a>'), "missing page")
+        self.bad(links('<img alt="" src="/assets/logo/nope.svg">'), "missing asset")
+        self.bad(links('<a href="about/"></a>'), "relative link")
+        self.bad(links('<meta property="og:image" content="https://crispstudio.in/assets/nope.jpg">'), "missing og:image")
+
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
 
