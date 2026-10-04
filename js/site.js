@@ -167,7 +167,8 @@ if (svcLinks.length && 'IntersectionObserver' in window) {
   const visible = new Set();
   const mark = () => {
     const first = [...byId.keys()].find(id => visible.has(id));
-    if (first) svcLinks.forEach(a => (a === byId.get(first) ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
+    // nothing in the band (hero, closing CTA): clear the highlight instead of leaving the last one on
+    svcLinks.forEach(a => (first && a === byId.get(first) ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
   };
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
