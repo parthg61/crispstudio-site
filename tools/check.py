@@ -24,6 +24,17 @@ PAGE_COPY = {
         "Strategy. Brand. Product. Build.",
         "Design that has a job to do.",
         "Got something worth making?",
+        # restored from the pre-redesign Home (2646846): status line, eyebrows, tile tags, services button
+        "Design studio · Mumbai, India",
+        "Selected work",
+        "What we do",
+        "Why Crisp",
+        "From the blog",
+        "All services",
+        "UX Audits", "User Research", "Journey Mapping", "Usability Testing",
+        "Positioning", "Visual Identity", "Guidelines", "Brand Architecture",
+        "UX & UI", "AI Experience", "Design Systems", "Prototyping",
+        "Front-end", "Web Development", "Framer",
     ],
     "services": [
         "Get the mix right.",
@@ -70,10 +81,16 @@ PAGE_COPY = {
         "Got it. We'll be in touch within two working days.",
     ],
     "404": [
+        "404",
         "Crumbled.",
         "This page doesn't exist or has moved. Head back home or pick a page from the menu.",
         "Back to home",
     ],
+}
+# Meta descriptions that must stay word for word (checked in the source front matter and the built <meta>).
+PAGE_DESC = {
+    "home": "Crisp is a design studio in Mumbai. We design brands and digital products with a clear purpose: "
+            "to look sharp, work better and move the business forward.",
 }
 # Pages whose case tiles (<article class="case">) must each carry a visual, a tag and a one-line description.
 CASE_PAGES = {"work": 6}
@@ -302,6 +319,9 @@ def check_copy(slug, text, label):
     plain = htmllib.unescape(re.sub(r"<[^>]+>", "", text)).replace("\u2019", "'")
     plain = re.sub(r"\s+", " ", plain.replace("\u00a0", " "))
     out = [f"{label}: missing required copy '{s}'" for s in PAGE_COPY.get(slug, []) if s not in plain]
+    desc = PAGE_DESC.get(slug)
+    if desc and f'desc: "{desc}"' not in text and f'<meta name="description" content="{htmllib.escape(desc)}">' not in text:
+        out.append(f"{label}: meta description changed; it must read '{desc}'")
     ids = set(re.findall(r"(?<![\w-])id\s*=\s*[\"']([^\"']+)[\"']", text))
     out += [f"{label}: missing required id '#{i}'" for i in PAGE_IDS.get(slug, []) if i not in ids]
     if slug in CASE_PAGES:
@@ -368,8 +388,38 @@ def check_sources():
 
 
 SITE = "https://crispstudio.in"
-REF_ATTR = re.compile(r"<(\w+)\b[^>]*?\s(href|src|poster)\s*=\s*\"([^\"]*)\"", re.I)
-OG_URL = re.compile(r"<meta\b[^>]*property=\"og:(?:url|image)\"[^>]*content=\"([^\"]*)\"", re.I)
+# href/src/poster/srcset with double, single or no quotes
+REF_ATTR = re.compile(r"""\s(href|src|poster|srcset)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>"']+))""", re.I)
+META_TAG = re.compile(r"<meta\b[^>]*>", re.I)
+ATTR = re.compile(r"""([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>"']+))""")
+ID_ATTR = re.compile(r"""(?<![\w-])id\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>"']+))""", re.I)
+
+
+def attrs_of(tag):
+    return {m.group(1).lower(): next(g for g in m.groups()[1:] if g is not None) for m in ATTR.finditer(tag)}
+
+
+def strip_inert(text):
+    """Drop comments and <script>/<style> bodies, whose markup is not part of the page."""
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+    return re.sub(r"<(script|style)\b[^>]*>.*?</\1\s*>", "", text, flags=re.S | re.I)
+
+
+def page_refs(text):
+    """Every URL the page itself points to: href/src/poster, each srcset candidate, og:url and og:image."""
+    text = strip_inert(text)
+    refs = []
+    for m in REF_ATTR.finditer(text):
+        value = next(g for g in m.groups()[1:] if g is not None)
+        if m.group(1).lower() == "srcset":
+            refs += [c.strip().split()[0] for c in value.split(",") if c.strip()]
+        else:
+            refs.append(value)
+    for tag in META_TAG.findall(text):
+        a = attrs_of(tag)
+        if a.get("property", "").lower() in ("og:url", "og:image") and "content" in a:
+            refs.append(a["content"])
+    return refs
 
 
 def target_file(path):
@@ -379,18 +429,17 @@ def target_file(path):
 
 
 def check_links(pages):
-    """Every internal href/src (and og:url/og:image) on a built page must exist, and #anchors must
-    match an id on the target page. External, mailto: and tel: links are not followed."""
+    """Every internal href/src/srcset (and og:url/og:image) on a built page must exist, and #anchors must
+    match an id on the target page (#top is always valid). External, mailto: and tel: links are not followed."""
     out, ids = [], {}
     def ids_of(f):
         if f not in ids:
-            ids[f] = set(re.findall(r"(?<![\w-])id\s*=\s*[\"']([^\"']+)[\"']", f.read_text(encoding="utf-8")))
+            text = strip_inert(f.read_text(encoding="utf-8"))
+            ids[f] = {next(g for g in m.groups() if g is not None) for m in ID_ATTR.finditer(text)}
         return ids[f]
     for page in pages:
-        text = page.read_text(encoding="utf-8")
         label = label_for(page)
-        refs = [m.group(3) for m in REF_ATTR.finditer(text)] + OG_URL.findall(text)
-        for ref in refs:
+        for ref in page_refs(page.read_text(encoding="utf-8")):
             ref = htmllib.unescape(ref)
             if ref.startswith(SITE):
                 ref = ref[len(SITE):] or "/"
@@ -403,8 +452,34 @@ def check_links(pages):
             f = target_file(path) if path else page
             if not f.is_file():
                 out.append(f"{label}: link '{ref}' points to a missing file")
-            elif frag and f.suffix == ".html" and frag not in ids_of(f):
+            elif frag and frag.lower() != "top" and f.suffix == ".html" and frag not in ids_of(f):
                 out.append(f"{label}: link '{ref}' points to a missing anchor #{frag}")
+    return out
+
+
+FM_LINE = re.compile(r"^([A-Za-z_][\w-]*):(?:[ \t]+(.*))?$")
+
+
+def check_front_matter(path):
+    """src/pages front matter must be valid YAML (GitHub Pages parses it): one 'key: value' per line, and a
+    value containing ': ' or ' #', or starting with a YAML indicator, must be double-quoted."""
+    path = Path(path)
+    label = label_for(path)
+    m = re.match(r"---\n(.*?)\n---\n", path.read_text(encoding="utf-8"), flags=re.S)
+    if not m:
+        return [f"{label}: missing front matter"]
+    out = []
+    for n, line in enumerate(m.group(1).splitlines(), 2):
+        lm = FM_LINE.match(line)
+        if not lm:
+            out.append(f"{label}:{n}: front matter line is not 'key: value'")
+            continue
+        v = (lm.group(2) or "").strip()
+        if v.startswith('"'):
+            if not re.fullmatch(r'"(?:[^"\\]|\\.)*"', v):
+                out.append(f"{label}:{n}: unterminated or broken double-quoted value")
+        elif ": " in v or " #" in v or v.endswith(":") or (v and v[0] in "'&*!|>%@`{}[],?-:#"):
+            out.append(f"{label}:{n}: value must be double-quoted to be valid YAML: {v[:40]}")
     return out
 
 
@@ -430,6 +505,8 @@ def main(argv):
     else:
         targets = sorted((ROOT / "css").glob("*.css")) + built_pages()
     problems = check_sources()
+    for src in sorted((ROOT / "src" / "pages").glob("*.html")):
+        problems += check_front_matter(src)
     if not argv:
         problems += check_links(built_pages()) + check_js()
     for t in targets:

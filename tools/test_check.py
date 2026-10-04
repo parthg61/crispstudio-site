@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Self-test for tools/check.py. Run: python3 tools/test_check.py"""
+import html as html_lib
 import sys
 import tempfile
 import unittest
@@ -13,10 +14,23 @@ def css(text):
     return check.check_style_text(text, "t.css")
 
 
-def html(text):
-    with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:
+def tmp_file(text, suffix=".html"):
+    """Write text to a temp file; the caller deletes it (see with_tmp)."""
+    with tempfile.NamedTemporaryFile("w", suffix=suffix, delete=False, encoding="utf-8") as f:
         f.write(text)
-    return check.check_html(f.name)
+    return Path(f.name)
+
+
+def with_tmp(text, fn, suffix=".html"):
+    path = tmp_file(text, suffix)
+    try:
+        return fn(path)
+    finally:
+        path.unlink(missing_ok=True)
+
+
+def html(text):
+    return with_tmp(text, check.check_html)
 
 
 class Bypasses(unittest.TestCase):
@@ -78,8 +92,13 @@ class Bypasses(unittest.TestCase):
         self.bad(css("a{border: 2px solid #021F53}"), "2px border still fails")
 
     def test_page_copy(self):
-        good = "<h1>Design with a crunch!</h1>" + "".join(f"<h2>{s}</h2>" for s in check.PAGE_COPY["home"][1:])
+        desc = f'<meta name="description" content="{html_lib.escape(check.PAGE_DESC["home"])}">'
+        good = desc + "<h1>Design with a crunch!</h1>" + "".join(f"<h2>{s}</h2>" for s in check.PAGE_COPY["home"][1:])
         self.assertEqual(check.check_copy("home", good, "t"), [])
+        self.bad(check.check_copy("home", good.replace(desc, '<meta name="description" content="Reworded.">'), "t"), "home desc")
+        self.assertEqual(check.check_copy("home", good.replace(desc, f'desc: "{check.PAGE_DESC["home"]}"'), "t"), [])
+        for s in ("Design studio · Mumbai, India", "Selected work", "All services", "UX Audits", "Framer"):
+            self.bad(check.check_copy("home", good.replace(f"<h2>{s}</h2>", ""), "t"), f"restored home copy {s}")
         self.bad(check.check_copy("home", "<h1>Design with a crunch!</h1>", "t"), "missing home strings")
         self.assertEqual(check.check_copy("home", good.replace("we've", "we&#39;ve"), "t"), [])
         self.assertEqual(check.check_copy("home", good.replace("with a crunch!", 'with <span class="nowrap">a crunch!</span>'), "t"), [])
@@ -143,10 +162,8 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(check.check_js(), [])
 
         def links(body):
-            with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:
-                f.write(f'<div id="here"></div>{body}')
-            return check.check_links([Path(f.name)])
-        self.assertEqual(links('<a href="/services/#strategy"></a><a href="#here"></a><a href="#"></a>'
+            return with_tmp(f'<div id="here"></div>{body}', lambda p: check.check_links([p]))
+        self.assertEqual(links('<a href="/services/#strategy"></a><a href="#here"></a><a href="#"></a><a href="#top"></a>'
                                '<a href="mailto:team@crispstudio.in"></a><a href="https://x.com/"></a>'
                                '<meta property="og:url" content="https://crispstudio.in/about/">'), [])
         self.bad(links('<a href="/services/#nope"></a>'), "missing anchor on another page")
@@ -155,6 +172,32 @@ class Bypasses(unittest.TestCase):
         self.bad(links('<img alt="" src="/assets/logo/nope.svg">'), "missing asset")
         self.bad(links('<a href="about/"></a>'), "relative link")
         self.bad(links('<meta property="og:image" content="https://crispstudio.in/assets/nope.jpg">'), "missing og:image")
+        # quoting styles, srcset, attribute order
+        self.bad(links("<a href='/pricing/'></a>"), "single-quoted href")
+        self.bad(links("<a href=/pricing/>x</a>"), "unquoted href")
+        self.bad(links("<img alt='' src='/nope.png'>"), "single-quoted src")
+        self.bad(links('<img alt="" src="/favicon.ico" srcset="/favicon.ico 1x, /nope@2x.png 2x">'), "srcset candidate")
+        self.assertEqual(links('<img alt="" srcset="/favicon.ico 1x, /assets/favicon.svg 2x">'), [])
+        self.bad(links('<meta content="https://crispstudio.in/nope/" property="og:url">'), "og:url content before property")
+        self.bad(links("<meta content='https://crispstudio.in/assets/nope.jpg' property='og:image'>"), "og:image single quotes")
+        # ids that only exist inside a script or a comment are not anchors; links inside them are ignored
+        self.bad(links('<a href="#ghost"></a><!-- <div id="ghost"></div> -->'), "id inside a comment")
+        self.bad(links('<a href="#ghost"></a><script>x = \'<div id="ghost">\'</script>'), "id inside a script")
+        self.assertEqual(links('<script>el.innerHTML = \'<a href="/nope/">\'</script><!-- <a href="/nope/"> -->'), [])
+        self.assertEqual(links("<div id=bare></div><a href='#bare'></a>"), [])
+
+    def test_front_matter(self):
+        for src in sorted((check.ROOT / "src" / "pages").glob("*.html")):
+            self.assertEqual(check.check_front_matter(src), [], src.name)
+
+        def fm(body):
+            return with_tmp(f"---\n{body}\n---\n<main></main>", check.check_front_matter)
+        self.assertEqual(fm('title: Work — Crisp\ndesc: "A: b."\nrobots: noindex'), [])
+        self.bad(fm("title: X\ndesc: Crisp is a studio for brands and products: strategy."), "unquoted colon")
+        self.bad(fm('desc: "unterminated'), "broken quotes")
+        self.bad(fm("desc: plain # comment"), "unquoted hash")
+        self.bad(fm("not a key value line"), "bad line")
+        self.bad(fm("desc: - starts with a dash"), "indicator")
 
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
