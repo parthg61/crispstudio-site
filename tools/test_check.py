@@ -239,8 +239,8 @@ class Bypasses(unittest.TestCase):
             self.bad(img(f'<section class="hero lost"><div><img src="{c}" alt=""></div></section>'), f"{c} in hero")
             self.bad(img(f'<main><img src="{c}" alt=""></main>', "work"), f"{c} on work")
             self.assertEqual(img(f'<section class="hero"></section><section class="contact"><img src="{c}" alt=""></section>', "contact"), [])
-        self.bad(img('<main><div style="background:url(/assets/cat-poses/Idli_11_lying_stretched.svg)"></div></main>', "work"), "cat as background on work")
-        self.assertEqual(img('<section class="hero-grid"><img src="/assets/cat-poses/Idli_11_lying_stretched.svg" alt=""></section>'), [])
+        self.bad(img('<main><div style="background:url(/assets/cat-poses/Idli_03_sitting_sprawled_leg_up.svg)"></div></main>', "work"), "cat as background on work")
+        self.assertEqual(img('<section class="hero-grid"><img src="/assets/cat-poses/Idli_03_sitting_sprawled_leg_up.svg" alt=""></section>'), [])
 
     def test_assets_manifest(self):
         self.assertEqual(check.check_assets(), [])
@@ -262,7 +262,7 @@ class Bypasses(unittest.TestCase):
 
     def test_cat_placements(self):
         P = self.pose
-        foot = f'<footer class="site-foot"><div class="foot-cat">{P("Idli_11_lying_stretched")}</div></footer>'
+        foot = f'<footer class="site-foot"><div class="foot-cat">{P("Idli_03_sitting_sprawled_leg_up")}</div></footer>'
         good = {
             "contact": ('<section class="contact"><div class="card form-card"><div class="cat-peek">' + P("Samosa_06_standing_paws_up")
                         + P("Idli_04_peeking_over_edge") + '</div><form></form><div id="form-done"><div class="cat-duo">'

@@ -565,7 +565,7 @@ def check_images(text, label, slug):
 # Cats on the site: the official "Cat poses" set (assets/cat-poses/<Name>.svg, flat tracings: whole-figure motion
 # only) and the two round avatars (assets/cats/Crisp_Avatar_Samosa|Idli.svg). The old table poses
 # (Crisp_Cat_*) stay in the design system and never ship. slug -> [(file stem, classes/#ids it must sit inside)].
-FOOT_CAT = ("Idli_11_lying_stretched", ("site-foot",))
+FOOT_CAT = ("Idli_03_sitting_sprawled_leg_up", ("site-foot",))  # sits ON the footer's top edge
 CAT_PLACEMENTS = {
     "contact": [("Samosa_06_standing_paws_up", ("form-card", "cat-peek")), ("Idli_04_peeking_over_edge", ("form-card", "cat-peek")),
                 ("Samosa_09_head_tilt_sitting", ("#form-done",)), ("Idli_14_rolled_belly_up", ("#form-done",)), FOOT_CAT],

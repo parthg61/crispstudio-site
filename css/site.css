@@ -796,8 +796,9 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 }
 .cat-duo { --k: .2; display: flex; align-items: flex-end; gap: var(--space-4); }
 @media (min-width: 1024px) {
-  .contact { --k: .25; }
+  .contact { --k: .245; } /* Samosa_06 stays ~190px tall (776 x .245) */
   .cat-peek { right: var(--space-9); }
+  .cat-peek .cat--idli { --k: .42; } /* Idli_04 is a head-and-paws crop: ~170px wide so the pair reads; still under Samosa's height */
   .cat-duo { --k: .24; }
 }
 
@@ -824,9 +825,11 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 .blog-cat { --k: .22; display: block; }
 @media (min-width: 1024px) { .blog-cat { --k: .26; } }
 
-/* Footer: Idli lying along the footer's top edge (not on Work) */
-.foot-cat { --k: .2; position: absolute; bottom: 0; right: var(--layout-margin); }
-@media (min-width: 1024px) { .foot-cat { --k: .24; } }
+/* Footer: Idli sitting on the footer's top edge, art bottom on the hairline (not on Work). The footer takes
+   a little extra room above it so she never reaches into the section before. */
+.foot-cat { --k: .165; position: absolute; bottom: 0; right: var(--layout-margin); } /* ~120px wide */
+.site-foot:has(.foot-cat) { margin-top: var(--space-7); }
+@media (min-width: 1024px) { .foot-cat { --k: .21; } } /* ~155px wide */
 
 /* Motion, only when motion is fine: Idli breathes very slowly; Samosa tilts on hover/tap (springy) and the
    reaching Samosa gives a tiny nudge every ~6s; avatars tilt on hover and squash on tap. Nothing loops fast. */
