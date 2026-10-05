@@ -703,6 +703,69 @@ def check_pausables_js(js, label="js/site.js"):
     return out
 
 
+LOGO_MIN_PX = 120  # brand skill: the Crisp logo is never under 120px wide on screen
+
+
+def css_px(value, tokens):
+    """Evaluate a simple length (px, var(--token), calc with + - * /) to px; None if it can't."""
+    expr = value.strip()
+    for _ in range(5):
+        expr = re.sub(r"var\(\s*(--[\w-]+)\s*(?:,[^()]*)?\)", lambda m: tokens.get(m.group(1), "NaN"), expr)
+    expr = re.sub(r"calc\(", "(", expr)
+    expr = re.sub(r"(\d*\.?\d+)px", r"\1", expr)
+    if not re.fullmatch(r"[\d.\s+\-*/()]+", expr):
+        return None
+    try:
+        return float(eval(expr, {"__builtins__": {}}))
+    except Exception:
+        return None
+
+
+def css_tokens(*texts):
+    toks = {}
+    for t in texts:
+        for m in re.finditer(r"(--[\w-]+)\s*:\s*([^;}]+)", strip_comments(t)):
+            toks.setdefault(m.group(1), m.group(2).strip())
+    return toks
+
+
+def check_header_logo(text, label, tokens_text=""):
+    """The navbar logo (.brandmark img / [data-logo-slot] img) is at least 120px wide at every breakpoint
+    (every width declaration in any @media resolves to >= 120px; height stays auto), and the header height
+    is one variable, --nav-h: the bar height, html scroll-padding-top and the Services index sticky top use it
+    (the 72px --layout-nav-height token no longer drives anything)."""
+    out = []
+    tokens = css_tokens(text, tokens_text)
+    widths = []
+    for sel, body, ats in css_rules(text):
+        if not re.search(r"\.brandmark\s+img|\[data-logo-slot\]\s+img", sel):
+            continue
+        for prop, val in re.findall(r"(?<![\w-])(width|min-width|max-width|height|max-height)\s*:\s*([^;}]+)", body):
+            where = f"{label}: {sel.strip()} {prop}: {val.strip()}" + (f" in {' '.join(ats)}" if ats else "")
+            if prop in ("height", "max-height"):
+                if val.strip() != "auto":
+                    out.append(f"{where}: the header logo height must be auto (width drives it)")
+                continue
+            px = css_px(val, tokens)
+            if px is None or px < LOGO_MIN_PX:
+                out.append(f"{where}: header logo {prop} is under {LOGO_MIN_PX}px (or unreadable)")
+            if prop == "width":
+                widths.append(px)
+    if not widths:
+        out.append(f"{label}: no width declared for the header logo (.brandmark img); it must be >= {LOGO_MIN_PX}px")
+    nav_h = css_px("var(--nav-h)", tokens)
+    if nav_h is None:
+        out.append(f"{label}: --nav-h (header height) is not defined")
+    for sel, body, ats in css_rules(text):
+        for prop, val in re.findall(r"(?<![\w-])(scroll-padding-top|height|top)\s*:\s*([^;}]+)", body):
+            uses_old = "--layout-nav-height" in val
+            needs = (prop == "scroll-padding-top") or (prop == "height" and re.search(r"\.site-head\s+\.bar", sel)) \
+                or (prop == "top" and ".svc-index" in sel and "sticky" in body)
+            if uses_old or (needs and "var(--nav-h)" not in val):
+                out.append(f"{label}: {sel.strip()} {prop}: {val.strip()} must use var(--nav-h), the one header height")
+    return out
+
+
 def check_mobile_hero_order(text, label):
     """Phones (<600px): the big hero logo must be in the first screen, so under @media (max-width: 599px)
     .hero-art opens up (display: contents) and .hero-logo-spot has an `order` lower than .hero-copy's."""
@@ -965,6 +1028,8 @@ def main(argv):
         site_css = ROOT / "css" / "site.css"
         problems += check_fan_present(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_mobile_hero_order(site_css.read_text(encoding="utf-8"), label_for(site_css))
+        problems += check_header_logo(site_css.read_text(encoding="utf-8"), label_for(site_css),
+                                      (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_strips_css(site_css.read_text(encoding="utf-8"), label_for(site_css))
     for t in targets:
         problems += check_css(t) if t.suffix == ".css" else check_html(t)

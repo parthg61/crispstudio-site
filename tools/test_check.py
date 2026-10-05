@@ -444,6 +444,24 @@ class Bypasses(unittest.TestCase):
         self.bad(pj(fn + cyc.replace("reduce", "no-preference")), "cycle ignores reduced motion")
         self.assertEqual(check.check_js(), [])
 
+    def test_header_logo_min_width_and_nav_height(self):
+        toks = (check.ROOT / "css" / "tokens.css").read_text(encoding="utf-8")
+        hl = lambda t: check.check_header_logo(t, "t.css", toks)
+        base = (":root { --nav-h: var(--space-9); } html { scroll-padding-top: var(--nav-h); } "
+                ".site-head .bar { height: var(--nav-h); } .svc-index { position: sticky; top: calc(var(--nav-h) + var(--space-6)); } ")
+        self.assertEqual(hl(base + ".brandmark img { width: calc(var(--space-10) - var(--space-2)); height: auto; }"), [])
+        self.assertEqual(hl(base + ".brandmark img { width: 120px; } @media (min-width: 1024px) { .brandmark img { width: var(--space-10); } }"), [])
+        self.bad(hl(base + ".brandmark img { width: 71px; }"), "71px logo")
+        self.bad(hl(base + ".brandmark img { width: 120px; } @media (max-width: 599px) { .brandmark img { width: var(--space-9); } }"), "small on mobile")
+        self.bad(hl(base + ".brandmark img { width: 120px; max-width: var(--space-9); }"), "capped by max-width")
+        self.bad(hl(base + ".brandmark img { height: var(--space-7); width: auto; }"), "old height-driven logo")
+        self.bad(hl(base), "no width at all")
+        self.bad(hl(base.replace("scroll-padding-top: var(--nav-h)", "scroll-padding-top: var(--layout-nav-height)") + ".brandmark img { width: 120px; }"), "scroll padding on old token")
+        self.bad(hl(base.replace(".site-head .bar { height: var(--nav-h); }", ".site-head .bar { height: var(--space-8); }") + ".brandmark img { width: 120px; }"), "bar height not --nav-h")
+        self.bad(hl(base.replace("top: calc(var(--nav-h) + var(--space-6))", "top: calc(72px + var(--space-6))") + ".brandmark img { width: 120px; }"), "sticky index top not --nav-h")
+        self.bad(hl(base.replace(":root { --nav-h: var(--space-9); } ", "") + ".brandmark img { width: 120px; }"), "--nav-h undefined")
+        self.assertEqual(hl((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
+
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
 

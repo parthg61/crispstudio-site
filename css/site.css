@@ -3,8 +3,11 @@
 /* ── Base ─────────────────────────────────────────────────── */
 /* The house ease: a soft spring for hover, tap and the one Home load moment */
 :root { --ease: cubic-bezier(.34, 1.56, .64, 1); }
+/* Deviation from the design system's 72px layout-nav-height: the brand skill sets the logo minimum at 120px wide,
+   so the navbar logo is 120x81 and the bar is --space-9 (96px) tall at every width. --nav-h is the one header height. */
+:root { --nav-h: var(--space-9); }
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: var(--layout-nav-height); }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: var(--nav-h); }
 body {
   margin: 0;
   background: var(--bg);
@@ -210,8 +213,8 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
   transition: box-shadow .2s ease;
 }
 .site-head.scrolled { box-shadow: var(--shadow-nav); }
-.site-head .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); height: var(--layout-nav-height); }
-.brandmark img { height: var(--space-7); width: auto; }
+.site-head .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); height: var(--nav-h); }
+.brandmark img { width: calc(var(--space-10) - var(--space-2)); height: auto; } /* 120px: the brand minimum */
 .nav { display: flex; align-items: center; gap: var(--space-6); }
 .nav a:not(.btn) { font-weight: 400; padding-block: var(--space-2); transition: color .15s ease; }
 .nav a:not(.btn):hover { color: var(--link); }
@@ -224,7 +227,6 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 .nav-toggle .close { display: none; }
 
 @media (max-width: 767px) {
-  .site-head .bar { height: var(--space-8); }
   .nav-toggle { display: grid; }
   .nav {
     position: absolute; top: 100%; left: 0; right: 0;
@@ -238,7 +240,6 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
   .nav-open .nav { display: flex; }
   .nav-open .nav-toggle .open { display: none; }
   .nav-open .nav-toggle .close { display: block; }
-  html { scroll-padding-top: var(--space-8); }
 }
 
 /* ── Footer ───────────────────────────────────────────────── */
@@ -340,7 +341,7 @@ html:not(.js) body[data-page="home"] [data-logo-slot] img { visibility: visible;
   /* Phones: the big logo must be in the first screen. The art block opens up (display: contents) so the logo
      spot heads the hero grid, left-aligned above the status line and headline; the fan, below the button,
      takes over the grey block. The travel still starts from wherever the spot is measured. */
-  .hero-art { display: contents; --logo-w: calc(var(--space-10) - var(--space-4)); }
+  .hero-art { display: contents; --logo-w: calc(var(--space-10) + var(--space-4)); } /* 144px, above the 120px navbar logo */
   .hero-logo-spot { order: -1; justify-self: start; }
   .fan {
     padding: var(--space-6) var(--space-4) var(--space-7);
@@ -603,7 +604,7 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
   .svc-layout { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--layout-gutter); align-items: start; }
   .svc-index {
     grid-column: 1 / span 3; margin: var(--pad-section) 0 0; padding: 0;
-    position: sticky; top: calc(var(--layout-nav-height) + var(--pad-section) - var(--space-6)); /* lines up with a section label after an anchor jump */
+    position: sticky; top: calc(var(--nav-h) + var(--pad-section) - var(--space-6)); /* lines up with a section label after an anchor jump */
   }
   .svc-index ul { flex-direction: column; gap: var(--space-1); overflow: visible; padding: 0; }
   .svc-index a {
