@@ -281,7 +281,11 @@ def label_for(path):
 def check_css(path):
     path = Path(path)
     text = path.read_text(encoding="utf-8")
-    return check_style_text(text, label_for(path)) + check_cat_motion(text, label_for(path)) + check_all_motion(text, label_for(path))
+    out = check_style_text(text, label_for(path)) + check_cat_motion(text, label_for(path)) + check_all_motion(text, label_for(path))
+    out += check_no_flipped_cats(text, label_for(path)) + check_manifest_refs(text, label_for(path))
+    if "Crisp_Cat_" in text:
+        out.append(f"{label_for(path)}: references a retired Crisp_Cat_* file")
+    return out
 
 
 def check_html(path):
@@ -315,6 +319,8 @@ def check_html(path):
             out.append(f"{label}:{line_of(text, m.start())}: <img> without alt")
 
     out += check_images(text, label, page_slug(path))
+    out += check_cats(text, label, page_slug(path))
+    out += check_manifest_refs(text, label)
     if page_slug(path) is not None:
         out += check_hero(text, label, page_slug(path))
     if page_slug(path) == "home":
@@ -437,7 +443,7 @@ def check_home_sections(text, label):
 
 # Round 2: one logo per page (the navbar), cats only in small moments
 LOGO_SRC = re.compile(r"Crisp_Logo|Crisp_Avatar_(?:Orange|Navy)")
-CAT_SRC = re.compile(r"Crisp_Cat_|Crisp_Avatar_(?:Samosa|Idli)")
+CAT_SRC = re.compile(r"/cat-poses/|Crisp_Cat_|Crisp_Avatar_(?:Samosa|Idli)")
 VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
 
 
@@ -553,6 +559,114 @@ def check_images(text, label, slug):
                 out.append(f"{label}:{line}: logo/avatar image outside the header ({src.strip()}); one logo per page")
         if CAT_SRC.search(src) and in_hero:
             out.append(f"{label}:{line}: cat image inside a .hero ({src.strip()}); cats never sit in a hero")
+    return out
+
+
+# Cats on the site: the official "Cat poses" set (assets/cat-poses/<Name>.svg, flat tracings: whole-figure motion
+# only) and the two round avatars (assets/cats/Crisp_Avatar_Samosa|Idli.svg). The old table poses
+# (Crisp_Cat_*) stay in the design system and never ship. slug -> [(file stem, classes/#ids it must sit inside)].
+FOOT_CAT = ("Idli_11_lying_stretched", ("site-foot",))
+CAT_PLACEMENTS = {
+    "contact": [("Samosa_06_standing_paws_up", ("form-card", "cat-peek")), ("Idli_04_peeking_over_edge", ("form-card", "cat-peek")),
+                ("Samosa_09_head_tilt_sitting", ("#form-done",)), ("Idli_14_rolled_belly_up", ("#form-done",)), FOOT_CAT],
+    "404": [("Samosa_07_walking", ("lost-art",)), ("Idli_02_lying_on_back_stretched", ("lost-art",)), FOOT_CAT],
+    "home": [("Idli_08_in_hammock", ("closer-card",)), ("Samosa_01_standing_paw_up", ("closer-card",)), FOOT_CAT],
+    "blog": [("Idli_12_curled_looking_down", ("#blog-empty",)), FOOT_CAT],
+    "about": [("Crisp_Avatar_Idli", ("closer",)), FOOT_CAT],
+    "services": [("Samosa_02_playing_with_ball", ("closer",)), FOOT_CAT],
+    "work": [],
+}
+CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats)/([\w-]+)\.svg")
+WORK_MARKERS = ("case", "work-grid", "fan", "fan-card", "work-index")
+
+
+def within(e, where):
+    if where.startswith("#"):
+        return any(a.get("id") == where[1:] for _, _, a in e["ancestors"])
+    return any(where in c for _, c, _ in e["ancestors"])
+
+
+def check_cats(text, label, slug):
+    """Every page carries exactly its assigned cats, each in its moment's container; cats are decorative
+    (alt="", never inside a link/button, no tabindex), never in a .hero, and never share a section with client
+    work (.case, work cards, the hero fan). No reference to the retired Crisp_Cat_* table poses."""
+    out = []
+    if "Crisp_Cat_" in text:
+        out.append(f"{label}: references a retired Crisp_Cat_* file; use assets/cat-poses or the round avatars")
+    els = tag_contexts(text)
+    cats = [(CAT_FILE.search(e["attrs"].get("src", "")).group(1), e) for e in els
+            if e["tag"] == "img" and CAT_FILE.search(e["attrs"].get("src", ""))]
+    work = [e for e in els if any(c in e["attrs"].get("class", "").split() for c in WORK_MARKERS)]
+    for name, e in cats:
+        if e["attrs"].get("alt") != "":
+            out.append(f"{label}:{e['line']}: cat {name} needs alt=\"\" (decorative)")
+        if "tabindex" in e["attrs"] or any(t in ("a", "button") for t, _, _ in e["ancestors"]):
+            out.append(f"{label}:{e['line']}: cat {name} must not be focusable or sit inside a link/button")
+        if in_class(e, "hero"):
+            out.append(f"{label}:{e['line']}: cat {name} inside a .hero")
+        sections = [a for t, _, a in e["ancestors"] if t in ("section", "footer", "header")]
+        if sections and any(any(a is sections[-1] for _, _, a in w["ancestors"]) for w in work):
+            out.append(f"{label}:{e['line']}: cat {name} shares a section with client work")
+    if slug in CAT_PLACEMENTS:
+        want = CAT_PLACEMENTS[slug]
+        have = sorted(n for n, _ in cats)
+        if have != sorted(n for n, _ in want):
+            out.append(f"{label}: cats on the page {have} != the assigned placements {sorted(n for n, _ in want)}")
+        for name, where in want:
+            if not any(n == name and all(within(e, w) for w in where) for n, e in cats):
+                out.append(f"{label}: {name} must sit inside {' > '.join(where)}")
+    return out
+
+
+MANIFEST_DIRS = ("assets/cats/", "assets/cat-poses/", "assets/icons/")
+
+
+def manifest_files(manifest=None):
+    manifest = Path(manifest or ROOT / "tools" / "assets.sha256")
+    return {l.split("  ", 1)[1].strip() for l in manifest.read_text(encoding="utf-8").splitlines() if "  " in l}
+
+
+def check_manifest_refs(text, label, manifest=None):
+    """Pages and CSS reference only pinned files from the official asset folders (cats, cat poses, icons)."""
+    listed = manifest_files(manifest)
+    refs = page_refs(text) + re.findall(r"url\(\s*[\"']?([^\"')]+)", text)
+    out = []
+    for ref in refs:
+        path = ref.split("?")[0].split("#")[0].lstrip("/")
+        if path.startswith(MANIFEST_DIRS) and path not in listed:
+            out.append(f"{label}: {ref} is not a pinned official asset (tools/assets.sha256)")
+    return sorted(set(out), key=out.index)
+
+
+CAT_SELECTOR = re.compile(r"\.cat\b|\.cat-|\.pose\b|\.pose-|cat-poses|Crisp_Avatar")
+FLIP = re.compile(r"scaleX\(\s*-|scale\(\s*-|scale\([^,)]*,\s*-|scale3d\(\s*-|rotateY\(|rotate3d\(\s*0\s*,\s*1|"
+                  r"(?<![\w-])scale\s*:\s*-|(?<![\w-])rotate\s*:\s*y|matrix\(\s*-", re.I)
+
+
+def check_no_flipped_cats(text, label):
+    """Samosa's clipped ear is always on the viewer's right: CSS never mirrors a cat (negative x scale, rotateY,
+    a negative matrix, or direction: rtl on a cat row), in a rule or in a @keyframes named cat-*."""
+    out = []
+    for sel, body, ats in css_rules(text):
+        kf = next((a for a in ats if a.lower().startswith("@keyframes")), None)
+        if kf and not re.search(r"@keyframes\s+cat-", kf):
+            continue
+        if kf or CAT_SELECTOR.search(sel):
+            m = FLIP.search(body) or re.search(r"direction\s*:\s*rtl", body, flags=re.I)
+            if m:
+                out.append(f"{label}: '{kf or sel}' mirrors a cat ({m.group(0)}...); cats are never flipped")
+    return out
+
+
+def check_cat_manifest(manifest=None, dirs=None):
+    """Every file in assets/cats/ and assets/cat-poses/ is pinned in tools/assets.sha256."""
+    listed = manifest_files(manifest)
+    out = []
+    for d in dirs or (ROOT / "assets" / "cats", ROOT / "assets" / "cat-poses"):
+        for f in sorted(Path(d).glob("*.svg")):
+            rel = f"assets/{Path(d).name}/{f.name}"
+            if rel not in listed:
+                out.append(f"tools/assets.sha256: {rel} is not pinned (add its sha256)")
     return out
 
 
@@ -1024,7 +1138,7 @@ def main(argv):
     for src in sorted((ROOT / "src" / "pages").glob("*.html")):
         problems += check_front_matter(src)
     if not argv:
-        problems += check_links(built_pages()) + check_js() + check_assets()
+        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest()
         site_css = ROOT / "css" / "site.css"
         problems += check_fan_present(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_mobile_hero_order(site_css.read_text(encoding="utf-8"), label_for(site_css))

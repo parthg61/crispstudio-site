@@ -233,14 +233,14 @@ class Bypasses(unittest.TestCase):
 
     def test_cats_never_in_hero_or_on_work(self):
         img = lambda html_, slug=None: check.check_images(html_, "t", slug)
-        cats = ("/assets/cats/Crisp_Cat_Samosa.svg", "/assets/cats/Crisp_Cat_Idli_Cream.svg", "/assets/cats/Crisp_Avatar_Idli.svg",
-                "/assets/cats/Crisp_Avatar_Samosa.svg")
+        cats = ("/assets/cat-poses/Samosa_07_walking.svg", "/assets/cat-poses/Idli_04_peeking_over_edge.svg",
+                "/assets/cats/Crisp_Avatar_Idli.svg", "/assets/cats/Crisp_Avatar_Samosa.svg")
         for c in cats:
             self.bad(img(f'<section class="hero lost"><div><img src="{c}" alt=""></div></section>'), f"{c} in hero")
             self.bad(img(f'<main><img src="{c}" alt=""></main>', "work"), f"{c} on work")
             self.assertEqual(img(f'<section class="hero"></section><section class="contact"><img src="{c}" alt=""></section>', "contact"), [])
-        self.bad(img('<main><div style="background:url(/assets/cats/Crisp_Cat_Idli.svg)"></div></main>', "work"), "cat as background on work")
-        self.assertEqual(img('<section class="hero-grid"><img src="/assets/cats/Crisp_Cat_Idli.svg" alt=""></section>'), [])
+        self.bad(img('<main><div style="background:url(/assets/cat-poses/Idli_11_lying_stretched.svg)"></div></main>', "work"), "cat as background on work")
+        self.assertEqual(img('<section class="hero-grid"><img src="/assets/cat-poses/Idli_11_lying_stretched.svg" alt=""></section>'), [])
 
     def test_assets_manifest(self):
         self.assertEqual(check.check_assets(), [])
@@ -250,8 +250,83 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(man(line + "\n"), [])
         self.bad(man(("0" * 64) + "  " + rel + "\n"), "hash mismatch")
         self.bad(man(digest + "  assets/cats/Nope.svg\n"), "missing file")
-        for f in ("assets/icons/Crisp_Icon_Strategy.svg", "assets/cats/Crisp_Cat_Samosa.svg", "assets/icons/Crisp_Bullet_Curl.svg"):
+        for f in ("assets/icons/Crisp_Icon_Strategy.svg", "assets/cat-poses/Samosa_07_walking.svg", "assets/cats/Crisp_Avatar_Idli.svg",
+                  "assets/icons/Crisp_Bullet_Curl.svg"):
             self.assertIn(f, (check.ROOT / "tools" / "assets.sha256").read_text(encoding="utf-8"), f)
+
+    # ── Cats: the official "Cat poses" set and the round avatars ──
+    @staticmethod
+    def pose(name, cls="cat"):
+        folder = "cats" if name.startswith("Crisp_Avatar") else "cat-poses"
+        return f'<img class="{cls}" src="/assets/{folder}/{name}.svg" alt="">'
+
+    def test_cat_placements(self):
+        P = self.pose
+        foot = f'<footer class="site-foot"><div class="foot-cat">{P("Idli_11_lying_stretched")}</div></footer>'
+        good = {
+            "contact": ('<section class="contact"><div class="card form-card"><div class="cat-peek">' + P("Samosa_06_standing_paws_up")
+                        + P("Idli_04_peeking_over_edge") + '</div><form></form><div id="form-done"><div class="cat-duo">'
+                        + P("Samosa_09_head_tilt_sitting") + P("Idli_14_rolled_belly_up") + "</div></div></div></section>" + foot),
+            "404": '<section class="lost"><div class="lost-art">' + P("Samosa_07_walking") + P("Idli_02_lying_on_back_stretched") + "</div></section>" + foot,
+            "home": '<section class="closer"><div class="closer-card">' + P("Idli_08_in_hammock") + P("Samosa_01_standing_paw_up") + "</div></section>" + foot,
+            "blog": '<section><div id="blog-empty">' + P("Idli_12_curled_looking_down") + "</div></section>" + foot,
+            "about": '<section class="closer">' + P("Crisp_Avatar_Idli", "cat cat--48") + "</section>" + foot,
+            "services": '<section class="closer">' + P("Samosa_02_playing_with_ball") + "</section>" + foot,
+            "work": '<section class="work-index"><article class="case"></article></section>',
+        }
+        cc = lambda t, slug: check.check_cats(t, "t", slug)
+        for slug, t in good.items():
+            self.assertEqual(cc(t, slug), [], slug)
+        self.bad(cc(good["contact"].replace("Idli_04_peeking_over_edge", "Idli_15_belly_up_legs_raised"), "contact"), "wrong pose")
+        self.bad(cc(good["contact"].replace('<div class="cat-peek">', '<div class="cats">'), "contact"), "peek pair not in .cat-peek")
+        self.bad(cc(good["contact"].replace(foot, ""), "contact"), "no footer Idli")
+        self.bad(cc(good["work"] + foot, "work"), "footer Idli on Work")
+        self.bad(cc(good["home"].replace('class="closer-card"', 'class="card"'), "home"), "home pair off the closing card")
+        self.bad(cc(good["about"].replace('alt=""', 'alt="Idli"'), "about"), "cat with alt text")
+        self.bad(cc(good["blog"].replace('<div id="blog-empty">', '<div id="blog-empty"><a href="/">').replace("</div></section>", "</a></div></section>"), "blog"), "cat in a link")
+        self.bad(cc(good["blog"].replace('alt=""', 'alt="" tabindex="0"', 1), "blog"), "focusable cat")
+        self.bad(cc(good["blog"] + P("Samosa_04_sitting_front"), "blog"), "extra cat")
+        self.bad(cc(good["404"].replace("Samosa_07_walking", "Crisp_Cat_Samosa"), "404"), "retired Crisp_Cat_ file")
+        self.bad(cc('<section class="hero">' + P("Samosa_04_sitting_front") + "</section>", None), "cat in a hero")
+        self.bad(cc('<section><div class="work-grid"></div>' + P("Samosa_04_sitting_front") + "</section>", None), "cat beside work cards")
+        self.bad(cc('<section><article class="case"></article><div>' + P("Samosa_04_sitting_front") + "</div></section>", None), "cat beside a case")
+        self.assertEqual(cc('<section><div class="work-grid"></div></section><section>' + P("Samosa_04_sitting_front") + "</section>", None), [])
+        for page in check.built_pages():
+            self.assertEqual(check.check_cats(page.read_text(encoding="utf-8"), page.name, check.page_slug(page)), [], page)
+
+    def test_manifest_refs(self):
+        mr = lambda t: check.check_manifest_refs(t, "t")
+        self.assertEqual(mr(self.pose("Samosa_07_walking") + '<i style="background:url(/assets/icons/Crisp_Bullet_Curl.svg)"></i>'), [])
+        self.bad(mr('<img alt="" src="/assets/cat-poses/Samosa_99_nope.svg">'), "unpinned pose")
+        self.bad(mr('<img alt="" src="/assets/cats/Crisp_Cat_Samosa.svg">'), "retired file not in manifest")
+        self.bad(mr('a{background:url("/assets/icons/Nope.svg")}'), "unpinned icon in CSS")
+        self.assertEqual(mr('<img alt="" src="/assets/clients/nmims.png">'), [])
+        for f in [*check.built_pages(), *(check.ROOT / "css").glob("*.css")]:
+            self.assertEqual(check.check_manifest_refs(f.read_text(encoding="utf-8"), f.name), [], f)
+
+    def test_no_flipped_cats(self):
+        nf = lambda t: check.check_no_flipped_cats(t, "t.css")
+        for v in ("transform: scaleX(-1)", "transform: scale(-1, 1)", "transform: scale(-1)", "transform: rotateY(180deg)",
+                  "scale: -1 1", "transform: scale3d(-1, 1, 1)", "transform: rotate(4deg) scaleX(-1)", "transform: matrix(-1, 0, 0, 1, 0, 0)",
+                  "direction: rtl"):
+            self.bad(nf(f".cat {{ {v} }}"), v)
+            self.bad(nf(f".cat-peek img {{ {v} }}"), f"{v} on a peek")
+            self.bad(nf(f"img[src*='cat-poses'] {{ {v} }}"), f"{v} by src")
+        self.bad(nf("@media (prefers-reduced-motion: no-preference) { @keyframes cat-turn { to { transform: scaleX(-1); } } }"), "flip in cat keyframes")
+        self.assertEqual(nf(".cat { rotate: -4deg } .cat:active { transform: scale(1.06, .9) } .cat--breathe { transform: scale(1.015) }"), [])
+        self.assertEqual(nf(".fan-card { transform: scaleX(-1) }"), [])
+
+    def test_cat_files_pinned(self):
+        self.assertEqual(check.check_cat_manifest(), [])
+        self.assertEqual(list((check.ROOT / "assets" / "cats").glob("Crisp_Cat_*")), [], "retired table poses must not ship")
+        d = Path(tempfile.mkdtemp()) / "cat-poses"
+        d.mkdir()
+        (d / "Idli_99_test.svg").write_text("<svg></svg>", encoding="utf-8")
+        self.addCleanup(lambda: ((d / "Idli_99_test.svg").unlink(), d.rmdir(), d.parent.rmdir()))
+        man = lambda body: with_tmp(body, lambda m: check.check_cat_manifest(m, [d]), ".sha256")
+        self.assertEqual(man("0" * 64 + "  assets/cat-poses/Idli_99_test.svg\n"), [])
+        self.bad(man("0" * 64 + "  assets/cat-poses/Idli_98_other.svg\n"), "unpinned pose file")
+        self.assertIn("Samosa_09_head_tilt_sitting", (check.ROOT / "tools" / "assets.sha256").read_text(encoding="utf-8"))
 
     def test_cat_loops_respect_reduced_motion(self):
         cm = lambda t: check.check_cat_motion(t, "t.css")
