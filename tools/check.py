@@ -495,17 +495,14 @@ def img_contexts(text):
     return [(e["line"], e["attrs"], e["ancestors"]) for e in tag_contexts(text) if e["tag"] == "img"]
 
 
-HERO_CLIENTS = ("HDFC securities", "The Mind Mojo", "NMIMS")
-
-
 def in_class(el, cls):
     return any(cls in c for _, c, _ in el["ancestors"])
 
 
 def check_hero(text, label, slug):
     """Round 2 Home hero. Every page: one [data-logo-slot] header brandmark (an <a href="/">) inside <header>.
-    Home only: exactly one <img data-hero-logo> inside .hero (it travels into the slot), and a decorative
-    .fan (aria-hidden) inside .hero holding three .fan-card cards named HDFC securities, The Mind Mojo, NMIMS."""
+    Home only: exactly one <img data-hero-logo> inside .hero (it travels into the slot), on no container: no
+    .hero-art tray, no .fan/.fan-card cards and no client-logo or work image anywhere in the .hero."""
     out = []
     els = tag_contexts(text)
     slots = [e for e in els if "data-logo-slot" in e["attrs"]]
@@ -525,22 +522,14 @@ def check_hero(text, label, slug):
     for e in logos:
         if e["tag"] != "img" or not in_class(e, "hero"):
             out.append(f"{label}:{e['line']}: data-hero-logo must be an <img> inside .hero")
-    fans = [e for e in els if "fan" in e["attrs"].get("class", "").split()]
-    if len(fans) != 1:
-        out.append(f"{label}: Home needs one .fan card stack in the hero, found {len(fans)}")
-    for fan in fans:
-        if not in_class(fan, "hero"):
-            out.append(f"{label}:{fan['line']}: .fan must sit inside .hero")
-        if fan["attrs"].get("aria-hidden") != "true":
-            out.append(f"{label}:{fan['line']}: .fan is decorative and needs aria-hidden=\"true\"")
-        cards = [e for e in els if "fan-card" in e["attrs"].get("class", "").split()
-                 and any(a is fan["attrs"] for _, _, a in e["ancestors"])]
-        if len(cards) != 3:
-            out.append(f"{label}:{fan['line']}: .fan needs three .fan-card cards, found {len(cards)}")
-        names = [re.sub(r"\s+", " ", c["text"]).strip() for c in cards]
-        for client in HERO_CLIENTS:
-            if not any(client in n for n in names):
-                out.append(f"{label}:{fan['line']}: .fan has no card for '{client}'")
+    for e in els:
+        if not in_class(e, "hero") and "hero" not in e["attrs"].get("class", "").split():
+            continue
+        gone = {"hero-art", "fan", "fan-card"} & set(e["attrs"].get("class", "").split())
+        if gone:
+            out.append(f"{label}:{e['line']}: .{sorted(gone)[0]} is gone from the hero (no tray, no work cards)")
+        if e["tag"] == "img" and re.search(r"/assets/(?:clients|work)/", e["attrs"].get("src", "")):
+            out.append(f"{label}:{e['line']}: work/client image inside .hero ({e['attrs']['src']}); the hero holds only the logo")
     return out
 
 
@@ -577,7 +566,7 @@ CAT_PLACEMENTS = {
     "work": [],
 }
 CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats)/([\w-]+)\.svg")
-WORK_MARKERS = ("case", "work-grid", "fan", "fan-card", "work-index")
+WORK_MARKERS = ("case", "work-grid", "work-index")
 
 
 def within(e, where):
@@ -589,7 +578,7 @@ def within(e, where):
 def check_cats(text, label, slug):
     """Every page carries exactly its assigned cats, each in its moment's container; cats are decorative
     (alt="", never inside a link/button, no tabindex), never in a .hero, and never share a section with client
-    work (.case, work cards, the hero fan). No reference to the retired Crisp_Cat_* table poses."""
+    work (.case, work cards). No reference to the retired Crisp_Cat_* table poses."""
     out = []
     if "Crisp_Cat_" in text:
         out.append(f"{label}: references a retired Crisp_Cat_* file; use assets/cat-poses or the round avatars")
@@ -736,10 +725,9 @@ def motion_rules(text, name):
 
 def check_cat_motion(text, label):
     """(d) cat loops (any animation on a .cat* selector or using @keyframes cat-*) must sit inside
-    @media (prefers-reduced-motion: no-preference), so reduced motion never sees them. The Home hero card
-    fan (.fan*, @keyframes fan-*) follows the same rule."""
+    @media (prefers-reduced-motion: no-preference), so reduced motion never sees them."""
     out = []
-    for name, what in (("cat", "cat"), ("fan", "hero card fan")):
+    for name, what in (("cat", "cat"),):
         out += [f"{label}: {what} animation on '{sel}' is not inside @media (prefers-reduced-motion: no-preference)"
                 for sel, safe in motion_rules(text, name) if not safe]
     return out
@@ -880,33 +868,45 @@ def check_header_logo(text, label, tokens_text=""):
     return out
 
 
-def check_mobile_hero_order(text, label):
-    """Phones (<600px): the big hero logo must be in the first screen, so under @media (max-width: 599px)
-    .hero-art opens up (display: contents) and .hero-logo-spot has an `order` lower than .hero-copy's."""
+def check_hero_layout(text, label):
+    """Home hero layout: below 1024px (phones and tablets) one column with the logo spot first and centred:
+    under @media (max-width: 1023px) .hero-logo-spot has an `order` lower than .hero-copy's and
+    justify-self: center. Two columns (.hero-grid grid-template-columns with 2+ tracks) only inside
+    @media (min-width: 1024px+). No .hero-art tray or .fan card CSS left behind."""
+    rules = list(css_rules(text))
     def decl(prop, sel_re):
-        for sel, body, ats in css_rules(text):
-            if any(re.search(r"max-width\s*:\s*599px", a) for a in ats) and re.search(sel_re, sel):
+        for sel, body, ats in rules:
+            if any(re.search(r"max-width\s*:\s*1023px", a) for a in ats) and re.search(sel_re, sel):
                 m = re.search(rf"(?<![\w-]){prop}\s*:\s*([^;}}]+)", body)
                 if m:
                     return m.group(1).strip()
         return None
     out = []
-    if decl("display", r"\.hero-art(?![\w-])") != "contents":
-        out.append(f"{label}: under max-width: 599px .hero-art must be display: contents (logo spot joins the hero grid)")
     spot, copy = decl("order", r"\.hero-logo-spot(?![\w-])"), decl("order", r"\.hero-copy(?![\w-])") or "0"
     try:
         if spot is None or int(spot) >= int(copy):
-            out.append(f"{label}: under max-width: 599px .hero-logo-spot needs an order lower than .hero-copy ({spot} vs {copy})")
+            out.append(f"{label}: under max-width: 1023px .hero-logo-spot needs an order lower than .hero-copy ({spot} vs {copy})")
     except ValueError:
-        out.append(f"{label}: unreadable mobile hero order ({spot} vs {copy})")
+        out.append(f"{label}: unreadable hero order ({spot} vs {copy})")
+    if decl("justify-self", r"\.hero-logo-spot(?![\w-])") != "center":
+        out.append(f"{label}: under max-width: 1023px .hero-logo-spot must be centred (justify-self: center)")
+    two_col = 0
+    for sel, body, ats in rules:
+        if re.search(r"(?:^|[\s,])\.hero-art(?![\w-])|\.fan(?:-[\w-]+)?(?![\w-])", sel):
+            out.append(f"{label}: '{sel.strip()}' styles the removed hero tray/card fan; delete it")
+        if not re.search(r"\.hero-grid(?![\w-])", sel):
+            continue
+        m = re.search(r"grid-template-columns\s*:\s*([^;}]+)", body)
+        if not m or len(split_top(m.group(1).strip(), " ")) < 2 and "repeat(" not in m.group(1):
+            continue
+        mins = [int(x) for a in ats for x in re.findall(r"min-width\s*:\s*(\d+)px", a)]
+        if mins and max(mins) >= 1024:
+            two_col += 1
+        else:
+            out.append(f"{label}: .hero-grid two-column layout '{m.group(1).strip()}' must only apply from min-width: 1024px")
+    if not two_col:
+        out.append(f"{label}: no two-column .hero-grid inside @media (min-width: 1024px)")
     return out
-
-
-def check_fan_present(text, label):
-    """The Home hero cards fan out once on load: site.css must animate .fan-card under no-preference."""
-    if any(safe and ".fan-card" in sel for sel, safe in motion_rules(text, "fan")):
-        return []
-    return [f"{label}: no .fan-card load animation inside @media (prefers-reduced-motion: no-preference)"]
 
 
 def page_slug(path):
@@ -1140,8 +1140,7 @@ def main(argv):
     if not argv:
         problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest()
         site_css = ROOT / "css" / "site.css"
-        problems += check_fan_present(site_css.read_text(encoding="utf-8"), label_for(site_css))
-        problems += check_mobile_hero_order(site_css.read_text(encoding="utf-8"), label_for(site_css))
+        problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_header_logo(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                       (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_strips_css(site_css.read_text(encoding="utf-8"), label_for(site_css))

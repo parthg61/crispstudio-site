@@ -340,17 +340,17 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(cm(".cat { animation: none; } .track { animation: ticker 40s linear infinite; }"), [])
         self.assertEqual(check.check_css(check.ROOT / "css" / "site.css"), [])
 
-    # ── Round 2, Task 2: Home hero logo travel and the card fan ──
+    # ── Round 2, Task 2: Home hero logo travel (no tray, no work cards in the hero) ──
     HEAD = ('<header class="site-head"><a class="brandmark" data-logo-slot href="/" aria-label="Crisp home">'
             '<img src="/assets/logo/Crisp_Logo_FullColour.svg" alt="Crisp"></a></header>')
-    CARD = '<div class="fan-card"><div class="fan-visual"><img src="/assets/clients/x.png" alt=""></div><p>{}</p></div>'
-    LOGO = '<div class="hero-logo-spot"><img data-hero-logo class="hero-logo" src="/assets/logo/Crisp_Logo_FullColour.svg" alt=""></div>'
+    LOGO = ('<div class="hero-logo-spot"><span class="hero-logo"><img data-hero-logo src="/assets/logo/Crisp_Logo_FullColour.svg" alt="">'
+            '</span></div>')
 
-    def hero(self, logo=None, cards=("HDFC securities", "The Mind Mojo", "NMIMS"), fan_attrs=' aria-hidden="true"'):
-        fan = f'<div class="fan"{fan_attrs}>' + "".join(self.CARD.format(c) for c in cards) + "</div>"
-        return f'<section class="hero"><div class="wrap"><div class="hero-art">{self.LOGO if logo is None else logo}{fan}</div></div></section>'
+    def hero(self, logo=None, extra=""):
+        return (f'<section class="hero"><div class="wrap hero-grid"><div class="hero-copy"><h1>x</h1></div>'
+                f'{self.LOGO if logo is None else logo}{extra}</div></section>')
 
-    def test_hero_logo_slot_and_fan(self):
+    def test_hero_logo_slot_no_tray(self):
         hc = lambda html_, slug="home": check.check_hero(html_, "t", slug)
         good = self.HEAD + "<main>" + self.hero() + "</main>"
         self.assertEqual(hc(good), [])
@@ -366,12 +366,13 @@ class Bypasses(unittest.TestCase):
         self.bad(hc(self.HEAD + "<main>" + self.hero(logo="") + self.LOGO + "</main>"), "hero logo after the hero")
         self.bad(hc(self.HEAD + "<main>" + self.hero(logo='<div data-hero-logo></div>') + "</main>"), "hero logo not an img")
         self.bad(hc(self.HEAD + '<main><section class="hero">' + self.LOGO + "</section></main>", "about"), "hero logo off Home")
-        # the fan: one, decorative, in the hero, three named client cards
-        self.bad(hc(self.HEAD + "<main>" + self.hero(cards=("HDFC securities", "NMIMS")) + "</main>"), "two cards")
-        self.bad(hc(self.HEAD + "<main>" + self.hero(cards=("HDFC securities", "The Mind Mojo", "SAATH")) + "</main>"), "wrong client")
-        self.bad(hc(self.HEAD + "<main>" + self.hero(fan_attrs="") + "</main>"), "fan not aria-hidden")
-        moved = self.hero().replace('<div class="fan"', '</div></div></section><div class="fan"', 1)
-        self.bad(hc(self.HEAD + "<main>" + moved + "</main>"), "fan outside the hero")
+        # no tray, no card fan, no work images in the hero
+        self.bad(hc(self.HEAD + "<main>" + self.hero(logo='<div class="hero-art">' + self.LOGO + "</div>") + "</main>"), "tray back")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(extra='<div class="fan" aria-hidden="true"></div>') + "</main>"), "fan back")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(extra='<div class="fan-card"></div>') + "</main>"), "fan card back")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(extra='<img src="/assets/clients/nmims.png" alt="">') + "</main>"), "client logo in hero")
+        self.bad(hc(self.HEAD + "<main>" + self.hero(extra='<img src="/assets/work/x/1.jpg" alt="">') + "</main>"), "work image in hero")
+        self.assertEqual(hc(good + '<section class="section"><img src="/assets/clients/nmims.png" alt=""></section>'), [])
         # the real pages
         for page in check.built_pages():
             self.assertEqual(check.check_hero(page.read_text(encoding="utf-8"), page.name, check.page_slug(page)), [], page)
@@ -389,29 +390,22 @@ class Bypasses(unittest.TestCase):
         self.bad(lt(fn.replace("reduce)", "no-preference)") + call), "no reduced-motion check")
         self.assertEqual(check.check_js(), [])
 
-    def test_fan_motion(self):
-        cm = lambda t: check.check_cat_motion(t, "t.css")
-        self.bad(cm(".fan-card { animation: fan-out .7s both; }"), "fan outside media")
-        self.bad(cm("@media (prefers-reduced-motion: reduce) { .fan-card { animation: fan-out .7s; } }"), "fan under reduce")
-        self.bad(cm(".x { animation-name: fan-out; }"), "fan keyframes elsewhere")
-        self.assertEqual(cm("@media (prefers-reduced-motion: no-preference) { .fan-card { animation: fan-out .7s both; } "
-                            "@keyframes fan-out { from { transform: none; } } }"), [])
-        fp = lambda t: check.check_fan_present(t, "t.css")
-        self.bad(fp(".fan-card { transform: rotate(4deg); }"), "no fan animation at all")
-        self.bad(fp(".fan-card { animation: fan-out .7s; }"), "fan animation not under no-preference")
-        self.assertEqual(fp("@media (prefers-reduced-motion: no-preference) { .fan .fan-card { animation: fan-out .7s both; } }"), [])
-        self.assertEqual(fp((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
-
-    def test_mobile_hero_logo_first(self):
-        mo = lambda t: check.check_mobile_hero_order(t, "t.css")
-        good = "@media (max-width: 599px) { .hero-art { display: contents; } .hero-logo-spot { order: -1; } }"
-        self.assertEqual(mo(good), [])
-        self.assertEqual(mo(good.replace("order: -1; }", "order: 0; } .hero-copy { order: 1; }")), [])
-        self.bad(mo(""), "no mobile rules")
-        self.bad(mo(good.replace("order: -1", "order: 2")), "spot after the copy")
-        self.bad(mo(good.replace("display: contents", "display: flex")), "spot still inside the art block")
-        self.bad(mo(good.replace("max-width: 599px", "min-width: 600px")), "wrong breakpoint")
-        self.assertEqual(mo((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
+    def test_hero_layout_logo_first_below_1024(self):
+        hl = lambda t: check.check_hero_layout(t, "t.css")
+        good = ("@media (max-width: 1023px) { .hero-logo-spot { order: -1; justify-self: center; } } "
+                "@media (min-width: 1024px) { .hero-grid { grid-template-columns: 7fr 5fr; } }")
+        self.assertEqual(hl(good), [])
+        self.assertEqual(hl(good.replace("order: -1;", "order: 0;").replace("} } @media", "} .hero-copy { order: 1; } } @media", 1)), [])
+        self.bad(hl(""), "no rules")
+        self.bad(hl(good.replace("order: -1", "order: 2")), "logo after the copy")
+        self.bad(hl(good.replace("justify-self: center", "justify-self: start")), "logo not centred")
+        self.bad(hl(good.replace("max-width: 1023px", "max-width: 599px")), "only phones, not tablets")
+        self.bad(hl(good.replace("min-width: 1024px", "min-width: 600px")), "two columns on tablets")
+        self.bad(hl(good + " .hero-grid { grid-template-columns: 1fr 1fr; }"), "two columns at every width")
+        self.bad(hl(good.replace("7fr 5fr", "minmax(0, 1fr)")), "never two columns")
+        self.bad(hl(good + " .hero-art { padding: var(--space-7); }"), "tray CSS left behind")
+        self.bad(hl(good + " .fan-card { width: var(--space-10); }"), "fan CSS left behind")
+        self.assertEqual(hl((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
     # ── Round 2, Task 3: bento, marquee, ticker pause, Why statement ──
     @staticmethod
