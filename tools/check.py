@@ -360,33 +360,12 @@ def norm_text(s):
     return re.sub(r"\s+", " ", s.replace(" ", " ")).strip()
 
 
-def check_pause_button(els, target, what, label):
-    """target needs an id and data-pausable; one <button type="button" data-pause aria-controls=id> whose visible
-    label (the first words of its text) is Pause or Play. No aria-pressed: the label itself is the state, so a
-    screen reader never hears "Play, pressed" and the visible label stays the start of the accessible name."""
-    out = []
-    tid = target["attrs"].get("id")
-    if "data-pausable" not in target["attrs"] or not tid:
-        out.append(f"{label}:{target['line']}: the {what} needs data-pausable and an id (its pause button points at it)")
-        return out
-    btns = [e for e in els if "data-pause" in e["attrs"] and e["attrs"].get("aria-controls") == tid]
-    if len(btns) != 1:
-        out.append(f"{label}:{target['line']}: the {what} needs one [data-pause] button with aria-controls=\"{tid}\", found {len(btns)}")
-    for b in btns:
-        if b["tag"] != "button" or b["attrs"].get("type") != "button":
-            out.append(f"{label}:{b['line']}: the {what} pause control must be a <button type=\"button\">")
-        if "aria-pressed" in b["attrs"]:
-            out.append(f"{label}:{b['line']}: the {what} pause button must not use aria-pressed (its Pause/Play label is the state)")
-        if not re.match(r"(Pause|Play)\b", norm_text(b["text"])):
-            out.append(f"{label}:{b['line']}: the {what} pause button's text must start with Pause/Play")
-    return out
-
-
 def check_home_sections(text, label):
     """Home: (1) four .bento tiles linking to the four Services anchors, each with its official icon in an
     .icon-chip and its service tags; (2) one .marquee listing exactly the four service names (copies after the
-    first set aria-hidden) with a pause button; (3) the client ticker (#track) is pausable too; (4) .why-statement
-    carries the full Why sentence for screen readers and an aria-hidden .cycle of the five job words."""
+    first set aria-hidden); (3) the client ticker (#track); (4) .why-statement carries the full Why sentence for
+    screen readers and an aria-hidden .cycle of the five job words. Home pass item 4: no Pause/Play button
+    ([data-pause]) and no [data-pausable] target anywhere on the page (the user removed them)."""
     out = []
     els = tag_contexts(text)
     bentos = [e for e in els if "bento" in classes(e)]
@@ -420,16 +399,13 @@ def check_home_sections(text, label):
             names = [norm_text(e["text"]) for e in els if e["tag"] == "li" and inside(e, s)]
             if names != MARQUEE_NAMES:
                 out.append(f"{label}:{s['line']}: .marquee names must be exactly {MARQUEE_NAMES}, found {names}")
-        out += check_pause_button(els, mq, "services marquee", label)
     tracks = [e for e in els if e["attrs"].get("id") == "track"]
     if len(tracks) != 1:
         out.append(f"{label}: Home needs the client logo ticker (#track)")
-    for tr in tracks:
-        hosts = [e for e in els if "data-pausable" in e["attrs"] and inside(tr, e)]
-        if not hosts:
-            out.append(f"{label}:{tr['line']}: the client logo ticker needs a [data-pausable] wrapper with a pause button")
-        for h in hosts:
-            out += check_pause_button(els, h, "client logo ticker", label)
+    for e in els:
+        for attr in ("data-pause", "data-pausable"):
+            if attr in e["attrs"]:
+                out.append(f"{label}:{e['line']}: [{attr}] is gone from the site (no Pause/Play buttons); remove it")
     whys = [e for e in els if "why-statement" in classes(e)]
     if len(whys) != 1:
         out.append(f"{label}: Home needs one .why-statement, found {len(whys)}")
@@ -440,7 +416,6 @@ def check_home_sections(text, label):
             out.append(f"{label}:{w['line']}: .why-statement must keep '{WHY_SENTENCE}' readable (outside aria-hidden)")
         if len(cycles) != 1 or not any(a.get("aria-hidden") == "true" for _, _, a in cycles[0]["ancestors"] + [(0, 0, cycles[0]["attrs"])]):
             out.append(f"{label}:{w['line']}: .why-statement needs one aria-hidden .cycle of the job words")
-        out += check_pause_button(els, w, "Why job-word cycle", label)
         for c in cycles:
             words = [norm_text(e["text"]).rstrip(".") for e in els if e["tag"] == "span" and any(a is c["attrs"] for _, _, a in e["ancestors"][-1:])]
             if words != JOB_WORDS:
@@ -761,20 +736,19 @@ def check_all_motion(text, label):
 
 
 def check_strips_css(text, label):
-    """The services .marquee and the client .track scroll only under no-preference, and a paused strip
-    ([data-pausable].is-paused) really stops its animation (animation-play-state: paused)."""
+    """The services .marquee and the client .track scroll only under no-preference; nothing pauses them (Home pass
+    item 4: no Pause/Play buttons, so no .strip-pause/.is-paused/[data-pausable] CSS left, and no :hover pause)."""
     out = []
     rules = list(css_rules(text))
     for name in ("marquee", "track"):
         if not any(re.search(rf"\.{name}(?![\w])|\.{name}-", sel) and NO_PREF.search(" ".join(ats))
                    and re.search(r"(?<![\w-])animation\s*:\s*(?!none)", body) for sel, body, ats in rules):
             out.append(f"{label}: no .{name} scroll animation inside @media (prefers-reduced-motion: no-preference)")
-    if not any(".is-paused" in sel and re.search(r"animation-play-state\s*:\s*paused", body) for sel, body, _ in rules):
-        out.append(f"{label}: no '.is-paused ... {{ animation-play-state: paused }}' rule for the pause buttons")
-    # a :hover pause would stick after a tap on touch and override an explicit Play: the button is the only control
     for sel, body, _ in rules:
+        if re.search(r"\.strip-pause|\.is-paused|data-pausable|data-paused|\.why-bar|\.strip-bar|\.i-play|\.i-pause", sel):
+            out.append(f"{label}: '{sel.strip()}' styles the removed Pause/Play buttons; delete it")
         if ":hover" in sel and re.search(r"animation-play-state\s*:\s*paused", body):
-            out.append(f"{label}: '{sel}' pauses a strip on :hover; only the Pause/Play button may pause it")
+            out.append(f"{label}: '{sel}' pauses a strip on :hover; the strips never pause")
     # the 1.04 work-card zoom is for cards that are links only, so plain cards never look clickable
     for sel, body, _ in rules:
         if re.search(r"scale\(\s*1\.04\s*\)", body):
@@ -784,32 +758,19 @@ def check_strips_css(text, label):
     return out
 
 
-def check_pausables_js(js, label="js/site.js"):
-    """initPausables() is defined once and called once; it flips the Pause/Play label and the .is-paused class on
-    the [data-pausable] element its [data-pause] button controls, and never uses aria-pressed. The Why job-word
-    cycle checks reduced motion and stops while its statement .is-paused."""
+def check_no_pausables_js(js, label="js/site.js"):
+    """Home pass item 4: the Pause/Play buttons are gone, so no initPausables, [data-pause], .is-paused or
+    "pausechange" code is left. The Why job-word .cycle still checks reduced motion."""
     js = re.sub(r"/\*.*?\*/|(?<![:'\"\\])//[^\n]*", "", js, flags=re.S)
     out = []
-    m = re.search(r"function\s+initPausables\s*\(", js)
-    if len(re.findall(r"function\s+initPausables\s*\(", js)) != 1:
-        return [f"{label}: expected one 'function initPausables()'"]
-    body = js[m.start():m.start() + 2500]
-    body = body[:body.find("\n}\n") + 3] if "\n}\n" in body else body
-    for need, why in ((r"\[data-pause\]", "find [data-pause] buttons"),
-                      (r"'Pause'|\"Pause\"", "label the button Pause"), (r"'Play'|\"Play\"", "label the button Play"),
-                      (r"is-paused", "toggle .is-paused"), (r"data-pausable|dataset\.pausable", "only control [data-pausable]")):
-        if not re.search(need, body):
-            out.append(f"{label}: initPausables must {why}")
-    if "aria-pressed" in body:
-        out.append(f"{label}: initPausables must not set aria-pressed (the Pause/Play label is the state)")
-    if len(re.findall(r"(?<!function )(?<![\w.])initPausables\s*\(\s*\)", js)) != 1:
-        out.append(f"{label}: initPausables() must be called once")
+    for need, what in ((r"initPausables", "initPausables"), (r"data-pause", "[data-pause]/[data-pausable]"),
+                       (r"is-paused", ".is-paused"), (r"pausechange", "the pausechange event")):
+        if re.search(need, js):
+            out.append(f"{label}: {what} is left over from the removed Pause/Play buttons")
     cyc = re.search(r"\.cycle", js)
     near = js[cyc.start():cyc.start() + 2500] if cyc else ""
     if not re.search(r"prefers-reduced-motion: reduce", near):
         out.append(f"{label}: the Why job-word .cycle must check matchMedia('(prefers-reduced-motion: reduce)')")
-    if not re.search(r"is-paused", near):
-        out.append(f"{label}: the Why job-word .cycle must stop while its statement is .is-paused (its Pause button)")
     return out
 
 
@@ -1278,7 +1239,7 @@ def check_js():
     # Tab focus on a half-hidden Services index chip must scroll the chip row (Chrome does not on its own)
     if not re.search(r"\.svc-index ul'\)[\s\S]{0,400}focusin[\s\S]{0,200}scrollIntoView", js):
         out.append("js/site.js: Services index chip row no longer scrolls the focused chip into view")
-    return out + check_logo_travel_js(js) + check_pausables_js(js)
+    return out + check_logo_travel_js(js) + check_no_pausables_js(js)
 
 
 LOGO_TRAVEL_GUARD = re.compile(

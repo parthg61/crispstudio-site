@@ -497,7 +497,7 @@ class Bypasses(unittest.TestCase):
         self.bad(cc(".work-card--a { background: var(--cream); }"), "brand background without a text colour")
         self.assertEqual(cc((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
-    # ── Round 2, Task 3: bento, marquee, ticker pause, Why statement ──
+    # ── Round 2, Task 3: bento, marquee, ticker, Why statement (Home pass item 4: no Pause/Play buttons) ──
     @staticmethod
     def tile(href, icon, tags):
         return (f'<a class="tile" href="{href}"><span class="icon-chip" aria-hidden="true"><img src="/assets/icons/{icon}" alt=""></span>'
@@ -508,17 +508,14 @@ class Bypasses(unittest.TestCase):
             bento = '<div class="bento">' + "".join(self.tile(h, i, t) for h, (i, t) in check.BENTO_TILES.items()) + "</div>"
         names = "".join(f"<li>{html_lib.escape(n)}</li>" for n in check.MARQUEE_NAMES)
         if marquee is None:
-            marquee = (f'<div class="marquee" id="mq" data-pausable><div class="marquee-track"><ul>{names}</ul>'
-                       f'<ul aria-hidden="true">{names}</ul></div></div>'
-                       '<button type="button" data-pause aria-controls="mq">Pause<span class="sr-only"> services strip</span></button>')
+            marquee = (f'<div class="marquee" id="mq"><div class="marquee-track"><ul>{names}</ul>'
+                       f'<ul aria-hidden="true">{names}</ul></div></div>')
         if ticker is None:
-            ticker = ('<div class="ticker" id="tk" data-pausable><div class="track" id="track"></div></div>'
-                      '<button type="button" data-pause aria-controls="tk">Pause</button>')
+            ticker = '<div class="ticker" id="tk"><div class="track" id="track"></div></div>'
         if why is None:
-            why = ('<p class="why-statement" id="why" data-pausable>Everything we make has a job<span class="why-static">, to clarify, engage, convert, '
+            why = ('<p class="why-statement" id="why">Everything we make has a job<span class="why-static">, to clarify, engage, convert, '
                    'simplify or move someone to act.</span><span class="why-cycle" aria-hidden="true">, to <span class="cycle">'
-                   + "".join(f"<span>{w}.</span>" for w in check.JOB_WORDS) + "</span></span> That's the crunch.</p>"
-                   '<button type="button" data-pause aria-controls="why">Pause</button>')
+                   + "".join(f"<span>{w}</span>" for w in check.JOB_WORDS) + "</span>.</span> That's the crunch.</p>")
         return "<main>" + marquee + ticker + bento + why + "</main>"
 
     def test_home_sections(self):
@@ -533,30 +530,22 @@ class Bypasses(unittest.TestCase):
         self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t[:-1]) for h, (i, t) in tiles) + "</div>")), "a tag dropped")
         no_chip = self.home_sections().replace('class="icon-chip"', 'class="icon"')
         self.bad(hs(no_chip), "icon not in an .icon-chip")
-        # marquee: exactly the four names, a loop copy, a pause button
+        # marquee: exactly the four names, a loop copy
         good = self.home_sections()
         self.bad(hs(good.replace("<li>Build</li>", "<li>Development</li>", 1)), "renamed service")
         self.bad(hs(good.replace("<li>Build</li>", "", 1)), "three names")
         self.bad(hs(good.replace('<ul aria-hidden="true">', "<ul>", 1)), "copy not aria-hidden")
-        self.bad(hs(good.replace('aria-controls="mq"', 'aria-controls="nope"')), "no pause button for the marquee")
-        self.bad(hs(good.replace('aria-controls="mq">Pause', 'aria-controls="mq">Stop')), "button not labelled Pause/Play")
-        self.bad(hs(good.replace('aria-controls="mq">Pause<span class="sr-only"> services strip</span>',
-                                 'aria-controls="mq"><span class="sr-only">Services strip </span>Pause')), "visible label not first in the name")
-        self.bad(hs(good.replace('data-pause aria-controls="mq"', 'data-pause aria-pressed="false" aria-controls="mq"')), "aria-pressed with a toggling label")
-        self.bad(hs(good.replace('<div class="marquee" id="mq" data-pausable>', '<div class="marquee" id="mq">')), "marquee not pausable")
-        self.bad(hs(good.replace('<button type="button" data-pause aria-controls="mq">',
-                                 '<span data-pause aria-controls="mq">', 1)), "pause control not a button")
-        # ticker: needs its own pause button
-        self.bad(hs(good.replace('aria-controls="tk"', 'aria-controls="x"')), "ticker has no pause button")
-        self.bad(hs(good.replace('<div class="ticker" id="tk" data-pausable>', '<div class="ticker">')), "ticker not pausable")
+        # Pause/Play buttons are gone for good (user: "useless on the website"): none may come back
+        for target in ("mq", "tk", "why"):
+            btn = f'<button class="btn strip-pause" type="button" data-pause aria-controls="{target}">Pause</button>'
+            self.bad(hs(good.replace("</main>", btn + "</main>")), f"a pause button for #{target}")
+        self.bad(hs(good.replace('<div class="ticker" id="tk">', '<div class="ticker" id="tk" data-pausable>')), "a leftover data-pausable")
         # why: full sentence readable, cycle aria-hidden with the five words
         self.bad(hs(self.home_sections(why="<p>Everything we make has a job.</p>")), "no .why-statement")
         self.bad(hs(good.replace('<span class="why-static">', '<span class="why-static" aria-hidden="true">')), "sentence hidden from AT")
         self.bad(hs(good.replace('<span class="why-cycle" aria-hidden="true">', '<span class="why-cycle">')), "cycle not aria-hidden")
-        self.bad(hs(good.replace("<span>convert.</span>", "")), "a job word missing")
+        self.bad(hs(good.replace("<span>convert</span>", "")), "a job word missing")
         self.bad(hs(good.replace("simplify or move", "simplify, or move")), "sentence reworded")
-        self.bad(hs(good.replace('aria-controls="why"', 'aria-controls="x"')), "job-word cycle has no pause button")
-        self.bad(hs(good.replace('id="why" data-pausable', 'id="why"')), "job-word cycle not pausable")
         # the real Home page
         home = check.ROOT / "index.html"
         self.assertEqual(hs(home.read_text(encoding="utf-8")), [])
@@ -571,36 +560,30 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(am("@media (prefers-reduced-motion: no-preference) { @media (min-width: 600px) { .a { animation: m 1s; } } }"), [])
         sc = lambda t: check.check_strips_css(t, "t.css")
         good = ("@media (prefers-reduced-motion: no-preference) { html.js .marquee-track { animation: m 60s linear infinite; } "
-                "html.js .track { animation: t 40s linear infinite; } } .is-paused .track { animation-play-state: paused; }")
+                "html.js .track { animation: t 40s linear infinite; } }")
         self.assertEqual(sc(good), [])
-        self.bad(sc(good.replace(".is-paused .track", ".paused .track")), "no paused rule")
+        self.bad(sc(good + " .is-paused .track { animation-play-state: paused; }"), "leftover paused rule")
+        self.bad(sc(good + " .strip-pause { gap: var(--space-2); }"), "leftover pause button CSS")
         self.bad(sc(good.replace("html.js .marquee-track { animation: m 60s linear infinite; } ", "")), "marquee does not scroll")
-        self.bad(sc(good + " .marquee:hover .marquee-track { animation-play-state: paused; }"), "hover pause fights the button")
+        self.bad(sc(good + " .marquee:hover .marquee-track { animation-play-state: paused; }"), "hover pause")
         self.bad(sc(good + " .work-grid .card:hover .card-visual { transform: scale(1.04); }"), "zoom on a non-link card")
         self.assertEqual(sc(good + " .work-grid a.card:hover .card-visual, .work-grid a.card:focus-visible .card-visual { transform: scale(1.04); }"), [])
         site_css = check.ROOT / "css" / "site.css"
         self.assertEqual(am(site_css.read_text(encoding="utf-8")), [])
         self.assertEqual(sc(site_css.read_text(encoding="utf-8")), [])
 
-    def test_pausables_js(self):
-        pj = check.check_pausables_js
-        fn = ("function initPausables() {\n  document.querySelectorAll('[data-pause]').forEach(btn => {\n"
-              "    const el = document.getElementById(btn.getAttribute('aria-controls'));\n"
-              "    if (!el || !el.hasAttribute('data-pausable')) return;\n"
-              "    btn.addEventListener('click', () => { const p = !el.classList.contains('is-paused');\n"
-              "      el.classList.toggle('is-paused', p);\n"
-              "      btn.textContent = p ? 'Play' : 'Pause'; });\n  });\n}\ninitPausables();\n")
+    def test_no_pausables_js(self):
+        pj = check.check_no_pausables_js
         cyc = ("const cycle = document.querySelector('.why-statement .cycle');\n"
-               "if (cycle && !matchMedia('(prefers-reduced-motion: reduce)').matches) { if (statement.classList.contains('is-paused')) stop(); }\n")
-        self.assertEqual(pj(fn + cyc), [])
-        self.bad(pj(cyc), "not defined")
-        self.bad(pj(fn.replace("initPausables();\n", "") + cyc), "never called")
-        self.bad(pj(fn.replace("el.classList.toggle('is-paused', p);", "el.classList.toggle('is-paused', p); btn.setAttribute('aria-pressed', String(p));") + cyc), "aria-pressed")
-        self.bad(pj(fn + cyc.replace("statement.classList.contains('is-paused')", "false")), "cycle ignores its pause button")
-        self.bad(pj(fn.replace("'Play'", "'Go'") + cyc), "no Play label")
-        self.bad(pj(fn.replace("is-paused", "off") + cyc), "no .is-paused")
-        self.bad(pj(fn), "no job-word cycle")
-        self.bad(pj(fn + cyc.replace("reduce", "no-preference")), "cycle ignores reduced motion")
+               "if (cycle) { const reduce = matchMedia('(prefers-reduced-motion: reduce)'); }\n")
+        self.assertEqual(pj(cyc), [])
+        self.bad(pj("function initPausables() {}\ninitPausables();\n" + cyc), "initPausables back")
+        self.bad(pj("document.querySelectorAll('[data-pause]');\n" + cyc), "data-pause handling back")
+        self.bad(pj("el.classList.toggle('is-paused', p);\n" + cyc), "is-paused back")
+        self.bad(pj("statement.addEventListener('pausechange', f);\n" + cyc), "pausechange back")
+        self.bad(pj(cyc.replace("reduce)", "no-preference)")), "cycle ignores reduced motion")
+        self.bad(pj(""), "no job-word cycle")
+        self.assertEqual(pj("// the old initPausables() is gone\n" + cyc), [])
         self.assertEqual(check.check_js(), [])
 
     def test_header_logo_min_width_and_nav_height(self):

@@ -130,30 +130,9 @@ if (track) {
   track.innerHTML = set.map(l => item(l)).join('') + set.map(l => item(l, true)).join('');
 }
 
-// Pause/Play for anything that moves on its own: a <button data-pause aria-controls="id"> stops and restarts the
-// [data-pausable] element with that id. Its visible label is the state ("Pause" while running, "Play" while
-// paused; an .sr-only suffix after it names the target), so there is no aria-pressed. .is-paused sets
-// animation-play-state: paused in CSS (the strips) and the Why cycle stops its swap; a "pausechange" event tells
-// anything listening. A native button, so Space and Enter work. Reduced motion or no JS: CSS hides the buttons.
-function initPausables() {
-  document.querySelectorAll('[data-pause]').forEach(btn => {
-    const el = document.getElementById(btn.getAttribute('aria-controls') || '');
-    if (!el || !el.hasAttribute('data-pausable')) return;
-    const label = btn.querySelector('[data-pause-label]') || btn;
-    const set = paused => {
-      el.classList.toggle('is-paused', paused);
-      btn.toggleAttribute('data-paused', paused);
-      label.textContent = paused ? 'Play' : 'Pause';
-      el.dispatchEvent(new CustomEvent('pausechange', { detail: { paused } }));
-    };
-    btn.addEventListener('click', () => set(!el.classList.contains('is-paused')));
-  });
-}
-
 // Why Crisp: the job word swaps in place (clarify, engage, convert, simplify, move someone to act) every 2.6s
-// while the statement is on screen. Opacity and a small shift only (CSS). Its Pause/Play button (initPausables)
-// stops the swap on the word shown. Reduced motion: no .is-cycling, so the full original sentence shows,
-// nothing moves and CSS hides the button.
+// while the statement is on screen. Opacity and a small shift only (CSS). Reduced motion: no .is-cycling, so the
+// full original sentence shows and nothing moves.
 const cycle = document.querySelector('.why-statement .cycle');
 if (cycle) {
   const statement = cycle.closest('.why-statement');
@@ -171,14 +150,13 @@ if (cycle) {
   };
   const stop = () => { clearInterval(timer); timer = null; };
   const run = () => {
-    if (timer || reduce.matches || !seen || statement.classList.contains('is-paused')) return;
+    if (timer || reduce.matches || !seen) return;
     timer = setInterval(() => show((i + 1) % words.length), 2600);
   };
   const mode = () => {
     statement.classList.toggle('is-cycling', !reduce.matches);
     if (reduce.matches) { stop(); show(0); } else run();
   };
-  statement.addEventListener('pausechange', e => (e.detail.paused ? stop() : run()));
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(([e]) => { seen = e.isIntersecting; seen ? run() : stop(); }, { threshold: 0.4 }).observe(statement);
   } else {
@@ -187,7 +165,6 @@ if (cycle) {
   if (reduce.addEventListener) reduce.addEventListener('change', mode);
   mode();
 }
-initPausables();
 
 // "From the blog": only shown once at least three posts are live
 const blogBlock = document.getElementById('from-the-blog');
