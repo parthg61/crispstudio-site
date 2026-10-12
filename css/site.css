@@ -478,17 +478,23 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
 }
 .why-big .why-static { white-space: normal; }
 .why-crunch { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: 600; color: var(--text-muted); }
-.why-js, .why-statement .cycle { display: none; }
+.why-js, .why-roll { display: none; }
 .why-statement.is-cycling .why-big { font-size: var(--fs-display-xl); line-height: var(--lh-display-xl); letter-spacing: var(--ls-display-xl); }
 .why-statement.is-cycling .why-js { display: inline; }
 .why-statement.is-cycling .why-static {
   position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden;
   clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
+.why-statement.is-cycling .why-roll { display: block; position: relative; }
 .why-statement.is-cycling .cycle { display: grid; }
 .cycle > span { grid-area: 1 / 1; text-wrap: balance; opacity: 0; transform: translateY(.3em); }
 .cycle > span.on { opacity: 1; transform: none; }
 .cycle > span.out { opacity: 0; transform: translateY(-.3em); }
+/* User override (Home pass item 5): the job words in Golden Bake, the brand yellow (2.07:1 on white: below 4.5:1,
+   user-chosen, Display XL only; the words are aria-hidden and the readable sentence stays navy). The period
+   (.why-dot) stays navy and still: js places it right after the last letter of the word shown. */
+.why-statement .cycle > span { color: var(--brand-orange); }
+.why-dot { position: absolute; left: 0; top: 0; color: var(--text); }
 @media (prefers-reduced-motion: no-preference) {
   .cycle > span { transition: opacity .5s ease, transform .7s var(--ease); }
 }

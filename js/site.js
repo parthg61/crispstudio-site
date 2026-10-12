@@ -131,14 +131,34 @@ if (track) {
 }
 
 // Why Crisp: the job word swaps in place (clarify, engage, convert, simplify, move someone to act) every 2.6s
-// while the statement is on screen. Opacity and a small shift only (CSS). Reduced motion: no .is-cycling, so the
-// full original sentence shows and nothing moves.
+// while the statement is on screen. Opacity and a small shift only (CSS). One navy period (.why-dot) sits right
+// after the last letter of the word shown: placeDot() measures that word's last line from its layout box (its
+// offset plus the text's rects inside it, so the entry shift never moves the period). Reduced motion: no
+// .is-cycling, so the full original sentence shows and nothing moves.
 const cycle = document.querySelector('.why-statement .cycle');
 if (cycle) {
   const statement = cycle.closest('.why-statement');
   const words = [...cycle.children];
+  const dot = statement.querySelector('.why-dot');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   let i = 0, timer = null, seen = false;
+  const placeDot = () => {
+    if (!dot || !statement.classList.contains('is-cycling')) return;
+    const word = words[i];
+    const text = document.createRange();
+    text.selectNodeContents(word);
+    const lines = text.getClientRects();
+    if (!lines.length) return;
+    const last = lines[lines.length - 1];
+    const box = word.getBoundingClientRect();
+    dot.style.left = '0px';
+    dot.style.top = '0px';
+    const own = document.createRange();
+    own.selectNodeContents(dot);
+    const lift = own.getBoundingClientRect().top - dot.getBoundingClientRect().top; // glyph box inside the dot's line box
+    dot.style.left = `${word.offsetLeft + last.right - box.left}px`;
+    dot.style.top = `${word.offsetTop + last.top - box.top - lift}px`;
+  };
   const show = n => {
     if (n === i) return;
     const prev = words[i];
@@ -147,6 +167,7 @@ if (cycle) {
     setTimeout(() => prev.classList.remove('out'), 700);
     i = n;
     words[i].classList.add('on');
+    placeDot();
   };
   const stop = () => { clearInterval(timer); timer = null; };
   const run = () => {
@@ -155,8 +176,11 @@ if (cycle) {
   };
   const mode = () => {
     statement.classList.toggle('is-cycling', !reduce.matches);
-    if (reduce.matches) { stop(); show(0); } else run();
+    if (reduce.matches) { stop(); show(0); } else { placeDot(); run(); }
   };
+  window.addEventListener('resize', placeDot);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeDot);
+  if ('ResizeObserver' in window) new ResizeObserver(placeDot).observe(cycle);
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(([e]) => { seen = e.isIntersecting; seen ? run() : stop(); }, { threshold: 0.4 }).observe(statement);
   } else {

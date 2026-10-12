@@ -351,6 +351,18 @@ class Bypasses(unittest.TestCase):
         for slug in ("about", "services", "contact", "blog", "404"):
             self.assertIn("Idli_03_sitting_sprawled_leg_up", build.render(slug, meta, "<main></main>"), slug)
 
+    def test_orange_text_only_for_the_why_words(self):
+        toks = (check.ROOT / "css" / "tokens.css").read_text(encoding="utf-8")
+        ot = lambda t: check.check_orange_text(t, "t.css", toks)
+        self.assertEqual(ot(".why-statement .cycle > span { color: var(--brand-orange); } .tile-icon { color: var(--orange); } "
+                            ".vault svg { color: var(--orange); } .btn { background: var(--orange); color: var(--on-accent); }"), [])
+        for sel in (".why-big", ".why-statement .cycle", ".why-dot", ".why-statement .why-static", "p", ".label", ".work-meta"):
+            self.bad(ot(f"{sel} {{ color: var(--brand-orange); }}"), f"orange text on {sel}")
+        self.bad(ot(".t-lead { color: #FF8A00; }"), "orange hex text")
+        self.bad(ot(".nav a:hover { color: var(--orange-hover); }"), "orange hover text")
+        self.assertEqual(ot((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
+        self.assertAlmostEqual(check.contrast("#FD9F0F", "#FFFFFF"), 2.07, places=2)
+
     def test_hammock_sway(self):
         hs = lambda t: check.check_hammock_css(t, "t.css")
         good = (".scene-hammock { transform-origin: 42% 4%; } @media (prefers-reduced-motion: no-preference) { "
@@ -515,7 +527,7 @@ class Bypasses(unittest.TestCase):
         if why is None:
             why = ('<p class="why-statement" id="why">Everything we make has a job<span class="why-static">, to clarify, engage, convert, '
                    'simplify or move someone to act.</span><span class="why-cycle" aria-hidden="true">, to <span class="cycle">'
-                   + "".join(f"<span>{w}</span>" for w in check.JOB_WORDS) + "</span>.</span> That's the crunch.</p>")
+                   + "".join(f"<span>{w}</span>" for w in check.JOB_WORDS) + '</span><span class="why-dot">.</span></span> That\'s the crunch.</p>')
         return "<main>" + marquee + ticker + bento + why + "</main>"
 
     def test_home_sections(self):
@@ -546,6 +558,10 @@ class Bypasses(unittest.TestCase):
         self.bad(hs(good.replace('<span class="why-cycle" aria-hidden="true">', '<span class="why-cycle">')), "cycle not aria-hidden")
         self.bad(hs(good.replace("<span>convert</span>", "")), "a job word missing")
         self.bad(hs(good.replace("simplify or move", "simplify, or move")), "sentence reworded")
+        # item 5: the word spans hold only the word; one navy period follows the rolling text
+        self.bad(hs(good.replace("<span>engage</span>", "<span>engage.</span>")), "a period inside a word span")
+        self.bad(hs(good.replace('<span class="why-dot">.</span>', "")), "no period after the rolling text")
+        self.bad(hs(good.replace('<span class="why-dot">.</span>', "").replace('<span class="cycle">', '<span class="why-dot">.</span><span class="cycle">')), "period before the words")
         # the real Home page
         home = check.ROOT / "index.html"
         self.assertEqual(hs(home.read_text(encoding="utf-8")), [])
@@ -575,7 +591,7 @@ class Bypasses(unittest.TestCase):
     def test_no_pausables_js(self):
         pj = check.check_no_pausables_js
         cyc = ("const cycle = document.querySelector('.why-statement .cycle');\n"
-               "if (cycle) { const reduce = matchMedia('(prefers-reduced-motion: reduce)'); }\n")
+               "if (cycle) { const reduce = matchMedia('(prefers-reduced-motion: reduce)'); const dot = statement.querySelector('.why-dot'); }\n")
         self.assertEqual(pj(cyc), [])
         self.bad(pj("function initPausables() {}\ninitPausables();\n" + cyc), "initPausables back")
         self.bad(pj("document.querySelectorAll('[data-pause]');\n" + cyc), "data-pause handling back")
@@ -583,6 +599,7 @@ class Bypasses(unittest.TestCase):
         self.bad(pj("statement.addEventListener('pausechange', f);\n" + cyc), "pausechange back")
         self.bad(pj(cyc.replace("reduce)", "no-preference)")), "cycle ignores reduced motion")
         self.bad(pj(""), "no job-word cycle")
+        self.bad(pj(cyc.replace("'.why-dot'", "'.x'")), "the period is never placed")
         self.assertEqual(pj("// the old initPausables() is gone\n" + cyc), [])
         self.assertEqual(check.check_js(), [])
 

@@ -417,9 +417,14 @@ def check_home_sections(text, label):
         if len(cycles) != 1 or not any(a.get("aria-hidden") == "true" for _, _, a in cycles[0]["ancestors"] + [(0, 0, cycles[0]["attrs"])]):
             out.append(f"{label}:{w['line']}: .why-statement needs one aria-hidden .cycle of the job words")
         for c in cycles:
-            words = [norm_text(e["text"]).rstrip(".") for e in els if e["tag"] == "span" and any(a is c["attrs"] for _, _, a in e["ancestors"][-1:])]
+            # Home pass item 5: each word span holds only the word; one static navy .why-dot period follows the cycle
+            words = [norm_text(e["text"]) for e in els if e["tag"] == "span" and any(a is c["attrs"] for _, _, a in e["ancestors"][-1:])]
             if words != JOB_WORDS:
-                out.append(f"{label}:{c['line']}: .cycle job words must be {JOB_WORDS}, found {words}")
+                out.append(f"{label}:{c['line']}: .cycle job words must be exactly {JOB_WORDS} (no period inside), found {words}")
+            parent = c["ancestors"][-1][2] if c["ancestors"] else None
+            dots = [e for e in els if "why-dot" in classes(e) and parent is not None and e["ancestors"] and e["ancestors"][-1][2] is parent]
+            if len(dots) != 1 or norm_text(dots[0]["text"]) != "." or els.index(dots[0]) < els.index(c):
+                out.append(f"{label}:{c['line']}: one .why-dot '.' must follow the .cycle in the same aria-hidden wrapper")
     return out
 
 
@@ -771,6 +776,8 @@ def check_no_pausables_js(js, label="js/site.js"):
     near = js[cyc.start():cyc.start() + 2500] if cyc else ""
     if not re.search(r"prefers-reduced-motion: reduce", near):
         out.append(f"{label}: the Why job-word .cycle must check matchMedia('(prefers-reduced-motion: reduce)')")
+    if cyc and "why-dot" not in near:
+        out.append(f"{label}: the Why job-word .cycle must place the .why-dot period after the word shown")
     return out
 
 
@@ -992,6 +999,33 @@ def check_card_colours(text, label, tokens_text=""):
                 out.append(f"{label}: '{part.strip()}' sets a brand background without a text colour")
             elif contrast(fgc, colour) < 4.5:
                 out.append(f"{label}: '{part.strip()}' text {fgc} on {colour} is {contrast(fgc, colour):.2f}:1, under 4.5:1")
+    return out
+
+
+# Orange is never a text colour on white (Golden Bake #FD9F0F on white is 2.07:1, #FF8A00 2.33:1): `color:` in the
+# orange family is for icons and svgs only. One documented, user-chosen exception (Home pass item 5, "this rolling
+# text should have brands yellow colour"): the swapping Why Crisp job words, at Display XL (88/48px, bold) only.
+# Their period stays navy, and the static fallback sentence stays navy.
+ORANGE_TEXT_OK = (".why-statement .cycle > span",)
+ORANGE_FAMILY = {"#FD9F0F", "#FF8A00", "#FF6A00"}
+
+
+def check_orange_text(text, label, tokens_text=""):
+    out = []
+    tokens = css_tokens(tokens_text, text)
+    for sel, body, ats in css_rules(text):
+        if any(a.lower().startswith("@keyframes") for a in ats):
+            continue
+        m = re.search(r"(?<![\w-])color\s*:\s*([^;}]+)", body)
+        if not m or resolve_colour(m.group(1), tokens) not in ORANGE_FAMILY:
+            continue
+        for part in split_top(sel):
+            part = re.sub(r"\s+", " ", part.strip())
+            subject = re.split(r"\s*[\s>+~]\s*", part)[-1]
+            if part in ORANGE_TEXT_OK or re.search(r"svg|icon", subject):
+                continue
+            out.append(f"{label}: '{part}' sets orange text ({m.group(1).strip()}); orange is for icons only "
+                       f"(the one exception is {ORANGE_TEXT_OK[0]}, the Why job words)")
     return out
 
 
@@ -1286,6 +1320,8 @@ def main(argv):
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_card_colours(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                        (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
+        problems += check_orange_text(site_css.read_text(encoding="utf-8"), label_for(site_css),
+                                      (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_hammock_css(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_hero_logo_sizes(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                           (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
