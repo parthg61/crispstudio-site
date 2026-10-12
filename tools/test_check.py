@@ -472,8 +472,9 @@ class Bypasses(unittest.TestCase):
     @staticmethod
     def work_section(cards=None, buttons=None, extra=""):
         def card(href, title, meta):
+            m = '<p class="work-meta">' + meta + '</p>' if meta else ''
             return (f'<a class="card work-card" href="{href}"><span class="work-icon" aria-hidden="true"><svg viewBox="0 0 56 56">'
-                    f'<rect class="wi-1" width="9" height="9"/></svg></span><h3>{title}</h3><p class="work-meta">{meta}</p></a>')
+                    f'<rect class="wi-1" width="9" height="9"/></svg></span><h3>{title}</h3>{m}</a>')
         cards = "".join(card(*c) for c in check.WORK_CARDS) if cards is None else cards
         if buttons is None:
             buttons = ('<button type="button" aria-label="Previous" aria-controls="wr">&lt;</button>'
@@ -490,9 +491,11 @@ class Bypasses(unittest.TestCase):
         self.bad(wr(good.replace(' tabindex="0"', "")), "region not focusable")
         self.bad(wr(good.replace("/work/#logos", "/work/")), "wrong link")
         self.bad(wr(good.replace("<h3>Logos</h3>", "<h3>Identity</h3>")), "renamed category")
-        self.bad(wr(good.replace("14 pieces", "12 pieces")), "wrong count")
+        self.bad(wr(good.replace("<h3>Logos</h3>", '<h3>Logos</h3><p class="work-meta">1 piece</p>')), "a count on a category card")
+        self.bad(wr(good.replace("<h3>Logos</h3>", "<h3>Logos</h3><p>Marks</p>")), "a description on a category card")
+        self.bad(wr(good.replace('<a class="card work-card" href="/work/#logos"', '<a class="card work-card" aria-label="Logos, 1 piece" href="/work/#logos"')), "a count in the accessible name")
         self.bad(wr(self.work_section(cards="".join(
-            f'<a class="card work-card" href="{h}"><span class="work-icon" aria-hidden="true"><svg></svg></span><h3>{t}</h3><p class="work-meta">{m}</p></a>'
+            f'<a class="card work-card" href="{h}"><span class="work-icon" aria-hidden="true"><svg></svg></span><h3>{t}</h3></a>'
             for h, t, m in reversed(check.WORK_CARDS)))), "cards out of order")
         self.bad(wr(good.replace('<span class="work-icon" aria-hidden="true">', '<span class="work-icon">', 1)), "icon not aria-hidden")
         self.bad(wr(good.replace('aria-label="Next" ', "")), "no Next label")

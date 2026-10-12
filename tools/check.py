@@ -27,8 +27,8 @@ PAGE_COPY = {
         # Home pass item 2: the Selected work category cards (no client names) and the unchanged section copy
         "A few of the brands and products we've shaped. Some of our best work lives behind NDAs, ask us about it. "
         "Confidentiality is non-negotiable.",
-        "Branding Collaterals", "14 pieces", "Standees · Brochures · Bookmarks", "Logos", "1 piece",
-        "Presentations", "3 decks", "Confidential", "Under NDA",
+        "Branding Collaterals", "Logos",
+        "Presentations", "Confidential", "Under NDA",
         "Our best work doesn't always get a public page. Ask us and we'll walk you through it.",
         "View all work",
         # restored from the pre-redesign Home (2646846): status line, eyebrows, tile tags, services button
@@ -895,9 +895,9 @@ def check_hero_layout(text, label):
 # Home pass item 2: "Selected work" is one horizontally scrollable row of CATEGORY cards (no client names), each a
 # link with a large flat icon on a Crisp brand colour. (href, title, meta) in order.
 WORK_CARDS = [
-    ("/work/#collaterals", "Branding Collaterals", "14 pieces"),
-    ("/work/#logos", "Logos", "1 piece"),
-    ("/work/#presentations", "Presentations", "3 decks"),
+    ("/work/#collaterals", "Branding Collaterals", None),
+    ("/work/#logos", "Logos", None),
+    ("/work/#presentations", "Presentations", None),
     ("/contact/", "Confidential", "Under NDA"),
 ]
 WORK_ROW_LABEL = "Selected work categories"
@@ -909,7 +909,8 @@ PENDING_ANCHORS = {"/work/#collaterals", "/work/#logos", "/work/#presentations"}
 
 def check_work_row(text, label):
     """Home: one scroll region (role="region", aria-label WORK_ROW_LABEL, tabindex="0") holding exactly the four
-    a.work-card links of WORK_CARDS in order, each with an h3 title, a .work-meta line and one aria-hidden
+    a.work-card links of WORK_CARDS in order, each with an h3 title (the three category cards: the title only, no
+    count or description, so no digits or "pieces/decks/Standees..."; the NDA card keeps its .work-meta) and one aria-hidden
     .work-icon <svg>; Previous/Next <button type="button" aria-controls=row id> (aria-labelled); no client
     names or client logos in the section; "View all work" still links to /work/."""
     out = []
@@ -926,6 +927,11 @@ def check_work_row(text, label):
         title = next((norm_text(e["text"]) for e in els if e["tag"] == "h3" and inside(e, a)), None)
         meta = next((norm_text(e["text"]) for e in els if "work-meta" in classes(e) and inside(e, a)), None)
         got.append((a["attrs"].get("href"), title, meta))
+        if meta is None:
+            words = " ".join(e["text"] for e in els if inside(e, a)) + " " + " ".join(
+                v for e in els if inside(e, a) or e is a for k, v in e["attrs"].items() if k in ("aria-label", "title", "alt"))
+            if re.search(r"\d|piece|deck|standee|brochure|bookmark", words, re.I) or norm_text(a["text"]) != title:
+                out.append(f"{label}:{a['line']}: category card {title!r} must show its title only (no count or description)")
         icons = [e for e in els if "work-icon" in classes(e) and inside(e, a)]
         if len(icons) != 1 or icons[0]["attrs"].get("aria-hidden") != "true" or \
                 not any(e["tag"] == "svg" and inside(e, icons[0]) for e in els):
