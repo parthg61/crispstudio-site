@@ -409,17 +409,46 @@ a:hover > .card-go, a:focus-visible > .card-go { opacity: 1; }
   @keyframes ticker-scroll { to { transform: translateX(calc(-50% - var(--space-9) / 2)); } }
 }
 
-/* What we do: narrow heading column left, bento right (from 1200px). The bento is four equal tiles: 2 x 2 from
-   600px, one column on phones; icon chip, name, line, then tags pinned to a common baseline. Orange only in icons and the arrow. */
+/* What we do: narrow heading column left, bento right (from 1200px). Asymmetric from 1024px: Strategy tall on the
+   left (icon top, text pinned to the bottom, so no dead block), Branding and Product small and compact (icon beside
+   the title) on its right, Build wide along the bottom (icon, text, tags in a row). 600-1023: two columns, tall and
+   wide full width with the icon beside the text. Phones: one column. Orange only in icons and the arrow. */
 .wrap.do-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-section-head); }
-.bento { display: grid; gap: var(--layout-gutter); grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+.bento { display: grid; gap: var(--layout-gutter); grid-template-columns: minmax(0, 1fr); }
 .bento-tile { position: relative; justify-content: flex-start; gap: var(--space-5); }
 .bento-tile .tile-text { flex: 1; }
-.bento-tile .tags { margin-top: auto; padding-top: var(--space-2); }
 .bento-tile p { color: var(--text-muted); }
 a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow; the --surface-2 icon chip stays visible */
 .bento-tile > .card-go { top: var(--pad-card); right: var(--pad-card); }
-@media (min-width: 600px) { .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.bento-tile .tags { padding-top: var(--space-2); }
+@media (min-width: 600px) {
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bento-tile { flex-direction: row; align-items: flex-start; }
+  .bento-tile--tall, .bento-tile--wide { grid-column: 1 / -1; align-items: center; }
+  .bento-tile > .tile-text { padding-right: var(--space-6); }
+  .bento-tile--small { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-5); row-gap: var(--gap-heading-body-sm); align-content: start; align-items: center; } /* icon beside the title, line and tags full width below */
+  .bento-tile--small > .tile-text { display: contents; }
+  .bento-tile--small .icon-chip { width: var(--space-8); height: var(--space-8); }
+  .bento-tile--small .icon-chip img { width: var(--space-7); height: var(--space-7); }
+  .bento-tile--small h3 { grid-column: 2; padding-right: var(--space-7); }
+  .bento-tile--small p, .bento-tile--small .tags { grid-column: 1 / -1; }
+  .bento-tile--small p { margin-top: var(--space-2); }
+}
+@media (min-width: 1024px) {
+  .bento-tile--tall { grid-column: 1; grid-row: span 2; flex-direction: column; align-items: stretch; justify-content: space-between; padding: var(--pad-card-featured); }
+  .bento-tile--tall > .card-go { top: var(--pad-card-featured); right: var(--pad-card-featured); }
+  .bento-tile--tall > .tile-text { flex: none; padding-right: 0; }
+  .bento-tile--tall .icon-chip { width: calc(var(--space-9) + var(--space-5)); height: calc(var(--space-9) + var(--space-5)); }
+  .bento-tile--tall .icon-chip img { width: var(--space-9); height: var(--space-9); }
+  .bento-tile--tall h3 { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); }
+  .bento-tile--tall > .tile-text { gap: var(--space-3); }
+  .bento-tile--tall p { font-size: var(--fs-lead); line-height: var(--lh-lead); }
+  .bento-tile--tall .tags { flex-direction: column; align-items: flex-start; padding-top: var(--space-3); }
+  .bento-tile--small { grid-column: 2; }
+  .bento-tile--wide .tile-text { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--space-7); align-items: center; padding-right: var(--space-7); }
+  .bento-tile--wide .tile-text > :not(.tags) { grid-column: 1; }
+  .bento-tile--wide .tags { grid-column: 2; grid-row: 1 / span 2; padding-top: 0; justify-content: flex-end; }
+}
 @media (min-width: 1200px) {
   .wrap.do-layout { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: auto 1fr; gap: var(--gap-text-actions) var(--layout-gutter); }
   .do-head { grid-column: 1 / span 4; }

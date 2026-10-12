@@ -359,6 +359,9 @@ def norm_text(s):
     return re.sub(r"\s+", " ", s.replace(" ", " ")).strip()
 
 
+BENTO_MODS = ("tall", "small", "small", "wide")
+
+
 def check_home_sections(text, label):
     """Home: (1) four .bento tiles linking to the four Services anchors, each with its official icon in an
     .icon-chip and its service tags; (2) no services marquee (.svc-band / #svc-marquee / .marquee); (3) the client ticker (#track); (4) .why-statement carries the full Why sentence for
@@ -375,8 +378,9 @@ def check_home_sections(text, label):
         if hrefs != list(BENTO_TILES):
             out.append(f"{label}:{bento['line']}: .bento tiles must link to {list(BENTO_TILES)}, found {hrefs}")
         for a in links:
-            if re.search(r"bento-tile--", a["attrs"].get("class", "")):
-                out.append(f"{label}:{a['line']}: bento tiles are equal (no --tall/--small/--wide modifier)")
+            want = BENTO_MODS[list(BENTO_TILES).index(a["attrs"].get("href"))] if a["attrs"].get("href") in BENTO_TILES else None
+            if want and f"bento-tile--{want}" not in classes(a):
+                out.append(f"{label}:{a['line']}: bento tile {a['attrs']['href']} needs the bento-tile--{want} modifier")
             icon, tags = BENTO_TILES.get(a["attrs"].get("href"), (None, ()))
             if icon is None:
                 continue
@@ -833,6 +837,18 @@ def check_header_logo(text, label, tokens_text=""):
             if uses_old or (needs and "var(--nav-h)" not in val):
                 out.append(f"{label}: {sel.strip()} {prop}: {val.strip()} must use var(--nav-h), the one header height")
     return out
+
+
+def check_bento_layout(text, label):
+    """Home bento: the asymmetric layout (tall tile spanning two rows, small tiles stacked beside it, wide tile
+    along the bottom) lives inside @media (min-width: 1024px)."""
+    found = {"tall": False, "small": False, "wide": False}
+    for sel, body, ats in css_rules(text):
+        if any(re.search(r"min-width\s*:\s*1024px", a) for a in ats):
+            for k, pat in (("tall", r"grid-row\s*:\s*span 2"), ("small", r"grid-column\s*:\s*2"), ("wide", r"grid-column\s*:\s*1\s*/\s*-1|display\s*:\s*grid")):
+                if re.search(rf"\.bento-tile--{k}(?![\w-])", sel) and re.search(pat, body):
+                    found[k] = True
+    return [f"{label}: .bento-tile--{k} needs its asymmetric grid rule inside @media (min-width: 1024px)" for k, ok in found.items() if not ok]
 
 
 def check_hero_layout(text, label):
@@ -1309,6 +1325,7 @@ def main(argv):
         problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest()
         site_css = ROOT / "css" / "site.css"
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
+        problems += check_bento_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_card_colours(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                        (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_orange_text(site_css.read_text(encoding="utf-8"), label_for(site_css),
