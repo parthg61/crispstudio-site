@@ -632,6 +632,15 @@ class Bypasses(unittest.TestCase):
         self.bad(hl(base.replace(":root { --nav-h: var(--space-9); } ", "") + ".brandmark img { width: 120px; }"), "--nav-h undefined")
         self.assertEqual(hl((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
+    # ── Work section: project media pinned in tools/work-assets.sha256 ──
+    def test_work_assets_pinned(self):
+        self.assertEqual(check.check_work_assets(), [])
+        files = check.work_asset_files()
+        self.assertTrue(any(f.endswith("/didac/cover.png") for f in files))
+        man = lambda body: with_tmp(body, check.check_work_assets, ".sha256")
+        self.bad(man("0" * 64 + "  assets/work/projects/didac/cover.png\n"), "changed file")
+        self.bad(man(""), "unpinned project files")
+
     def test_tokens_css_passes(self):
         self.assertEqual(check.check_css(check.ROOT / "css" / "tokens.css"), [])
 

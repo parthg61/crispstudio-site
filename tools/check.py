@@ -642,6 +642,23 @@ def check_cat_manifest(manifest=None, dirs=None):
     return out
 
 
+WORK_ASSETS = ROOT / "assets" / "work" / "projects"
+
+
+def work_asset_files():
+    return sorted(str(f.relative_to(ROOT)) for f in WORK_ASSETS.rglob("*") if f.is_file() and not f.name.startswith("."))
+
+
+def check_work_assets(manifest=None):
+    """Work case media: every file in tools/work-assets.sha256 exists and matches, and every file under
+    assets/work/projects/ is pinned there."""
+    manifest = Path(manifest or ROOT / "tools" / "work-assets.sha256")
+    out = check_assets(manifest)
+    listed = manifest_files(manifest)
+    out += [f"tools/work-assets.sha256: {rel} is not pinned (add its sha256)" for rel in work_asset_files() if rel not in listed]
+    return out
+
+
 def check_assets(manifest=None):
     """(c) every file in tools/assets.sha256 exists and still matches its recorded hash (official artwork)."""
     import hashlib
@@ -1328,7 +1345,7 @@ def main(argv):
     for src in sorted((ROOT / "src" / "pages").glob("*.html")):
         problems += check_front_matter(src)
     if not argv:
-        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest()
+        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest() + check_work_assets()
         site_css = ROOT / "css" / "site.css"
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_bento_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
