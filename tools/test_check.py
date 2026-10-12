@@ -122,18 +122,24 @@ class Bypasses(unittest.TestCase):
         self.bad(check.check_copy("services", good.replace('id="product"', 'id="product-design"'), "t"), "missing #product id")
         self.bad(check.check_copy("services", good.replace('id="process"', 'data-id="process"'), "t"), "data-id is not an id")
 
-    def test_work_copy_and_cases(self):
-        case = ('<article class="case" data-services="branding"><div class="case-visual"><img src="a.png" alt="A"></div>'
-                '<span class="tag">Finance</span><p class="case-line">One line.</p></article>')
-        good = "".join(f"<h2>{s}</h2>" for s in check.PAGE_COPY["work"]) + case * 6
-        self.assertEqual(check.check_copy("work", good, "t"), [])
-        self.bad(check.check_copy("work", good.replace("Fresh from the Oven.", ""), "t"), "missing work headline")
-        self.bad(check.check_copy("work", good.replace("HDB Financial Services", "HDB"), "t"), "missing client name")
-        self.bad(check.check_copy("work", good.replace(case, "", 1), "t"), "only five cases")
-        self.bad(check.check_copy("work", good.replace('class="case-visual"', 'class="visual"', 1), "t"), "case without visual")
-        self.bad(check.check_copy("work", good.replace('<span class="tag">Finance</span>', "", 1), "t"), "case without tag")
-        self.bad(check.check_copy("work", good.replace("One line.", "", 1), "t"), "case with empty line")
-        self.bad(check.check_copy("work", good.replace('class="case-line"', 'class="lede"', 1), "t"), "case without case-line")
+    def test_work_index(self):
+        def tile(slug, title, extra=""):
+            return (f'<a class="work-tile" href="/work/{slug}/"><span class="work-cover"><img src="/assets/work/projects/{slug}/cover.png" '
+                    f'alt="" width="700" height="700" loading="lazy"></span><h3>{title}</h3>{extra}</a>')
+        good = "".join(f"<h2>{s}</h2>" for s in check.PAGE_COPY["work"]) + "".join(tile(s, t) for s, t in check.WORK_TILES)
+        wi = lambda t: check.check_copy("work", t, "t")
+        self.assertEqual(wi(good), [])
+        self.bad(wi(good.replace("Fresh from the Oven.", "")), "missing work headline")
+        self.bad(wi(good.replace("The Pandora's Box holds things that will keep you amazed.", "")), "lost the Pandora's Box line")
+        self.bad(wi(good.replace(tile("didac", "Didac Branding"), "")), "only one tile")
+        self.bad(wi(good.replace("<h3>Didac Branding</h3>", '<h3>Didac Branding</h3><p>12 pieces</p>')), "a description on a tile")
+        self.bad(wi(good.replace('alt="" width="700"', 'alt="Didac" width="700"', 1)), "tile image alt repeats the title")
+        self.bad(wi(good.replace('loading="lazy"', "", 1)), "eager tile image")
+        self.bad(wi(good.replace("/work/didac/", "/work/didac-branding/")), "wrong href")
+        self.bad(wi(good + '<button class="chip" data-filter="all">All</button>'), "filter chips are back")
+        self.bad(wi(good + '<span class="work-count">06</span>'), "a count is back")
+        self.bad(wi(good + tile("emailers", "Suraasa Sure Journey")), "the emailers project")
+        self.bad(wi(good + tile("cpat", "Suraasa CPAT")), "a landing-page project")
 
     def test_contact_form(self):
         needs = "".join(f'<label><input type="checkbox" name="need" value="{v.replace("&", "&amp;")}">{v.replace("&", "&amp;")}</label>'
@@ -647,6 +653,30 @@ class Bypasses(unittest.TestCase):
         self.bad(check.check_images('<main><img src="/assets/cats/Crisp_Avatar_Idli.svg" alt=""></main>', "t", "work/didac"), "cat on a case page")
         self.assertEqual(check.check_sitemap(), [])
         self.bad(check.check_sitemap(["/work/"]), "sitemap missing case pages")
+
+    def test_case_page(self):
+        good = ('<main class="case-page"><div class="case-text"><a href="/work/">Work</a><h1>Suraasa at Didac</h1><p>Para.</p>'
+                '<a class="case-next" href="/work/b2b-presentations/">Next project</a></div><div class="case-media">'
+                '<img src="/a.png" alt="Brochure design" width="10" height="10" loading="lazy">'
+                '<video src="/v.mp4" poster="/p.png" aria-label="Standee designs" muted loop playsinline preload="metadata" controls width="9" height="16"></video>'
+                '</div></main>')
+        cp = lambda t: check.check_case_page(t, "t", "work/didac")
+        self.assertEqual(cp(good), [])
+        self.bad(cp(good.replace('href="/work/b2b-presentations/"', 'href="/work/didac/"')), "next project loops to itself")
+        self.bad(cp(good.replace('<a href="/work/">Work</a>', "")), "no back link")
+        self.bad(cp(good.replace('alt="Brochure design"', 'alt=""')), "media image without alt")
+        self.bad(cp(good.replace(' loading="lazy"', "")), "eager media image")
+        self.bad(cp(good.replace(' width="10"', "")), "image without width")
+        self.bad(cp(good.replace(' aria-label="Standee designs"', "")), "video without a name")
+        self.bad(cp(good.replace(' muted', "")), "unmuted video")
+        self.bad(cp(good.replace(' controls', " autoplay")), "autoplay attribute")
+        self.bad(cp(good.replace("<h1>Suraasa at Didac</h1>", "<h2>x</h2>")), "no h1")
+        for page in check.built_pages():
+            s = check.page_slug(page)
+            if s and s.startswith("work/"):
+                self.assertEqual(check.check_case_page(page.read_text(encoding="utf-8"), page.name, s), [], page)
+        self.assertEqual(sorted(check.page_slug(p) for p in check.built_pages() if "work/" in (check.page_slug(p) or "")),
+                         sorted(f"work/{s}" for s, _ in check.WORK_TILES))
 
     # ── Work section: project media pinned in tools/work-assets.sha256 ──
     def test_work_assets_pinned(self):

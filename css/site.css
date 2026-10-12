@@ -602,41 +602,34 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
 
 /* ── Work ─────────────────────────────────────────────────── */
 .work-index { padding-block: 0; } /* the closing block below brings its own top padding */
-.work-index > .wrap { display: flex; flex-direction: column; gap: var(--space-7); }
-.filter-bar { display: flex; flex-direction: column; gap: var(--space-4); }
-.filters { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-html:not(.js) .filters { display: none; } /* filtering needs JS; without it every case shows */
-.work-count { color: var(--text); font-variant-numeric: tabular-nums; }
-@media (min-width: 1024px) {
-  .filter-bar { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-6); }
-}
-
-.cases { display: flex; flex-direction: column; gap: var(--layout-gutter); }
-.case {
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-media-text);
+/* Rows of project cards on the normal page scroll: 1 per row on phones, 2 from 600px (two projects fill a row
+   instead of leaving a dead third column; more cards just wrap into new rows). Every cover frame has the same
+   4:3 shape so rows line up; covers fill it, the wide deck cover sits whole on the grey. */
+.work-tiles { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--layout-gutter); }
+@media (min-width: 600px) { .work-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.work-tile {
+  position: relative; display: flex; flex-direction: column; gap: var(--gap-media-text); height: 100%;
   padding: var(--pad-card); border-radius: var(--radius-xl); background: var(--surface);
-  min-width: 0; overflow-wrap: anywhere;
+  color: var(--text); text-decoration: none;
 }
-.case-visual {
-  display: grid; place-items: center; aspect-ratio: 16 / 9;
-  padding: var(--space-6); border-radius: var(--radius-lg); background: var(--surface-2);
+.work-tile > .card-go { top: calc(var(--pad-card) + var(--space-3)); right: calc(var(--pad-card) + var(--space-3)); }
+.work-cover {
+  display: grid; place-items: center; aspect-ratio: 4 / 3; overflow: hidden;
+  border-radius: var(--radius-lg); background: var(--surface-2);
 }
-/* --logo-h (set per case) evens out the optical size of wide and compact logos */
-.case-visual img { width: auto; height: calc(var(--logo-h, var(--space-8)) * 0.6); max-width: 80%; object-fit: contain; }
-.case-body { display: flex; flex-direction: column; gap: var(--gap-card-stack); padding-top: var(--space-1); }
-.case-num { font-size: var(--fs-small); line-height: var(--lh-small); color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.case-line { font-size: var(--fs-lead); line-height: var(--lh-lead); color: var(--text-muted); }
-@media (min-width: 1024px) {
-  .case { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--layout-gutter); }
-  .case-visual { grid-column: 1 / span 7; aspect-ratio: 16 / 10; }
-  .case-visual img { height: var(--logo-h, var(--space-8)); }
-  .case-body { grid-column: 8 / span 5; padding: var(--space-2) 0; }
-  .case-num { margin-bottom: auto; } /* number sits top, name/tags/line sit at the foot of the tile */
+.work-cover img { width: 100%; height: 100%; min-height: 0; object-fit: cover; }
+.work-cover--wide img { object-fit: contain; }
+.work-tile-title { font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); }
+@media (prefers-reduced-motion: no-preference) {
+  .work-tile { transition: transform .35s var(--ease), box-shadow .35s var(--ease); }
+  .work-cover img { transition: transform .5s var(--ease); }
+  a.work-tile:hover, a.work-tile:focus-visible { transform: translateY(calc(-1 * var(--space-1))); }
+  a.work-tile:hover .work-cover img, a.work-tile:focus-visible .work-cover img { transform: scale(1.03); }
 }
-@media (min-width: 1024px) and (max-width: 1199px) {
-  /* 6/6 split so long client names ("HDB Financial Services") stay on one line */
-  .case-visual { grid-column: 1 / span 6; }
-  .case-body { grid-column: 7 / span 6; }
+a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
 /* The Pandora's Box: lock panel inside the closing card */
@@ -836,4 +829,27 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
   .cat--96:active, .cat--48:active { transform: scale(1.06, .9); transition-duration: .12s; }
   @keyframes cat-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015); } }
   @keyframes cat-sway { from { transform: rotate(-2.75deg); } to { transform: rotate(2.75deg) translateY(2px); } }
+}
+
+/* ── Work case page: sticky text on the left, the work stacked on the right (from 1024px) ── */
+.case-page { padding-block: var(--space-7) var(--pad-section); }
+.case-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+.case-text { display: flex; flex-direction: column; gap: var(--space-6); }
+.case-text p { max-width: 65ch; }
+.case-back, .case-next { color: var(--link-ink, var(--navy)); text-decoration: underline; text-underline-offset: .2em; }
+.case-back { align-self: flex-start; }
+.case-next { display: flex; flex-direction: column; gap: var(--space-1); align-self: flex-start; text-decoration: none; }
+.case-next .label { color: var(--text-muted); }
+.case-next-title { font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: 600; text-decoration: underline; text-underline-offset: .2em; }
+.case-media { display: flex; flex-direction: column; gap: var(--layout-gutter); min-width: 0; }
+.case-shot { display: flex; flex-direction: column; align-items: center; gap: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); background: var(--surface-2); }
+.case-shot img, .case-shot video { display: block; width: 100%; height: auto; border-radius: var(--radius-md); }
+.case-shot--tall img, .case-shot--tall video { width: min(100%, calc(var(--space-10) * 3)); }
+@media (min-width: 1024px) {
+  .case-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-9); align-items: start; }
+  .case-text {
+    position: sticky; top: calc(var(--nav-h) + var(--space-6)); align-self: start;
+    max-height: calc(100vh - var(--nav-h) - var(--space-6) * 2); overflow-y: auto;
+  }
+  .case-next { margin-top: auto; }
 }

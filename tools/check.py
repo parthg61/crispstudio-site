@@ -53,13 +53,11 @@ PAGE_COPY = {
     ],
     "work": [
         "Fresh from the Oven.",
-        "HDFC securities",
-        "The Mind Mojo",
-        "NMIMS",
-        "HDB Financial Services",
-        "SAATH",
-        "Kaamna",
+        "Brands and digital products we've shaped. We work with teams where confidentiality matters, so not "
+        "everything lives here. For the rest, let's chat. The Pandora's Box holds things that will keep you amazed.",
+        "The Pandora's Box",
         "Want to see more?",
+        "Some of our best work can only be shown in person.",
     ],
     "about": [
         "No half-baked ideas.",
@@ -99,8 +97,12 @@ PAGE_DESC = {
     "home": "Crisp is a design studio in Mumbai. We design brands and digital products with a clear purpose: "
             "to look sharp, work better and move the business forward.",
 }
-# Pages whose case tiles (<article class="case">) must each carry a visual, a tag and a one-line description.
-CASE_PAGES = {"work": 6}
+# Work index: rows of project tiles, (slug, card title) in order; each is one a.work-tile link to /work/<slug>/
+# holding the cover (alt="", lazy, sized) and the title only. Never the emailers project or the landing pages.
+WORK_TILES = [
+    ("didac", "Didac Branding"),
+    ("b2b-presentations", "B2B Presentations"),
+]
 # Element ids each page must carry (other pages link to them as anchors).
 PAGE_IDS = {
     "services": ["strategy", "branding", "product", "build", "process"],
@@ -330,6 +332,8 @@ def check_html(path):
     out += check_manifest_refs(text, label)
     if page_slug(path) is not None:
         out += check_hero(text, label, page_slug(path))
+    if (page_slug(path) or "").startswith("work/"):
+        out += check_case_page(text, label, page_slug(path))
     if page_slug(path) == "home":
         out += check_home_sections(text, label) + check_work_row(text, label)
 
@@ -1138,8 +1142,8 @@ def check_copy(slug, text, label):
         out.append(f"{label}: meta description changed; it must read '{desc}'")
     ids = set(re.findall(r"(?<![\w-])id\s*=\s*[\"']([^\"']+)[\"']", text))
     out += [f"{label}: missing required id '#{i}'" for i in PAGE_IDS.get(slug, []) if i not in ids]
-    if slug in CASE_PAGES:
-        out += check_cases(text, label, CASE_PAGES[slug])
+    if slug == "work":
+        out += check_work_index(text, label)
     if slug == "contact":
         out += check_form(text, label, plain)
     return out
@@ -1172,21 +1176,64 @@ def has_class(fragment, cls):
                for m in re.finditer(r"(?<![\w-])class\s*=\s*([\"'])(.*?)\1", fragment, flags=re.S))
 
 
-def check_cases(text, label, expected):
-    """Each <article class="case"> needs a .case-visual, a .tag and a non-empty p.case-line."""
+def check_work_index(text, label):
+    """Work: exactly the WORK_TILES links in order; each tile shows its cover (alt="", width/height, lazy) and
+    its title only (no counts, descriptions, tags); no filter chips or counts; never the emailers project."""
     out = []
-    cases = [m.group(0) for m in re.finditer(r"<article\b[^>]*>.*?</article>", text, flags=re.S | re.I)
-             if has_class(re.match(r"<article\b[^>]*>", m.group(0), flags=re.I).group(0), "case")]
-    if len(cases) != expected:
-        out.append(f"{label}: expected {expected} case tiles (<article class=\"case\">), found {len(cases)}")
-    for i, c in enumerate(cases, 1):
-        if not has_class(c, "case-visual"):
-            out.append(f"{label}: case {i} has no visual (.case-visual)")
-        if not has_class(c, "tag"):
-            out.append(f"{label}: case {i} has no tag (.tag)")
-        line = re.search(r"<p\b[^>]*class\s*=\s*([\"'])[^\"']*\bcase-line\b[^\"']*\1[^>]*>(.*?)</p>", c, flags=re.S)
-        if not line or not re.sub(r"<[^>]+>|\s", "", line.group(2)):
-            out.append(f"{label}: case {i} has no one-line description (p.case-line)")
+    els = tag_contexts(text)
+    tiles = [e for e in els if e["tag"] == "a" and "work-tile" in classes(e)]
+    got = [(e["attrs"].get("href"), norm_text(e["text"])) for e in tiles]
+    want = [(f"/work/{s}/", t) for s, t in WORK_TILES]
+    if got != want:
+        out.append(f"{label}: work tiles must be {want} (title only), found {got}")
+    for a in tiles:
+        imgs = [e for e in els if e["tag"] == "img" and inside(e, a)]
+        if len(imgs) != 1:
+            out.append(f"{label}:{a['line']}: tile {a['attrs'].get('href')} needs one cover image")
+            continue
+        at = imgs[0]["attrs"]
+        if at.get("alt") != "" or at.get("loading") != "lazy" or not at.get("width") or not at.get("height"):
+            out.append(f"{label}:{a['line']}: tile cover needs alt=\"\" (the title names it), loading=\"lazy\", width and height")
+        if any(e["tag"] in ("p", "span") and inside(e, a) and norm_text(e["text"]) for e in els):
+            out.append(f"{label}:{a['line']}: tile {a['attrs'].get('href')} shows more than its title")
+    if re.search(r"data-filter|work-count|class=\"chip|emailer|Sure Journey|CPAT|PgCTL|M\.Ed|Research Platform", text, re.I):
+        out.append(f"{label}: the Work page has no filters, counts or emailers project")
+    return out
+
+
+def check_case_page(text, label, slug):
+    """Work case pages: .case-page with a .case-text column (back link to /work/, one h1, a .case-next link to the
+    next case in WORK_TILES order, wrapping) and a .case-media column. Media images carry alt text, width/height and
+    loading="lazy"; videos are named (aria-label), muted, loop, playsinline, preload="metadata", with a poster and
+    no autoplay attribute (JS plays them in view, only when motion is fine)."""
+    out = []
+    els = tag_contexts(text)
+    slugs = [s for s, _ in WORK_TILES]
+    me = slug.split("/", 1)[1]
+    if me not in slugs:
+        return [f"{label}: {slug} is not a listed Work case"]
+    nxt = f"/work/{slugs[(slugs.index(me) + 1) % len(slugs)]}/"
+    text_col = [e for e in els if "case-text" in classes(e)]
+    media = [e for e in els if "case-media" in classes(e)]
+    if not any("case-page" in classes(e) for e in els) or len(text_col) != 1 or len(media) != 1:
+        return [f"{label}: a case page needs .case-page, one .case-text and one .case-media"]
+    inner = [e for e in els if inside(e, text_col[0])]
+    if not any(e["tag"] == "a" and e["attrs"].get("href") == "/work/" for e in inner):
+        out.append(f"{label}: the case text needs a link back to /work/")
+    if sum(e["tag"] == "h1" for e in els) != 1 or not any(e["tag"] == "h1" for e in inner):
+        out.append(f"{label}: the case title is the page's one h1, in .case-text")
+    if not any(e["tag"] == "a" and "case-next" in classes(e) and e["attrs"].get("href") == nxt for e in inner):
+        out.append(f"{label}: the Next project link must go to {nxt}")
+    for e in els:
+        if not inside(e, media[0]):
+            continue
+        a = e["attrs"]
+        if e["tag"] == "img" and (not a.get("alt") or a.get("loading") != "lazy" or not a.get("width") or not a.get("height")):
+            out.append(f"{label}:{e['line']}: case image needs alt text, width, height and loading=\"lazy\"")
+        if e["tag"] == "video":
+            if not a.get("aria-label") or not a.get("poster") or a.get("preload") != "metadata" or "autoplay" in a \
+                    or not all(k in a for k in ("muted", "loop", "playsinline")):
+                out.append(f"{label}:{e['line']}: case video needs aria-label, poster, muted loop playsinline preload=\"metadata\", no autoplay")
     return out
 
 

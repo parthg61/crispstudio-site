@@ -325,22 +325,14 @@ if (svcLinks.length && 'IntersectionObserver' in window) {
   byId.forEach((_, id) => { const el = document.getElementById(id); if (el) io.observe(el); });
 }
 
-// Work filter: show cases that include the chosen service; the index count follows (zero-padded)
-const filters = [...document.querySelectorAll('[data-filter]')];
-if (filters.length) {
-  const cases = [...document.querySelectorAll('.case[data-services]')];
-  const count = document.getElementById('work-count');
-  filters.forEach(btn => btn.addEventListener('click', () => {
-    const f = btn.dataset.filter;
-    filters.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
-    let shown = 0;
-    cases.forEach(c => {
-      const show = f === 'all' || c.dataset.services.split(' ').includes(f);
-      c.hidden = !show;
-      if (show) shown++;
-    });
-    if (count) count.textContent = String(shown).padStart(2, '0');
-  }));
+// Work case videos: muted loops play only while in view and only when motion is fine; with reduced motion
+// (or no JS) they keep the poster and native controls
+const inview = [...document.querySelectorAll('video[data-inview]')];
+if (inview.length && !matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+  const vio = new IntersectionObserver(entries => entries.forEach(({ target, isIntersecting }) => {
+    if (isIntersecting) target.play().catch(() => {}); else target.pause();
+  }), { threshold: 0.25 });
+  inview.forEach(v => { v.removeAttribute('controls'); vio.observe(v); });
 }
 
 // Footer year

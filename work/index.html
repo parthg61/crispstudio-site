@@ -54,83 +54,22 @@
     </div>
   </section>
 
-  <!-- Index + filter. Every case: visual · sector / service tags · one-line description · link only if a case study exists (none yet). -->
+  <!-- Projects: rows of cards on a normal vertical scroll; each card opens its case page. Title only on the cards. -->
   <section class="work-index" aria-labelledby="index-title">
     <div class="wrap">
-      <div class="filter-bar">
-        <h2 class="label" id="index-title" aria-live="polite" aria-atomic="true">Index <span class="work-count" id="work-count">06</span></h2>
-        <div class="filters" role="group" aria-label="Filter by service">
-          <button class="chip" type="button" data-filter="all" aria-pressed="true">All</button>
-          <button class="chip" type="button" data-filter="strategy" aria-pressed="false">Strategy &amp; Research</button>
-          <button class="chip" type="button" data-filter="branding" aria-pressed="false">Branding</button>
-          <button class="chip" type="button" data-filter="product" aria-pressed="false">Product Design</button>
-          <button class="chip" type="button" data-filter="build" aria-pressed="false">Build</button>
-        </div>
-      </div>
-
-      <div class="cases">
-
-        <article class="case" data-services="product" aria-labelledby="case-1">
-          <div class="case-visual" style="--logo-h:56px"><img src="/assets/clients/hdfc-securities.png" alt="" width="572" height="96" loading="lazy"></div>
-          <div class="case-body">
-            <p class="case-num">01</p>
-            <h3 class="t-h2" id="case-1">HDFC securities</h3>
-            <div class="tags"><span class="tag">Finance</span><span class="tag tag--line">Product Design</span></div>
-            <p class="case-line">Making investing flows clearer for millions of retail traders.</p>
-          </div>
-        </article>
-
-        <article class="case" data-services="branding" aria-labelledby="case-2">
-          <div class="case-visual" style="--logo-h:76px"><img src="/assets/clients/the-mind-mojo.png" alt="" width="308" height="96" loading="lazy"></div>
-          <div class="case-body">
-            <p class="case-num">02</p>
-            <h3 class="t-h2" id="case-2">The Mind Mojo</h3>
-            <div class="tags"><span class="tag">Wellness</span><span class="tag tag--line">Branding</span></div>
-            <p class="case-line">A warm, confident identity for a mental-wellness practice.</p>
-          </div>
-        </article>
-
-        <article class="case" data-services="strategy" aria-labelledby="case-3">
-          <div class="case-visual" style="--logo-h:84px"><img src="/assets/clients/nmims.png" alt="" width="297" height="96" loading="lazy"></div>
-          <div class="case-body">
-            <p class="case-num">03</p>
-            <h3 class="t-h2" id="case-3">NMIMS</h3>
-            <div class="tags"><span class="tag">Ed-tech</span><span class="tag tag--line">Strategy &amp; Research</span></div>
-            <p class="case-line">Untangling the student journey from first visit to enrolment.</p>
-          </div>
-        </article>
-
-        <article class="case" data-services="product build" aria-labelledby="case-4">
-          <div class="case-visual" style="--logo-h:60px"><img src="/assets/clients/hdb-financial-services.png" alt="" width="482" height="96" loading="lazy"></div>
-          <div class="case-body">
-            <p class="case-num">04</p>
-            <h3 class="t-h2" id="case-4">HDB Financial Services</h3>
-            <div class="tags"><span class="tag">Finance</span><span class="tag tag--line">Product Design</span><span class="tag tag--line">Build</span></div>
-            <p class="case-line">A calmer, clearer path through every step of a loan.</p>
-          </div>
-        </article>
-
-        <article class="case" data-services="branding" aria-labelledby="case-5">
-          <div class="case-visual" style="--logo-h:76px"><img src="/assets/clients/saath.png" alt="" width="316" height="96" loading="lazy"></div>
-          <div class="case-body">
-            <p class="case-num">05</p>
-            <h3 class="t-h2" id="case-5">SAATH</h3>
-            <div class="tags"><span class="tag">Social impact</span><span class="tag tag--line">Branding</span></div>
-            <p class="case-line">An identity for a community-led organisation, built to travel.</p>
-          </div>
-        </article>
-
-        <article class="case" data-services="branding build" aria-labelledby="case-6">
-          <div class="case-visual" style="--logo-h:44px"><img src="/assets/clients/kaamna.png" alt="" width="559" height="96" loading="lazy"></div>
-          <div class="case-body">
-            <p class="case-num">06</p>
-            <h3 class="t-h2" id="case-6">Kaamna</h3>
-            <div class="tags"><span class="tag">D2C</span><span class="tag tag--line">Branding</span><span class="tag tag--line">Build</span></div>
-            <p class="case-line">A brand and storefront with a clear point of view.</p>
-          </div>
-        </article>
-
-      </div>
+      <h2 class="visually-hidden" id="index-title">Projects</h2>
+      <ul class="work-tiles" role="list">
+        <li><a class="work-tile" href="/work/didac/">
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          <span class="work-cover"><img src="/assets/work/projects/didac/cover.png" alt="" width="700" height="697" loading="lazy"></span>
+          <h3 class="work-tile-title">Didac Branding</h3>
+        </a></li>
+        <li><a class="work-tile" href="/work/b2b-presentations/">
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          <span class="work-cover work-cover--wide"><img src="/assets/work/projects/b2b-presentations/cover.png" alt="" width="900" height="426" loading="lazy"></span>
+          <h3 class="work-tile-title">B2B Presentations</h3>
+        </a></li>
+      </ul>
     </div>
   </section>
 
