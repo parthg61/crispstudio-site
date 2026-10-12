@@ -11,7 +11,10 @@ A page file starts with optional front matter, then the <main> body:
     ---
     <main id="main"> ... </main>
 
-Output: home -> index.html, 404 -> 404.html, <slug> -> <slug>/index.html.
+    image: /assets/...      (optional og:image, defaults to the Crunch poster)
+
+Output: home -> index.html, 404 -> 404.html, <slug> -> <slug>/index.html, and nested pages
+work/<slug>.html -> work/<slug>/index.html. Also writes sitemap.xml (every indexable page).
 """
 import datetime
 import re
@@ -60,29 +63,49 @@ def render(slug, meta, body):
     head = read("head.html").replace("{{title}}", meta["title"]).replace("{{ogdesc}}", meta.get("ogdesc", meta["desc"]))
     head = head.replace("{{desc}}", meta["desc"])
     head = head.replace("{{slug}}", slug).replace("{{path}}", path)
+    if meta.get("image"):
+        head = head.replace("https://crispstudio.in/assets/motion/crunch-poster.jpg", "https://crispstudio.in" + meta["image"])
+    section = slug.split("/")[0]
     if meta.get("robots"):  # optional front matter, e.g. "robots: noindex" on the 404 page
         head = head.replace("<meta name=\"description\"", f'<meta name="robots" content="{meta["robots"]}">\n<meta name="description"', 1)
     if "noindex" in meta.get("robots", ""):  # a page kept out of the index gets no canonical or og:url
         head = re.sub(r'<link rel="canonical"[^>]*>\n|<meta property="og:url"[^>]*>\n', "", head)
     header = read("header.html")
     for s in NAV_SLUGS:
-        header = header.replace("{{cur:%s}}" % s, ' aria-current="page"' if s == slug else "")
+        header = header.replace("{{cur:%s}}" % s, ' aria-current="page"' if s == section else "")
     footer = read("footer.html").replace("{{year}}", str(datetime.date.today().year))
-    footer = re.sub(r"[ \t]*\{\{cat\}\}.*?\{\{/cat\}\}\n", "", footer, flags=re.S) if slug in NO_CAT_SLUGS \
+    footer = re.sub(r"[ \t]*\{\{cat\}\}.*?\{\{/cat\}\}\n", "", footer, flags=re.S) if section in NO_CAT_SLUGS \
         else footer.replace("{{cat}}", "").replace("{{/cat}}", "")
     return head + header + body.strip() + "\n" + footer + SCRIPT + "</body>\n</html>\n"
 
 
+SITEMAP_ORDER = ("home",) + NAV_SLUGS
+
+
+def sitemap(entries):
+    """entries: (slug, meta) of every built page; 404 and noindex pages stay out. Nav pages first, then nested ones."""
+    paths = [output_path(s)[1] for s, m in sorted(entries, key=lambda e: (
+        SITEMAP_ORDER.index(e[0]) if e[0] in SITEMAP_ORDER else len(SITEMAP_ORDER), e[1].get("order", ""), e[0]))
+        if s != "404" and "noindex" not in m.get("robots", "")]
+    urls = "".join(f"  <url><loc>https://crispstudio.in{p}</loc></url>\n" for p in paths)
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n'
+
+
 def main():
-    pages = sorted(PAGES.glob("*.html"))
+    pages = sorted(PAGES.rglob("*.html"))
     if not pages:
         print("no pages in src/pages/ yet")
+    entries = []
     for src in pages:
+        slug = src.relative_to(PAGES).with_suffix("").as_posix()
         meta, body = split_front_matter(src.read_text(encoding="utf-8"), src.name)
-        out, _ = output_path(src.stem)
-        out.parent.mkdir(exist_ok=True)
-        out.write_text(render(src.stem, meta, body), encoding="utf-8")
+        out, _ = output_path(slug)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(render(slug, meta, body), encoding="utf-8")
+        entries.append((slug, meta))
         print(f"built {out.relative_to(ROOT)}")
+    (ROOT / "sitemap.xml").write_text(sitemap(entries), encoding="utf-8")
+    print("built sitemap.xml")
 
 
 if __name__ == "__main__":

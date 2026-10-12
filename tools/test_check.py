@@ -632,6 +632,22 @@ class Bypasses(unittest.TestCase):
         self.bad(hl(base.replace(":root { --nav-h: var(--space-9); } ", "") + ".brandmark img { width: 120px; }"), "--nav-h undefined")
         self.assertEqual(hl((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
+    # ── Work section: nested case pages ──
+    def test_nested_case_pages(self):
+        sys.path.insert(0, str(check.ROOT / "tools"))
+        import build
+        meta = {"title": "Didac — Crisp", "desc": "d", "image": "/assets/work/projects/didac/cover.png"}
+        out = build.render("work/didac", meta, "<main></main>")
+        self.assertIn('<link rel="canonical" href="https://crispstudio.in/work/didac/">', out)
+        self.assertIn('content="https://crispstudio.in/assets/work/projects/didac/cover.png"', out)
+        self.assertRegex(out, r'href="/work/"[^>]*aria-current="page"')
+        self.assertNotIn("Idli_03", out)
+        self.assertEqual(build.output_path("work/didac")[0], check.ROOT / "work" / "didac" / "index.html")
+        self.assertEqual(check.page_slug(check.ROOT / "work" / "didac" / "index.html"), "work/didac")
+        self.bad(check.check_images('<main><img src="/assets/cats/Crisp_Avatar_Idli.svg" alt=""></main>', "t", "work/didac"), "cat on a case page")
+        self.assertEqual(check.check_sitemap(), [])
+        self.bad(check.check_sitemap(["/work/"]), "sitemap missing case pages")
+
     # ── Work section: project media pinned in tools/work-assets.sha256 ──
     def test_work_assets_pinned(self):
         self.assertEqual(check.check_work_assets(), [])

@@ -519,7 +519,7 @@ def check_images(text, label, slug):
     """(a) no logo/croissant-avatar <img> outside <header>, except the Home hero logo (data-hero-logo inside
     .hero on index.html), which travels into the navbar; (b) no cat on the Work page or inside a .hero."""
     out = []
-    if slug == "work" and CAT_SRC.search(strip_inert(text)):
+    if (slug or "").split("/")[0] == "work" and CAT_SRC.search(strip_inert(text)):
         out.append(f"{label}: a cat (Idli/Samosa) appears on the Work page; cats never sit beside client work")
     for line, a, anc in img_contexts(text):
         src = a.get("src", "") + " " + a.get("srcset", "")
@@ -579,6 +579,7 @@ def check_cats(text, label, slug):
         sections = [a for t, _, a in e["ancestors"] if t in ("section", "footer", "header")]
         if sections and any(any(a is sections[-1] for _, _, a in w["ancestors"]) for w in work):
             out.append(f"{label}:{e['line']}: cat {name} shares a section with client work")
+    slug = "work" if (slug or "").startswith("work/") else slug  # case pages: no cats either
     if slug in CAT_PLACEMENTS:
         want = CAT_PLACEMENTS[slug]
         have = sorted(n for n, _ in cats)
@@ -1122,6 +1123,8 @@ def page_slug(path):
         return "404"
     if path.name == "index.html" and path.parent.parent == ROOT:
         return path.parent.name
+    if path.name == "index.html" and path.parent.parent.parent == ROOT and path.parent.parent.name == "work":
+        return f"work/{path.parent.name}"  # nested case pages (src/pages/work/<slug>.html)
     return None
 
 
@@ -1270,6 +1273,22 @@ def check_links(pages):
     return out
 
 
+def check_sitemap(locs=None):
+    """sitemap.xml lists every indexable built page (no 404, no noindex), nested case pages included."""
+    if locs is None:
+        locs = [l[len(SITE):] for l in re.findall(r"<loc>([^<]+)</loc>", (ROOT / "sitemap.xml").read_text(encoding="utf-8"))]
+    out = []
+    for page in built_pages():
+        text = page.read_text(encoding="utf-8")
+        if page.name == "404.html" or re.search(r'<meta name="robots" content="[^"]*noindex', text):
+            continue
+        path = "/" + str(page.parent.relative_to(ROOT)).replace(".", "") + "/" if page.parent != ROOT else "/"
+        path = path.replace("//", "/")
+        if path not in locs:
+            out.append(f"sitemap.xml: {path} is missing (run tools/build.py)")
+    return out
+
+
 FM_LINE = re.compile(r"^([A-Za-z_][\w-]*):(?:[ \t]+(.*))?$")
 
 
@@ -1332,6 +1351,7 @@ def check_logo_travel_js(js, label="js/site.js"):
 
 def built_pages():
     pages = [p for p in ROOT.glob("*/index.html") if p.parts[len(ROOT.parts)] not in ("src", "docs", "node_modules", "motion", "assets")]
+    pages += list((ROOT / "work").glob("*/index.html"))  # nested case pages
     pages += [ROOT / "index.html", ROOT / "404.html"]
     return sorted(p for p in pages if p.exists())
 
@@ -1342,10 +1362,10 @@ def main(argv):
     else:
         targets = sorted((ROOT / "css").glob("*.css")) + built_pages()
     problems = check_sources()
-    for src in sorted((ROOT / "src" / "pages").glob("*.html")):
+    for src in sorted((ROOT / "src" / "pages").rglob("*.html")):
         problems += check_front_matter(src)
     if not argv:
-        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest() + check_work_assets()
+        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest() + check_work_assets() + check_sitemap()
         site_css = ROOT / "css" / "site.css"
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_bento_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
