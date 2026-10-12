@@ -804,15 +804,28 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 .lost-art { grid-template-columns: minmax(0, 1fr); } /* lets the pair shrink to the block, never past it */
 .cat-pair .cat { flex: var(--vbw) 1 0; min-width: 0; max-width: calc(var(--vbw) * var(--k) * 1px); }
 
-/* Home closing: Idli's hammock hangs from the card's top edge; Samosa stands below it, reaching up */
+/* Home closing: Idli's hammock, the one cat here, hangs from the card's top edge right beside the text (phones:
+   centred above it). The scene is in the grid, so the card grows to fit; a negative top margin of the card padding
+   plus the art's empty strip above the cord (23 art units) puts the cord's top on the card edge. Sizes:
+   ~180px phones, ~220px tablets, ~310px desktop, ~330px from 1200px. */
 .has-scene { position: relative; }
-.closer-scene { --k: .2; display: flex; justify-content: flex-end; align-items: flex-end; order: -1; padding-right: calc(344px * var(--k) + var(--space-4)); }
-.scene-hammock { position: absolute; top: 0; right: var(--pad-card); }
-@media (min-width: 600px) { .scene-hammock { right: var(--pad-card-featured); } }
-@media (min-width: 1024px) {
-  .closer-scene { --k: .3; order: 1; align-self: end; } /* right column, after the copy */
+.closer-scene { --k: .52; order: -1; justify-self: center; align-self: start; margin-top: calc(-1 * var(--pad-card) - 23px * var(--k)); }
+.scene-hammock { transform-origin: 42% 4%; } /* the cords' top, so it swings from where it hangs */
+@media (min-width: 600px) {
+  .closer-card.has-scene { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-6); }
+  .closer-scene { --k: .64; order: 1; justify-self: end; margin-top: calc(-1 * var(--pad-card-featured) - 23px * var(--k)); }
 }
-@media (min-width: 1200px) { .scene-hammock { right: var(--space-9); } }
+@media (min-width: 600px) and (max-width: 1023px) { /* beside the hammock the headline steps down one size (Display -> H1), so it never ends on a lone word */
+  .closer-card.has-scene .t-display { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); }
+}
+@media (min-width: 1024px) { /* the copy column hugs the headline, so the pair sits together, centred in the card */
+  .closer-card.has-scene { grid-template-columns: minmax(0, max-content) auto; justify-content: center; gap: var(--space-7); }
+  .closer-card.has-scene .closer-copy { max-width: calc(var(--space-10) * 3 + var(--space-9)); }
+  .closer-scene { --k: .9; }
+}
+@media (min-width: 1200px) {
+  .closer-scene { --k: .96; margin-top: calc(-1 * var(--space-9) - 23px * var(--k)); }
+}
 
 /* Services closing: Samosa with his ball beside the closing text */
 .closer-cat { --k: .21; display: block; }
@@ -822,23 +835,24 @@ html:not(.js) .filters { display: none; } /* filtering needs JS; without it ever
 .blog-cat { --k: .22; display: block; }
 @media (min-width: 1024px) { .blog-cat { --k: .26; } }
 
-/* Footer: Idli sitting on the footer's top edge, art bottom on the hairline (not on Work). The footer takes
+/* Footer: Idli sitting on the footer's top edge, art bottom on the hairline (not on Work or Home, tools/build.py). The footer takes
    a little extra room above it so she never reaches into the section before. */
 .foot-cat { --k: .165; position: absolute; bottom: 0; right: var(--layout-margin); } /* ~120px wide */
 .site-foot:has(.foot-cat) { margin-top: var(--space-7); }
 @media (min-width: 1024px) { .foot-cat { --k: .21; } } /* ~155px wide */
 
-/* Motion, only when motion is fine: Idli breathes very slowly; Samosa tilts on hover/tap (springy) and the
-   reaching Samosa gives a tiny nudge every ~6s; avatars tilt on hover and squash on tap. Nothing loops fast. */
+/* Motion, only when motion is fine: Idli breathes very slowly; the Home hammock sways constantly and subtly
+   (2.75deg each way about the cords' top with a 2px bob, 5.5s); Samosa tilts on hover/tap (springy); avatars tilt
+   on hover and squash on tap. Nothing loops fast. */
 @media (prefers-reduced-motion: no-preference) {
   .cat--idli { animation: cat-breathe 4s ease-in-out infinite; }
   .cat--samosa { transition: rotate .25s var(--ease); transform-origin: 50% 100%; }
   .cat--samosa:hover { rotate: -4deg; }
   .cat--samosa:active { rotate: 4deg; }
-  .cat--nudge { animation: cat-nudge 6s ease-in-out infinite; }
+  .scene-hammock { animation: cat-sway 5.5s ease-in-out infinite alternate; }
   .cat--96, .cat--48 { transition: transform .35s var(--ease); }
   .cat--96:hover, .cat--48:hover { transform: rotate(-8deg); }
   .cat--96:active, .cat--48:active { transform: scale(1.06, .9); transition-duration: .12s; }
   @keyframes cat-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015); } }
-  @keyframes cat-nudge { 0%, 88%, 100% { transform: rotate(0); } 93% { transform: rotate(3deg); } }
+  @keyframes cat-sway { from { transform: rotate(-2.75deg); } to { transform: rotate(2.75deg) translateY(2px); } }
 }

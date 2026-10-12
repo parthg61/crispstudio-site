@@ -268,7 +268,7 @@ class Bypasses(unittest.TestCase):
                         + P("Idli_04_peeking_over_edge") + '</div><form></form><div id="form-done"><div class="cat-duo">'
                         + P("Samosa_09_head_tilt_sitting") + P("Idli_14_rolled_belly_up") + "</div></div></div></section>" + foot),
             "404": '<section class="lost"><div class="lost-art">' + P("Samosa_07_walking") + P("Idli_02_lying_on_back_stretched") + "</div></section>" + foot,
-            "home": '<section class="closer"><div class="closer-card">' + P("Idli_08_in_hammock") + P("Samosa_01_standing_paw_up") + "</div></section>" + foot,
+            "home": '<section class="closer"><div class="closer-card">' + P("Idli_08_in_hammock") + "</div></section>",
             "blog": '<section><div id="blog-empty">' + P("Idli_12_curled_looking_down") + "</div></section>" + foot,
             "about": '<section class="closer">' + P("Crisp_Avatar_Idli", "cat cat--48") + "</section>" + foot,
             "services": '<section class="closer">' + P("Samosa_02_playing_with_ball") + "</section>" + foot,
@@ -281,7 +281,9 @@ class Bypasses(unittest.TestCase):
         self.bad(cc(good["contact"].replace('<div class="cat-peek">', '<div class="cats">'), "contact"), "peek pair not in .cat-peek")
         self.bad(cc(good["contact"].replace(foot, ""), "contact"), "no footer Idli")
         self.bad(cc(good["work"] + foot, "work"), "footer Idli on Work")
-        self.bad(cc(good["home"].replace('class="closer-card"', 'class="card"'), "home"), "home pair off the closing card")
+        self.bad(cc(good["home"].replace('class="closer-card"', 'class="card"'), "home"), "home hammock off the closing card")
+        self.bad(cc(good["home"] + foot, "home"), "footer Idli on Home")
+        self.bad(cc(good["home"].replace("</div></section>", P("Samosa_01_standing_paw_up") + "</div></section>"), "home"), "Samosa back under the hammock")
         self.bad(cc(good["about"].replace('alt=""', 'alt="Idli"'), "about"), "cat with alt text")
         self.bad(cc(good["blog"].replace('<div id="blog-empty">', '<div id="blog-empty"><a href="/">').replace("</div></section>", "</a></div></section>"), "blog"), "cat in a link")
         self.bad(cc(good["blog"].replace('alt=""', 'alt="" tabindex="0"', 1), "blog"), "focusable cat")
@@ -339,6 +341,30 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(cm("@media (prefers-reduced-motion: no-preference) { @media (min-width: 600px) { .cat-peek .cat-lid { animation: cat-blink 5s infinite; } } }"), [])
         self.assertEqual(cm(".cat { animation: none; } .track { animation: ticker 40s linear infinite; }"), [])
         self.assertEqual(check.check_css(check.ROOT / "css" / "site.css"), [])
+
+    def test_footer_cat_off_home(self):
+        sys.path.insert(0, str(check.ROOT / "tools"))
+        import build
+        meta = {"title": "t", "desc": "d"}
+        self.assertNotIn("Idli_03", build.render("home", meta, "<main></main>"))
+        self.assertNotIn("Idli_03", build.render("work", meta, "<main></main>"))
+        for slug in ("about", "services", "contact", "blog", "404"):
+            self.assertIn("Idli_03_sitting_sprawled_leg_up", build.render(slug, meta, "<main></main>"), slug)
+
+    def test_hammock_sway(self):
+        hs = lambda t: check.check_hammock_css(t, "t.css")
+        good = (".scene-hammock { transform-origin: 42% 4%; } @media (prefers-reduced-motion: no-preference) { "
+                ".scene-hammock { animation: cat-sway 5.5s ease-in-out infinite alternate; } "
+                "@keyframes cat-sway { from { transform: rotate(-2.75deg); } to { transform: rotate(2.75deg) translateY(2px); } } }")
+        self.assertEqual(hs(good), [])
+        self.bad(hs(good.replace("@media (prefers-reduced-motion: no-preference) {", "@media (min-width: 0px) {")), "sway under reduced motion")
+        self.bad(hs(good.replace("5.5s", "2s")), "too fast")
+        self.bad(hs(good.replace(" alternate", "")), "not alternate")
+        self.bad(hs(good.replace("2.75deg)", "6deg)")), "swings too far")
+        self.bad(hs(good.replace("42% 4%", "50% 100%")), "turns about its bottom")
+        self.bad(hs(good + " @media (prefers-reduced-motion: no-preference) { .cat--nudge { animation: cat-nudge 6s infinite; } }"), "nudge left over")
+        self.bad(hs(""), "no sway")
+        self.assertEqual(hs((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
     # ── Round 2, Task 2: Home hero logo travel (no tray, no work cards in the hero) ──
     HEAD = ('<header class="site-head"><a class="brandmark" data-logo-slot href="/" aria-label="Crisp home">'

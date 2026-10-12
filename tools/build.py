@@ -23,7 +23,9 @@ PARTIALS = ROOT / "src" / "partials"
 PAGES = ROOT / "src" / "pages"
 NAV_SLUGS = ("work", "services", "about", "blog", "contact")
 SCRIPT = '<script src="/js/site.js" defer></script>\n'
-NO_CAT_SLUGS = ("work",)  # cats never sit beside client work: the footer Idli is left off these pages
+# The footer Idli is left off these pages: Work (cats never sit beside client work) and Home (Idli in the
+# closing card's hammock is enough there).
+NO_CAT_SLUGS = ("work", "home")
 
 
 def read(name):

@@ -566,7 +566,8 @@ CAT_PLACEMENTS = {
     "contact": [("Samosa_06_standing_paws_up", ("form-card", "cat-peek")), ("Idli_04_peeking_over_edge", ("form-card", "cat-peek")),
                 ("Samosa_09_head_tilt_sitting", ("#form-done",)), ("Idli_14_rolled_belly_up", ("#form-done",)), FOOT_CAT],
     "404": [("Samosa_07_walking", ("lost-art",)), ("Idli_02_lying_on_back_stretched", ("lost-art",)), FOOT_CAT],
-    "home": [("Idli_08_in_hammock", ("closer-card",)), ("Samosa_01_standing_paw_up", ("closer-card",)), FOOT_CAT],
+    # Home pass item 3: only Idli in the hammock on the closing card, and no footer Idli on Home
+    "home": [("Idli_08_in_hammock", ("closer-card",))],
     "blog": [("Idli_12_curled_looking_down", ("#blog-empty",)), FOOT_CAT],
     "about": [("Crisp_Avatar_Idli", ("closer",)), FOOT_CAT],
     "services": [("Samosa_02_playing_with_ball", ("closer",)), FOOT_CAT],
@@ -1053,6 +1054,41 @@ def check_hero_logo_sizes(text, label, tokens_text=""):
     return []
 
 
+# Home pass item 3: the closing card's hammock sways constantly and subtly (about its cords' top, never mirrored,
+# only when motion is fine): rotate within 2.5-3deg each way, 5-6s, ease-in-out, infinite alternate.
+def check_hammock_css(text, label):
+    out = []
+    rules = list(css_rules(text))
+    sway = None
+    for sel, body, ats in rules:
+        if any(a.lower().startswith("@keyframes") for a in ats) or not re.search(r"\.scene-hammock(?![\w-])", sel):
+            continue
+        anim = re.search(r"(?<![\w-])animation\s*:\s*([^;}]+)", body)
+        if anim and NO_PREF.search(" ".join(ats)):
+            sway = anim.group(1)
+    if not sway:
+        return [f"{label}: no .scene-hammock sway animation inside @media (prefers-reduced-motion: no-preference)"]
+    secs = [float(s) for s in re.findall(r"(?<![\w.])(\d*\.?\d+)s(?![\w])", sway)]
+    if not secs or not 5 <= secs[0] <= 6:
+        out.append(f"{label}: the hammock sway must last 5-6s ('{sway.strip()}')")
+    for word in ("infinite", "alternate", "ease-in-out"):
+        if word not in sway:
+            out.append(f"{label}: the hammock sway must be {word} ('{sway.strip()}')")
+    name = next((w for w in sway.split() if w.startswith("cat-")), None)
+    frames = [body for sel, body, ats in rules if name and any(re.fullmatch(rf"@keyframes\s+{re.escape(name)}", a.strip()) for a in ats)]
+    degs = [abs(float(d)) for f in frames for d in re.findall(r"rotate\(\s*(-?\d*\.?\d+)deg", f)]
+    if not degs or not all(2.5 <= d <= 3 for d in degs):
+        out.append(f"{label}: @keyframes {name} must rotate 2.5-3deg each way (found {degs})")
+    origins = [m for sel, body, ats in rules if re.search(r"\.scene-hammock(?![\w-])", sel)
+               for m in re.findall(r"transform-origin\s*:\s*([^;}]+)", body)]
+    if not origins or not re.fullmatch(r"\s*[\d.]+%\s+(?:0|[0-5](?:\.\d+)?%)\s*", origins[-1]):
+        out.append(f"{label}: .scene-hammock must turn about its cords' top (transform-origin: <x>% <0-5%>), found {origins}")
+    for sel, body, ats in rules:
+        if re.search(r"cat--nudge|Samosa_01", sel + body) or any("cat-nudge" in a for a in ats):
+            out.append(f"{label}: '{sel.strip()}' is left over from the removed Samosa nudge")
+    return out
+
+
 def page_slug(path):
     path = Path(path).resolve()
     if path == ROOT / "index.html":
@@ -1289,6 +1325,7 @@ def main(argv):
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_card_colours(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                        (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
+        problems += check_hammock_css(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_hero_logo_sizes(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                           (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_header_logo(site_css.read_text(encoding="utf-8"), label_for(site_css),
