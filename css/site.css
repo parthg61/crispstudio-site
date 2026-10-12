@@ -387,25 +387,8 @@ a:hover > .card-go, a:focus-visible > .card-go { opacity: 1; }
 }
 @media (prefers-reduced-motion: no-preference) and (hover: none) { .card-go { transform: none; } }
 
-/* Strips: the services marquee (four names at Display size, official curl between) and the client logo ticker.
-   They scroll only with JS and motion allowed, and never pause (no Pause/Play buttons, no hover pause). Otherwise
-   (reduced motion, no JS) both are static wrapped lists and the loop copies are hidden. */
-
-.svc-band { padding-block: var(--space-7) 0; }
-.marquee { --mq-gap: var(--space-5); overflow: hidden; }
-.marquee-track { display: flex; padding-inline: var(--layout-margin); }
-.marquee-set {
-  list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) 0; max-width: none;
-  font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: 600;
-}
-.marquee-set li { display: flex; align-items: center; gap: var(--mq-gap); padding-inline-end: var(--mq-gap); min-width: 0; overflow-wrap: anywhere; }
-/* the official orange curl (assets/icons/Crisp_Bullet_Curl.svg) at a larger size between names */
-.marquee-set li::after {
-  content: ""; flex: none; width: var(--space-7); height: var(--space-7);
-  background: url("/assets/icons/Crisp_Bullet_Curl.svg") center / contain no-repeat;
-}
-.marquee-set[aria-hidden="true"] { display: none; }
-@media (min-width: 600px) { .marquee { --mq-gap: var(--space-6); } .marquee-set li::after { width: var(--space-8); height: var(--space-8); } }
+/* Strip: the client logo ticker. It scrolls only with JS and motion allowed, and never pauses (no Pause/Play
+   buttons, no hover pause). Otherwise (reduced motion, no JS) it is a static wrapped list and the loop copy is hidden. */
 
 .brands { padding-block: var(--pad-section); }
 .brands > .wrap { display: flex; flex-direction: column; gap: var(--space-6); }
@@ -417,18 +400,12 @@ a:hover > .card-go, a:focus-visible > .card-go { opacity: 1; }
 .track .logo[aria-hidden="true"] { display: none; }
 
 @media (prefers-reduced-motion: no-preference) {
-  html.js .marquee-track { width: max-content; padding-inline: 0; animation: marquee-scroll 60s linear infinite; }
-  html.js .marquee-set { flex: none; flex-wrap: nowrap; }
-  html.js .marquee-set li { white-space: nowrap; }
-  html.js .marquee-set[aria-hidden="true"] { display: flex; }
   html.js .ticker { /* an alpha mask that fades the logos out at the edges, not a colour gradient wash */
     -webkit-mask-image: linear-gradient(90deg, transparent, white var(--space-8), white calc(100% - var(--space-8)), transparent);
     mask-image: linear-gradient(90deg, transparent, white var(--space-8), white calc(100% - var(--space-8)), transparent);
   }
   html.js .track { flex-wrap: nowrap; gap: var(--space-9); width: max-content; animation: ticker-scroll 40s linear infinite; }
   html.js .track .logo[aria-hidden="true"] { display: grid; }
-  /* each marquee set carries its own trailing gap, so -50% lands exactly on the copy */
-  @keyframes marquee-scroll { to { transform: translateX(-50%); } }
   @keyframes ticker-scroll { to { transform: translateX(calc(-50% - var(--space-9) / 2)); } }
 }
 

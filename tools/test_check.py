@@ -515,20 +515,16 @@ class Bypasses(unittest.TestCase):
         return (f'<a class="tile" href="{href}"><span class="icon-chip" aria-hidden="true"><img src="/assets/icons/{icon}" alt=""></span>'
                 f'<h3>x</h3><div class="tags">' + "".join(f'<span class="tag">{html_lib.escape(t)}</span>' for t in tags) + "</div></a>")
 
-    def home_sections(self, bento=None, marquee=None, ticker=None, why=None):
+    def home_sections(self, bento=None, ticker=None, why=None):
         if bento is None:
             bento = '<div class="bento">' + "".join(self.tile(h, i, t) for h, (i, t) in check.BENTO_TILES.items()) + "</div>"
-        names = "".join(f"<li>{html_lib.escape(n)}</li>" for n in check.MARQUEE_NAMES)
-        if marquee is None:
-            marquee = (f'<div class="marquee" id="mq"><div class="marquee-track"><ul>{names}</ul>'
-                       f'<ul aria-hidden="true">{names}</ul></div></div>')
         if ticker is None:
             ticker = '<div class="ticker" id="tk"><div class="track" id="track"></div></div>'
         if why is None:
             why = ('<p class="why-statement" id="why">Everything we make has a job<span class="why-static">, to clarify, engage, convert, '
                    'simplify or move someone to act.</span><span class="why-cycle" aria-hidden="true">, to <span class="cycle">'
                    + "".join(f"<span>{w}</span>" for w in check.JOB_WORDS) + '</span><span class="why-dot">.</span></span> That\'s the crunch.</p>')
-        return "<main>" + marquee + ticker + bento + why + "</main>"
+        return "<main>" + ticker + bento + why + "</main>"
 
     def test_home_sections(self):
         hs = lambda t: check.check_home_sections(t, "t")
@@ -542,13 +538,12 @@ class Bypasses(unittest.TestCase):
         self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t[:-1]) for h, (i, t) in tiles) + "</div>")), "a tag dropped")
         no_chip = self.home_sections().replace('class="icon-chip"', 'class="icon"')
         self.bad(hs(no_chip), "icon not in an .icon-chip")
-        # marquee: exactly the four names, a loop copy
+        # the services marquee band is gone for good
         good = self.home_sections()
-        self.bad(hs(good.replace("<li>Build</li>", "<li>Development</li>", 1)), "renamed service")
-        self.bad(hs(good.replace("<li>Build</li>", "", 1)), "three names")
-        self.bad(hs(good.replace('<ul aria-hidden="true">', "<ul>", 1)), "copy not aria-hidden")
+        for gone in ('<section class="svc-band"></section>', '<div id="svc-marquee"></div>', '<div class="marquee"></div>'):
+            self.bad(hs(good.replace("<main>", "<main>" + gone)), "the removed marquee band " + gone)
         # Pause/Play buttons are gone for good (user: "useless on the website"): none may come back
-        for target in ("mq", "tk", "why"):
+        for target in ("tk", "why"):
             btn = f'<button class="btn strip-pause" type="button" data-pause aria-controls="{target}">Pause</button>'
             self.bad(hs(good.replace("</main>", btn + "</main>")), f"a pause button for #{target}")
         self.bad(hs(good.replace('<div class="ticker" id="tk">', '<div class="ticker" id="tk" data-pausable>')), "a leftover data-pausable")
@@ -570,18 +565,17 @@ class Bypasses(unittest.TestCase):
         am = lambda t: check.check_all_motion(t, "t.css")
         self.bad(am(".track { animation: ticker 40s linear infinite; } @keyframes ticker { to { transform: none; } }"), "ticker outside media")
         self.bad(am("@media (prefers-reduced-motion: no-preference) { .x { animation: a 1s; } } @keyframes a { to { opacity: 0; } }"), "keyframes outside")
-        self.bad(am("@media (min-width: 600px) { .marquee-track { animation: m 60s linear infinite; } }"), "wrong media")
-        self.assertEqual(am("@media (prefers-reduced-motion: no-preference) { .marquee-track { animation: m 60s linear infinite; } "
+        self.bad(am("@media (min-width: 600px) { .track { animation: m 60s linear infinite; } }"), "wrong media")
+        self.assertEqual(am("@media (prefers-reduced-motion: no-preference) { .track { animation: m 60s linear infinite; } "
                             "@keyframes m { to { transform: translateX(-50%); } } } .x { animation: none; }"), [])
         self.assertEqual(am("@media (prefers-reduced-motion: no-preference) { @media (min-width: 600px) { .a { animation: m 1s; } } }"), [])
         sc = lambda t: check.check_strips_css(t, "t.css")
-        good = ("@media (prefers-reduced-motion: no-preference) { html.js .marquee-track { animation: m 60s linear infinite; } "
-                "html.js .track { animation: t 40s linear infinite; } }")
+        good = ("@media (prefers-reduced-motion: no-preference) { html.js .track { animation: t 40s linear infinite; } }")
         self.assertEqual(sc(good), [])
         self.bad(sc(good + " .is-paused .track { animation-play-state: paused; }"), "leftover paused rule")
         self.bad(sc(good + " .strip-pause { gap: var(--space-2); }"), "leftover pause button CSS")
-        self.bad(sc(good.replace("html.js .marquee-track { animation: m 60s linear infinite; } ", "")), "marquee does not scroll")
-        self.bad(sc(good + " .marquee:hover .marquee-track { animation-play-state: paused; }"), "hover pause")
+        self.bad(sc(""), "ticker does not scroll")
+        self.bad(sc(good + " .track:hover { animation-play-state: paused; }"), "hover pause")
         self.bad(sc(good + " .work-grid .card:hover .card-visual { transform: scale(1.04); }"), "zoom on a non-link card")
         self.assertEqual(sc(good + " .work-grid a.card:hover .card-visual, .work-grid a.card:focus-visible .card-visual { transform: scale(1.04); }"), [])
         site_css = check.ROOT / "css" / "site.css"

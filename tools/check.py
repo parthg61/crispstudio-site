@@ -336,14 +336,13 @@ def check_html(path):
     return out
 
 
-# Round 2, Task 3: Home "What we do" bento, the services marquee, the client ticker and the Why statement
+# Round 2, Task 3: Home "What we do" bento, the client ticker and the Why statement
 BENTO_TILES = {  # anchor -> (official icon file, service tags)
     "/services/#strategy": ("Crisp_Icon_Strategy.svg", ("UX Audits", "User Research", "Journey Mapping", "Usability Testing")),
     "/services/#branding": ("Crisp_Icon_Branding.svg", ("Positioning", "Visual Identity", "Guidelines", "Brand Architecture")),
     "/services/#product": ("Crisp_Icon_UIUX.svg", ("UX & UI", "AI Experience", "Design Systems", "Prototyping")),
     "/services/#build": ("Crisp_Icon_DesignToCode.svg", ("Front-end", "Web Development", "Framer")),
 }
-MARQUEE_NAMES = ["Strategy & Research", "Branding", "Product Design", "Build"]
 JOB_WORDS = ["clarify", "engage", "convert", "simplify", "move someone to act"]
 WHY_SENTENCE = "Everything we make has a job, to clarify, engage, convert, simplify or move someone to act."
 
@@ -362,8 +361,7 @@ def norm_text(s):
 
 def check_home_sections(text, label):
     """Home: (1) four .bento tiles linking to the four Services anchors, each with its official icon in an
-    .icon-chip and its service tags; (2) one .marquee listing exactly the four service names (copies after the
-    first set aria-hidden); (3) the client ticker (#track); (4) .why-statement carries the full Why sentence for
+    .icon-chip and its service tags; (2) no services marquee (.svc-band / #svc-marquee / .marquee); (3) the client ticker (#track); (4) .why-statement carries the full Why sentence for
     screen readers and an aria-hidden .cycle of the five job words. Home pass item 4: no Pause/Play button
     ([data-pause]) and no [data-pausable] target anywhere on the page (the user removed them)."""
     out = []
@@ -387,18 +385,9 @@ def check_home_sections(text, label):
             missing = [t for t in tags if t not in tag_texts]
             if missing:
                 out.append(f"{label}:{a['line']}: tile {a['attrs']['href']} lost its tags {missing}")
-    marquees = [e for e in els if "marquee" in classes(e)]
-    if len(marquees) != 1:
-        out.append(f"{label}: Home needs one services .marquee, found {len(marquees)}")
-    for mq in marquees:
-        sets = [e for e in els if e["tag"] == "ul" and inside(e, mq)]
-        live = [s for s in sets if s["attrs"].get("aria-hidden") != "true"]
-        if len(live) != 1 or len(sets) < 2:
-            out.append(f"{label}:{mq['line']}: .marquee needs one readable <ul> of names plus aria-hidden copies for the loop")
-        for s in sets:
-            names = [norm_text(e["text"]) for e in els if e["tag"] == "li" and inside(e, s)]
-            if names != MARQUEE_NAMES:
-                out.append(f"{label}:{s['line']}: .marquee names must be exactly {MARQUEE_NAMES}, found {names}")
+    for e in els:
+        if "svc-band" in classes(e) or e["attrs"].get("id") == "svc-marquee" or "marquee" in classes(e):
+            out.append(f"{label}:{e['line']}: the services marquee band is gone from Home (user removed it); delete it")
     tracks = [e for e in els if e["attrs"].get("id") == "track"]
     if len(tracks) != 1:
         out.append(f"{label}: Home needs the client logo ticker (#track)")
@@ -725,7 +714,7 @@ NO_PREF = re.compile(r"prefers-reduced-motion\s*:\s*no-preference", re.I)
 
 
 def check_all_motion(text, label):
-    """Everything that moves on its own (marquee, ticker, and any other animation) runs only under
+    """Everything that moves on its own (ticker and any other animation) runs only under
     @media (prefers-reduced-motion: no-preference): every animation declaration and every @keyframes."""
     out = []
     for sel, body, ats in css_rules(text):
@@ -741,11 +730,11 @@ def check_all_motion(text, label):
 
 
 def check_strips_css(text, label):
-    """The services .marquee and the client .track scroll only under no-preference; nothing pauses them (Home pass
+    """The client .track scrolls only under no-preference; nothing pauses them (Home pass
     item 4: no Pause/Play buttons, so no .strip-pause/.is-paused/[data-pausable] CSS left, and no :hover pause)."""
     out = []
     rules = list(css_rules(text))
-    for name in ("marquee", "track"):
+    for name in ("track",):
         if not any(re.search(rf"\.{name}(?![\w])|\.{name}-", sel) and NO_PREF.search(" ".join(ats))
                    and re.search(r"(?<![\w-])animation\s*:\s*(?!none)", body) for sel, body, ats in rules):
             out.append(f"{label}: no .{name} scroll animation inside @media (prefers-reduced-motion: no-preference)")
