@@ -409,32 +409,17 @@ a:hover > .card-go, a:focus-visible > .card-go { opacity: 1; }
   @keyframes ticker-scroll { to { transform: translateX(calc(-50% - var(--space-9) / 2)); } }
 }
 
-/* What we do: narrow heading column left, bento right (from 1200px); a 2-column bento from 600px (Strategy
-   tall, Branding and Product small, Build wide) and one column on phones. Orange only in icons and the arrow. */
+/* What we do: narrow heading column left, bento right (from 1200px). The bento is four equal tiles: 2 x 2 from
+   600px, one column on phones; icon chip, name, line, then tags pinned to a common baseline. Orange only in icons and the arrow. */
 .wrap.do-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-section-head); }
-.bento { display: grid; gap: var(--layout-gutter); grid-template-columns: minmax(0, 1fr); }
-.bento-tile { position: relative; justify-content: flex-start; gap: var(--space-7); }
-.bento-tile .tile-text { margin-top: auto; }
+.bento { display: grid; gap: var(--layout-gutter); grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+.bento-tile { position: relative; justify-content: flex-start; gap: var(--space-5); }
+.bento-tile .tile-text { flex: 1; }
+.bento-tile .tags { margin-top: auto; padding-top: var(--space-2); }
 .bento-tile p { color: var(--text-muted); }
 a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow; the --surface-2 icon chip stays visible */
 .bento-tile > .card-go { top: var(--pad-card); right: var(--pad-card); }
-.bento-tile--tall .icon-chip { width: calc(var(--space-9) + var(--space-3)); height: calc(var(--space-9) + var(--space-3)); }
-.bento-tile--tall .icon-chip img { width: calc(var(--space-8) + var(--space-2)); height: calc(var(--space-8) + var(--space-2)); }
-@media (min-width: 600px) {
-  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .bento-tile { min-height: calc(var(--space-10) * 2 + var(--space-6)); }
-  .bento-tile--tall { grid-row: span 2; }
-  .bento-tile--wide { grid-column: 1 / -1; min-height: 0; }
-}
-@media (min-width: 1024px) { /* the tall tile steps up once it is wide enough for "Strategy & Research" on one line */
-  .bento-tile--tall { padding: var(--pad-card-featured); }
-  .bento-tile--tall > .card-go { top: var(--pad-card-featured); right: var(--pad-card-featured); }
-  .bento-tile--tall h3 { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); }
-}
-@media (min-width: 768px) {
-  .bento-tile--wide { flex-direction: row; align-items: center; }
-  .bento-tile--wide .tile-text { flex: 1; }
-}
+@media (min-width: 600px) { .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1200px) {
   .wrap.do-layout { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: auto 1fr; gap: var(--gap-text-actions) var(--layout-gutter); }
   .do-head { grid-column: 1 / span 4; }

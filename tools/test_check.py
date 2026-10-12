@@ -536,6 +536,8 @@ class Bypasses(unittest.TestCase):
         swapped = [(h, (tiles[(k + 1) % 4][1][0], t)) for k, (h, (i, t)) in enumerate(tiles)]
         self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t) for h, (i, t) in swapped) + "</div>")), "icons swapped")
         self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t[:-1]) for h, (i, t) in tiles) + "</div>")), "a tag dropped")
+        self.bad(hs(self.home_sections().replace('class="tile"', 'class="tile bento-tile--tall"', 1)), "a --tall modifier")
+        self.bad(hs(self.home_sections().replace('class="tile"', 'class="tile bento-tile--wide"', 1)), "a --wide modifier")
         no_chip = self.home_sections().replace('class="icon-chip"', 'class="icon"')
         self.bad(hs(no_chip), "icon not in an .icon-chip")
         # the services marquee band is gone for good

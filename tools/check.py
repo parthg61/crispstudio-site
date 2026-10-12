@@ -372,9 +372,11 @@ def check_home_sections(text, label):
     for bento in bentos:
         links = [e for e in els if e["tag"] == "a" and inside(e, bento)]
         hrefs = [e["attrs"].get("href") for e in links]
-        if sorted(hrefs) != sorted(BENTO_TILES):
+        if hrefs != list(BENTO_TILES):
             out.append(f"{label}:{bento['line']}: .bento tiles must link to {list(BENTO_TILES)}, found {hrefs}")
         for a in links:
+            if re.search(r"bento-tile--", a["attrs"].get("class", "")):
+                out.append(f"{label}:{a['line']}: bento tiles are equal (no --tall/--small/--wide modifier)")
             icon, tags = BENTO_TILES.get(a["attrs"].get("href"), (None, ()))
             if icon is None:
                 continue
