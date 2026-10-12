@@ -119,12 +119,6 @@ p { max-width: var(--layout-measure); }
 }
 a.card, a.tile { transition: background-color .15s ease; }
 a.card:hover, a.tile:hover { background: var(--surface-2); }
-.card-visual {
-  display: grid; place-items: center; aspect-ratio: 4 / 3;
-  padding: var(--space-6); border-radius: var(--radius-lg); background: var(--surface-2);
-}
-.card-visual img { max-height: var(--space-7); max-width: 80%; width: auto; height: auto; object-fit: contain; }
-.card-visual svg { width: var(--space-7); height: var(--space-7); color: var(--orange); }
 .card-body { display: flex; flex-direction: column; gap: var(--gap-card-stack); padding-top: var(--space-1); }
 .card-media-text { gap: var(--gap-media-text); }
 
@@ -319,30 +313,77 @@ html:not(.js) .hero-logo-spot { display: none; }
 html:not(.js) body[data-page="home"] [data-logo-slot] img { visibility: visible; }
 
 
-.work-grid { display: grid; gap: var(--layout-gutter); grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 600px) { .work-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1200px) { .work-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.work-grid .card > p { color: var(--text-muted); }
-.work-grid h3 { font-size: var(--fs-title); line-height: var(--lh-title); }
+/* Selected work: category cards in one horizontally scrollable row (scroll-snap). The row bleeds into the page
+   margin so the next card peeks to the screen edge (~78% of the viewport per card on phones, 320px from there on);
+   it is a focusable region, so arrow keys scroll it, with padding so the cards' focus rings are never clipped.
+   js initWorkRow() shows the Previous/Next circle buttons only when the row overflows. */
+.work-row {
+  display: flex; gap: var(--layout-gutter);
+  margin-inline: calc(-1 * var(--layout-margin)); padding: var(--space-2) var(--layout-margin);
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--layout-margin); scrollbar-width: thin;
+}
+.work-row:focus-visible { outline-offset: calc(-1 * var(--space-1)); }
+.work-card {
+  position: relative; flex: 0 0 min(78vw, calc(var(--space-10) * 2 + var(--space-8))); scroll-snap-align: start;
+  justify-content: space-between; gap: var(--space-8); min-height: calc(var(--space-10) * 3);
+}
+.work-text { display: flex; flex-direction: column; gap: var(--space-2); }
+.work-text h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); }
+.work-meta { font-size: var(--fs-label); line-height: var(--lh-label); font-weight: var(--fw-label); letter-spacing: var(--ls-label); text-transform: uppercase; }
+.work-card > .card-go { top: var(--pad-card); right: var(--pad-card); }
+/* The large flat icon, drawn in the recipe of the official assets/icons/Crisp_Icon_*.svg (56px grid, flat fills,
+   rounded corners, brand colours only); each card sets its own palette (--wi-1 body, --wi-2 inner detail,
+   --wi-3 accent) so it reads on that card's background. */
+.work-icon { display: block; width: calc(var(--space-8) + var(--space-2)); height: calc(var(--space-8) + var(--space-2)); } /* 72px */
+.work-icon svg { width: 100%; height: 100%; }
+.work-icon .wi-1 { fill: var(--wi-1); }
+.work-icon .wi-2 { fill: var(--wi-2); }
+.work-icon .wi-3 { fill: var(--wi-3); }
+.work-icon .wi-s1, .work-icon .wi-s3 { fill: none; stroke-width: 4; stroke-linecap: round; }
+.work-icon .wi-s1 { stroke: var(--wi-1); }
+.work-icon .wi-s3 { stroke: var(--wi-3); stroke-width: 5; }
+/* User override of "cards are grey": the four Crisp brand colours, on .work-card only (tools/check.py
+   check_card_colours). Text pairs: navy on Golden Bake 7.66:1, white on Crust Navy 15.87:1, navy on Flake
+   10.67:1, white on Toasted Rust 4.67:1. Never white on orange. Hover keeps the colour (the icon and arrow move). */
+.work-card--collaterals, a.work-card--collaterals:hover { background: var(--brand-orange); color: var(--navy); --wi-1: var(--navy); --wi-2: var(--orange); --wi-3: var(--bg); }
+.work-card--logos, a.work-card--logos:hover { background: var(--navy); color: var(--bg); --wi-1: var(--orange); --wi-2: var(--navy); --wi-3: var(--cream); }
+.work-card--presentations, a.work-card--presentations:hover { background: var(--cream); color: var(--navy); --wi-1: var(--navy); --wi-2: var(--orange); --wi-3: var(--burnt); }
+.work-card--nda, a.work-card--nda:hover { background: var(--burnt); color: var(--bg); --wi-1: var(--bg); --wi-2: var(--navy); --wi-3: var(--cream); }
+/* arrow circle: navy with a white arrow on the orange, cream and rust cards; orange with a navy arrow on navy */
+.work-card .card-go { background: var(--navy); }
+.work-card .card-go svg { color: var(--bg); }
+.work-card--logos .card-go { background: var(--orange); }
+.work-card--logos .card-go svg { color: var(--navy); }
+.work-nav { display: flex; gap: var(--space-2); margin-inline-start: auto; }
+.work-arrow {
+  display: grid; place-items: center; width: var(--size-button); height: var(--size-button); padding: 0;
+  border: 0; border-radius: var(--radius-full); background: var(--surface); color: var(--text); cursor: pointer;
+  transition: background-color .15s ease;
+}
+.work-arrow:hover { background: var(--surface-2); }
+.work-arrow svg { width: var(--space-5); height: var(--space-5); }
+.work-arrow[disabled] { opacity: .4; cursor: default; }
+.work-arrow[disabled]:hover { background: var(--surface); }
 
-/* Work cards that are links (a.card): on hover and keyboard focus the visual zooms to 1.04 and the orange arrow
-   circle (.card-go, navy arrow on orange) appears. Plain <article> cards stay still, so they never look clickable.
-   The zoom moves only when motion is fine. */
-.card-visual { position: relative; }
+/* Cards that are links: on hover and keyboard focus the arrow circle (.card-go, navy arrow on orange) appears;
+   on the work cards the icon tilts -10deg and grows 6%. Plain cards stay still, so they never look clickable.
+   Movement only when motion is fine. */
 .card-go {
   position: absolute; top: var(--space-3); right: var(--space-3); z-index: 1;
   display: grid; place-items: center; width: var(--size-button-sm); height: var(--size-button-sm);
   border-radius: var(--radius-full); background: var(--orange); color: var(--on-accent);
   opacity: 0; pointer-events: none;
 }
-.card-visual .card-go svg, .card-go svg { width: var(--space-5); height: var(--space-5); color: var(--on-accent); }
-a:hover > .card-go, a:hover > .card-visual > .card-go, a:focus-visible > .card-go, a:focus-visible > .card-visual > .card-go { opacity: 1; }
+.card-go svg { width: var(--space-5); height: var(--space-5); color: var(--on-accent); }
+a:hover > .card-go, a:focus-visible > .card-go { opacity: 1; }
 @media (hover: none) { .card-go { opacity: 1; } } /* touch: no hover, so the arrow always shows on links */
 @media (prefers-reduced-motion: no-preference) {
-  .work-grid a.card .card-visual { transition: transform .35s var(--ease); }
-  .work-grid a.card:hover .card-visual, .work-grid a.card:focus-visible .card-visual { transform: scale(1.04); }
+  .work-icon svg { transition: transform .35s var(--ease); }
+  a.work-card:hover .work-icon svg, a.work-card:focus-visible .work-icon svg { transform: rotate(-10deg) scale(1.06); }
   .card-go { transform: scale(.6) rotate(-45deg); transition: opacity .2s ease, transform .35s var(--ease); }
-  a:hover > .card-go, a:hover > .card-visual > .card-go, a:focus-visible > .card-go, a:focus-visible > .card-visual > .card-go { transform: none; }
+  a:hover > .card-go, a:focus-visible > .card-go { transform: none; }
+  .work-row { scroll-behavior: smooth; }
 }
 @media (prefers-reduced-motion: no-preference) and (hover: none) { .card-go { transform: none; } }
 

@@ -32,41 +32,51 @@ ogdesc: "Brands and digital products designed with a clear purpose. Strategy, br
         <h2 class="t-h1" id="work-title">Good work speaks for itself.</h2>
         <p class="t-lead t-muted">A few of the brands and products we've shaped. Some of our best work lives behind NDAs, ask us about it. Confidentiality is non-negotiable.</p>
       </div>
-      <div class="work-grid">
-        <article class="card">
-          <div class="card-visual"><img src="/assets/clients/hdfc-securities.png" alt="HDFC securities" width="572" height="96" loading="lazy"></div>
-          <div class="card-body">
-            <div class="tags"><span class="tag">Finance</span><span class="tag tag--line">Product Design</span></div>
-            <p class="t-muted">Making investing flows clearer for millions of retail traders.</p>
+      <!-- Category cards in one horizontally scrollable row (scroll-snap; the region is keyboard-focusable, so arrow
+           keys scroll it). Each card sits on a Crisp brand colour (user override: only .work-card leaves the grey).
+           js initWorkRow() shows the Previous/Next buttons when the row overflows; no JS: the row just scrolls. -->
+      <div class="work-row" id="work-row" role="region" aria-label="Selected work categories" tabindex="0">
+        <a class="card work-card work-card--collaterals" href="/work/#collaterals">
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          <span class="work-icon" aria-hidden="true"><svg viewBox="0 0 56 56"><path class="wi-3" d="M33 17 43 13v32l-10 4z"/><path class="wi-1" d="M43 13l9 4v32l-9-4z"/><rect class="wi-1" x="6" y="5" width="24" height="40" rx="5"/><rect class="wi-2" x="10" y="10" width="16" height="13" rx="3"/><rect class="wi-2" x="10" y="27" width="16" height="4" rx="2"/><rect class="wi-2" x="10" y="34" width="10" height="4" rx="2"/><path class="wi-s1" d="M18 45v6M9 51h18"/></svg></span>
+          <div class="work-text">
+            <h3>Branding Collaterals</h3>
+            <p class="work-meta">14 pieces</p>
+            <p>Standees · Brochures · Bookmarks</p>
           </div>
-        </article>
-        <article class="card">
-          <div class="card-visual"><img src="/assets/clients/the-mind-mojo.png" alt="The Mind Mojo" width="308" height="96" loading="lazy"></div>
-          <div class="card-body">
-            <div class="tags"><span class="tag">Wellness</span><span class="tag tag--line">Branding</span></div>
-            <p class="t-muted">A warm, confident identity for a mental-wellness practice.</p>
+        </a>
+        <a class="card work-card work-card--logos" href="/work/#logos">
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          <span class="work-icon" aria-hidden="true"><svg viewBox="0 0 56 56"><rect class="wi-1" x="5" y="5" width="22" height="22" rx="5"/><circle class="wi-2" cx="16" cy="16" r="5"/><circle class="wi-3" cx="40" cy="16" r="11"/><path class="wi-3" d="M16 33 27 51H5z"/><path class="wi-1" d="M40 31 52 51H28z"/></svg></span>
+          <div class="work-text">
+            <h3>Logos</h3>
+            <p class="work-meta">1 piece</p>
           </div>
-        </article>
-        <article class="card">
-          <div class="card-visual"><img src="/assets/clients/nmims.png" alt="NMIMS" width="297" height="96" loading="lazy"></div>
-          <div class="card-body">
-            <div class="tags"><span class="tag">Ed-tech</span><span class="tag tag--line">Strategy &amp; Research</span></div>
-            <p class="t-muted">Untangling the student journey from first visit to enrolment.</p>
+        </a>
+        <a class="card work-card work-card--presentations" href="/work/#presentations">
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          <span class="work-icon" aria-hidden="true"><svg viewBox="0 0 56 56"><rect class="wi-1" x="4" y="7" width="48" height="33" rx="5"/><rect class="wi-2" x="12" y="25" width="7" height="9" rx="2"/><rect class="wi-2" x="24" y="19" width="7" height="15" rx="2"/><rect class="wi-3" x="36" y="13" width="7" height="21" rx="2"/><path class="wi-s1" d="M28 40v9M19 50h18"/></svg></span>
+          <div class="work-text">
+            <h3>Presentations</h3>
+            <p class="work-meta">3 decks</p>
           </div>
-        </article>
-        <a class="card" href="/contact/">
-          <div class="card-visual">
-            <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2"/></svg>
-          </div>
-          <div class="card-body">
-            <div class="tags"><span class="tag">SaaS · Finance · D2C</span><span class="tag tag--line">Under NDA</span></div>
-            <p class="t-muted">Our best work doesn't always get a public page. Ask us and we'll walk you through it.</p>
+        </a>
+        <a class="card work-card work-card--nda" href="/contact/">
+          <span class="card-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+          <span class="work-icon" aria-hidden="true"><svg viewBox="0 0 56 56"><path class="wi-s3" d="M18 26v-7a10 10 0 0 1 20 0v7"/><rect class="wi-1" x="10" y="24" width="36" height="28" rx="6"/><circle class="wi-2" cx="28" cy="35" r="4"/><rect class="wi-2" x="26" y="36" width="4" height="9" rx="2"/></svg></span>
+          <div class="work-text">
+            <h3>Confidential</h3>
+            <p class="work-meta">Under NDA</p>
+            <p>Our best work doesn't always get a public page. Ask us and we'll walk you through it.</p>
           </div>
         </a>
       </div>
       <div class="section-foot">
         <a class="btn btn--secondary" href="/work/">View all work</a>
+        <div class="work-nav" data-work-nav hidden>
+          <button class="work-arrow" type="button" aria-label="Previous" aria-controls="work-row" data-dir="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6 9 12l6 6"/></svg></button>
+          <button class="work-arrow" type="button" aria-label="Next" aria-controls="work-row" data-dir="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+        </div>
       </div>
     </div>
   </section>

@@ -90,6 +90,38 @@ function initLogoTravel() {
 }
 if (document.querySelector('.hero [data-hero-logo]')) initLogoTravel();
 
+// Home "Selected work": the category row scrolls on its own (scroll-snap; the region is focusable, so arrow keys
+// work). The Previous/Next buttons show only when the row overflows, each scrolls by one card, and each is
+// disabled at its end (focus moves to the other button first, so it is never lost). Reduced motion: an instant
+// jump instead of a smooth scroll. No JS: the buttons stay hidden and the row just scrolls.
+function initWorkRow() {
+  const row = document.getElementById('work-row');
+  const nav = document.querySelector('[data-work-nav]');
+  if (!row || !nav) return;
+  const [prev, next] = [nav.querySelector('[data-dir="-1"]'), nav.querySelector('[data-dir="1"]')];
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const update = () => {
+    const max = row.scrollWidth - row.clientWidth;
+    nav.hidden = max <= 1;
+    [[prev, row.scrollLeft <= 1, next], [next, row.scrollLeft >= max - 1, prev]].forEach(([btn, off, other]) => {
+      if (off && document.activeElement === btn && !nav.hidden) other.focus();
+      btn.disabled = off;
+    });
+  };
+  const step = () => {
+    const card = row.querySelector('.work-card');
+    return card ? card.getBoundingClientRect().width + (parseFloat(getComputedStyle(row).columnGap) || 0) : row.clientWidth;
+  };
+  [prev, next].forEach(btn => btn.addEventListener('click', () => {
+    row.scrollBy({ left: Number(btn.dataset.dir) * step(), behavior: reduce.matches ? 'auto' : 'smooth' });
+  }));
+  row.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  if ('ResizeObserver' in window) new ResizeObserver(update).observe(row);
+  update();
+}
+initWorkRow();
+
 // Rolling logos (list repeated so the loop is seamless; CSS scrolls it only when motion is fine)
 const track = document.getElementById('track');
 if (track) {

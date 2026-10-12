@@ -420,6 +420,57 @@ class Bypasses(unittest.TestCase):
         self.bad(ls(good + " @media (min-width: 1200px) { .hero-grid { --logo-w: 256px; } }"), "a stray in-between size")
         self.assertEqual(ls((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
+    # ── Home pass item 2: horizontally scrollable category work cards on brand colours ──
+    @staticmethod
+    def work_section(cards=None, buttons=None, extra=""):
+        def card(href, title, meta):
+            return (f'<a class="card work-card" href="{href}"><span class="work-icon" aria-hidden="true"><svg viewBox="0 0 56 56">'
+                    f'<rect class="wi-1" width="9" height="9"/></svg></span><h3>{title}</h3><p class="work-meta">{meta}</p></a>')
+        cards = "".join(card(*c) for c in check.WORK_CARDS) if cards is None else cards
+        if buttons is None:
+            buttons = ('<button type="button" aria-label="Previous" aria-controls="wr">&lt;</button>'
+                       '<button type="button" aria-label="Next" aria-controls="wr">&gt;</button>')
+        return (f'<section aria-labelledby="work-title"><h2 id="work-title">Good work speaks for itself.</h2>'
+                f'<div class="work-row" id="wr" role="region" aria-label="{check.WORK_ROW_LABEL}" tabindex="0">{cards}</div>'
+                f'{extra}<a class="btn" href="/work/">View all work</a>{buttons}</section>')
+
+    def test_work_row(self):
+        wr = lambda t: check.check_work_row(t, "t")
+        good = self.work_section()
+        self.assertEqual(wr(good), [])
+        self.bad(wr(good.replace('role="region" ', "")), "not a region")
+        self.bad(wr(good.replace(' tabindex="0"', "")), "region not focusable")
+        self.bad(wr(good.replace("/work/#logos", "/work/")), "wrong link")
+        self.bad(wr(good.replace("<h3>Logos</h3>", "<h3>Identity</h3>")), "renamed category")
+        self.bad(wr(good.replace("14 pieces", "12 pieces")), "wrong count")
+        self.bad(wr(self.work_section(cards="".join(
+            f'<a class="card work-card" href="{h}"><span class="work-icon" aria-hidden="true"><svg></svg></span><h3>{t}</h3><p class="work-meta">{m}</p></a>'
+            for h, t, m in reversed(check.WORK_CARDS)))), "cards out of order")
+        self.bad(wr(good.replace('<span class="work-icon" aria-hidden="true">', '<span class="work-icon">', 1)), "icon not aria-hidden")
+        self.bad(wr(good.replace('aria-label="Next" ', "")), "no Next label")
+        self.bad(wr(self.work_section(buttons="")), "no arrow buttons")
+        self.bad(wr(self.work_section(extra='<p>Making investing flows clearer for HDFC securities.</p>')), "client name in the section")
+        self.bad(wr(self.work_section(extra='<img src="/assets/clients/nmims.png" alt="NMIMS">')), "client logo in the section")
+        self.bad(wr(good.replace(">View all work<", ">More<")), "lost View all work")
+        self.assertEqual(wr((check.ROOT / "index.html").read_text(encoding="utf-8")), [])
+
+    def test_card_colours(self):
+        toks = (check.ROOT / "css" / "tokens.css").read_text(encoding="utf-8")
+        cc = lambda t: check.check_card_colours(t, "t.css", toks)
+        self.assertEqual(cc(".card { background: var(--surface); } .tile:hover { background: var(--surface-2); }"), [])
+        self.assertEqual(cc(".work-card--a { background: var(--brand-orange); color: var(--navy); } "
+                            ".work-card--b { background: var(--navy); color: var(--bg); } "
+                            ".work-card--c { background: var(--cream); color: var(--text); } "
+                            ".work-card--d { background: var(--burnt); color: #fff; }"), [])
+        for c in ("var(--navy)", "var(--cream)", "var(--orange)", "var(--brand-orange)", "var(--burnt)", "#021F53"):
+            self.bad(cc(f".tile {{ background: {c}; color: var(--bg); }}"), f"tile on {c}")
+            self.bad(cc(f".closer-card {{ background-color: {c}; }}"), f"closer card on {c}")
+        self.bad(cc(".work-card, .post { background: var(--navy); color: #fff; }"), "a grouped non-work card")
+        self.bad(cc(".work-card--a { background: var(--brand-orange); color: #fff; }"), "white on orange")
+        self.bad(cc(".work-card--a { background: var(--burnt); color: var(--navy); }"), "navy on rust is under 4.5:1")
+        self.bad(cc(".work-card--a { background: var(--cream); }"), "brand background without a text colour")
+        self.assertEqual(cc((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
+
     # ── Round 2, Task 3: bento, marquee, ticker pause, Why statement ──
     @staticmethod
     def tile(href, icon, tags):

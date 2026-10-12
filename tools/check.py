@@ -24,6 +24,13 @@ PAGE_COPY = {
         "Strategy. Brand. Product. Build.",
         "Design that has a job to do.",
         "Got something worth making?",
+        # Home pass item 2: the Selected work category cards (no client names) and the unchanged section copy
+        "A few of the brands and products we've shaped. Some of our best work lives behind NDAs, ask us about it. "
+        "Confidentiality is non-negotiable.",
+        "Branding Collaterals", "14 pieces", "Standees · Brochures · Bookmarks", "Logos", "1 piece",
+        "Presentations", "3 decks", "Confidential", "Under NDA",
+        "Our best work doesn't always get a public page. Ask us and we'll walk you through it.",
+        "View all work",
         # restored from the pre-redesign Home (2646846): status line, eyebrows, tile tags, services button
         "Design studio · Mumbai, India",
         "Selected work",
@@ -324,7 +331,7 @@ def check_html(path):
     if page_slug(path) is not None:
         out += check_hero(text, label, page_slug(path))
     if page_slug(path) == "home":
-        out += check_home_sections(text, label)
+        out += check_home_sections(text, label) + check_work_row(text, label)
 
     return out
 
@@ -566,7 +573,7 @@ CAT_PLACEMENTS = {
     "work": [],
 }
 CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats)/([\w-]+)\.svg")
-WORK_MARKERS = ("case", "work-grid", "work-index")
+WORK_MARKERS = ("case", "work-grid", "work-index", "work-row", "work-card")
 
 
 def within(e, where):
@@ -909,6 +916,123 @@ def check_hero_layout(text, label):
     return out
 
 
+# Home pass item 2: "Selected work" is one horizontally scrollable row of CATEGORY cards (no client names), each a
+# link with a large flat icon on a Crisp brand colour. (href, title, meta) in order.
+WORK_CARDS = [
+    ("/work/#collaterals", "Branding Collaterals", "14 pieces"),
+    ("/work/#logos", "Logos", "1 piece"),
+    ("/work/#presentations", "Presentations", "3 decks"),
+    ("/contact/", "Confidential", "Under NDA"),
+]
+WORK_ROW_LABEL = "Selected work categories"
+CLIENT_NAMES = ("HDFC", "Mind Mojo", "NMIMS", "HDB", "SAATH", "Kaamna")
+# The Work page has no category sections yet; these Home links land on /work/ until it gets
+# id="collaterals|logos|presentations" (then drop them from here).
+PENDING_ANCHORS = {"/work/#collaterals", "/work/#logos", "/work/#presentations"}
+
+
+def check_work_row(text, label):
+    """Home: one scroll region (role="region", aria-label WORK_ROW_LABEL, tabindex="0") holding exactly the four
+    a.work-card links of WORK_CARDS in order, each with an h3 title, a .work-meta line and one aria-hidden
+    .work-icon <svg>; Previous/Next <button type="button" aria-controls=row id> (aria-labelled); no client
+    names or client logos in the section; "View all work" still links to /work/."""
+    out = []
+    els = tag_contexts(text)
+    rows = [e for e in els if e["attrs"].get("role") == "region" and e["attrs"].get("aria-label") == WORK_ROW_LABEL]
+    if len(rows) != 1:
+        return [f"{label}: Home needs one role=\"region\" aria-label=\"{WORK_ROW_LABEL}\" work row, found {len(rows)}"]
+    row = rows[0]
+    if row["attrs"].get("tabindex") != "0" or not row["attrs"].get("id"):
+        out.append(f"{label}:{row['line']}: the work row needs an id and tabindex=\"0\" (keyboard-scrollable region)")
+    cards = [e for e in els if e["tag"] == "a" and "work-card" in classes(e) and inside(e, row)]
+    got = []
+    for a in cards:
+        title = next((norm_text(e["text"]) for e in els if e["tag"] == "h3" and inside(e, a)), None)
+        meta = next((norm_text(e["text"]) for e in els if "work-meta" in classes(e) and inside(e, a)), None)
+        got.append((a["attrs"].get("href"), title, meta))
+        icons = [e for e in els if "work-icon" in classes(e) and inside(e, a)]
+        if len(icons) != 1 or icons[0]["attrs"].get("aria-hidden") != "true" or \
+                not any(e["tag"] == "svg" and inside(e, icons[0]) for e in els):
+            out.append(f"{label}:{a['line']}: work card {a['attrs'].get('href')} needs one aria-hidden .work-icon with an inline <svg>")
+    if got != WORK_CARDS:
+        out.append(f"{label}:{row['line']}: work cards must be {WORK_CARDS}, found {got}")
+    rid = row["attrs"].get("id")
+    btns = [e for e in els if e["tag"] == "button" and rid and e["attrs"].get("aria-controls") == rid]
+    names = sorted(e["attrs"].get("aria-label", "") for e in btns)
+    if names != ["Next", "Previous"] or any(e["attrs"].get("type") != "button" for e in btns):
+        out.append(f"{label}:{row['line']}: the work row needs Previous and Next <button type=\"button\" aria-label aria-controls=\"{rid}\">, found {names}")
+    section = next((a for t, _, a in reversed(row["ancestors"]) if t == "section"), None)
+    if section is not None:
+        inner = [e for e in els if any(a is section for _, _, a in e["ancestors"])]
+        words = " ".join(e["text"] for e in inner if e["tag"] in ("h2", "h3", "p", "span", "a"))
+        hits = [n for n in CLIENT_NAMES if n in words]
+        hits += [e["attrs"]["src"] for e in inner if e["tag"] == "img" and "/assets/clients/" in e["attrs"].get("src", "")]
+        if hits:
+            out.append(f"{label}: the Selected work section names clients {hits}; it shows categories only")
+        if not any(e["tag"] == "a" and e["attrs"].get("href") == "/work/" and norm_text(e["text"]) == "View all work" for e in inner):
+            out.append(f"{label}: the Selected work section lost its 'View all work' link")
+    return out
+
+
+# Cards are grey (--surface) by default. User override (Home pass item 2): only .work-card may sit on a brand
+# colour; any other card with a navy/cream/orange/rust background fails. Each .work-card colour pair must reach
+# 4.5:1, and white text never sits on orange.
+CARD_CLASSES = ("card", "tile", "post", "closer-card", "case", "form-card", "svc-card", "work-card", "bento-tile", "table-wrap")
+BRAND_BG = {"--navy": "#021F53", "--cream": "#FECA98", "--orange": "#FF8A00", "--orange-hover": "#FF6A00",
+            "--brand-orange": "#FD9F0F", "--burnt": "#CC4806"}
+
+
+def luminance(hex_):
+    h = hex_.lstrip("#")
+    h = "".join(c * 2 for c in h) if len(h) == 3 else h[:6]
+    c = [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    c = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+
+def contrast(a, b):
+    la, lb = sorted((luminance(a), luminance(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+def resolve_colour(value, tokens):
+    value = value.strip()
+    for _ in range(4):
+        value = re.sub(r"var\(\s*(--[\w-]+)\s*(?:,[^()]*)?\)", lambda m: tokens.get(m.group(1), m.group(0)), value).strip()
+    if value.lower() == "white":
+        return "#FFFFFF"
+    m = HEX.fullmatch(value)
+    return m.group(0).upper() if m else None
+
+
+def check_card_colours(text, label, tokens_text=""):
+    out = []
+    tokens = css_tokens(tokens_text, text)
+    brand = {v.upper() for v in BRAND_BG.values()}
+    card_re = re.compile(r"\.(?:%s)(?:--[\w-]+)?(?![\w-])" % "|".join(map(re.escape, CARD_CLASSES)))
+    for sel, body, ats in css_rules(text):
+        bg = re.search(r"(?<![\w-])background(?:-color)?\s*:\s*([^;}]+)", body)
+        if not bg:
+            continue
+        colour = resolve_colour(bg.group(1), tokens)
+        if colour not in brand:
+            continue
+        for part in split_top(sel):
+            subject = re.split(r"\s*[\s>+~]\s*", part.strip())[-1]  # the element the rule paints
+            if not card_re.search(subject):
+                continue
+            if not re.search(r"\.work-card(?:--[\w-]+)?(?![\w-])", subject):
+                out.append(f"{label}: '{part.strip()}' puts a card on a brand colour ({colour}); only .work-card may (cards are grey)")
+                continue
+            fg = re.search(r"(?<![\w-])color\s*:\s*([^;}]+)", body)
+            fgc = resolve_colour(fg.group(1), tokens) if fg else None
+            if fgc is None:
+                out.append(f"{label}: '{part.strip()}' sets a brand background without a text colour")
+            elif contrast(fgc, colour) < 4.5:
+                out.append(f"{label}: '{part.strip()}' text {fgc} on {colour} is {contrast(fgc, colour):.2f}:1, under 4.5:1")
+    return out
+
+
 # Home pass item 1 ("On desktop the logo can be bigger"): the hero logo width (--logo-w on .hero-grid) per
 # breakpoint, keyed by the @media min-width it applies from (0 = no media query). Phones and tablets keep 160/200px.
 HERO_LOGO_W = {0: 160, 600: 200, 1024: 320, 1280: 400}
@@ -1069,6 +1193,8 @@ def check_links(pages):
             ref = htmllib.unescape(ref)
             if ref.startswith(SITE):
                 ref = ref[len(SITE):] or "/"
+            if ref in PENDING_ANCHORS:
+                continue  # Home work categories: the Work page sections are not built yet (see PENDING_ANCHORS)
             if ref in ("", "#") or re.match(r"(?:[a-z][\w+.-]*:|//)", ref, flags=re.I):
                 continue  # social placeholders, external, mailto:, tel:
             path, _, frag = ref.split("?")[0].partition("#")
@@ -1161,6 +1287,8 @@ def main(argv):
         problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest()
         site_css = ROOT / "css" / "site.css"
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
+        problems += check_card_colours(site_css.read_text(encoding="utf-8"), label_for(site_css),
+                                       (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_hero_logo_sizes(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                           (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_header_logo(site_css.read_text(encoding="utf-8"), label_for(site_css),
