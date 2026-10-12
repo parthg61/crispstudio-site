@@ -778,16 +778,16 @@ a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
 .lost-art { grid-template-columns: minmax(0, 1fr); } /* lets the pair shrink to the block, never past it */
 .cat-pair .cat { flex: var(--vbw) 1 0; min-width: 0; max-width: calc(var(--vbw) * var(--k) * 1px); }
 
-/* Home closing: Idli's hammock, the one cat here, hangs from the card's top edge right beside the text (phones:
+/* Home closing: Idli in her basket, the one cat here, hangs from the card's top edge right beside the text (phones:
    centred above it). The scene is in the grid, so the card grows to fit; a negative top margin of the card padding
-   plus the art's empty strip above the cord (23 art units) puts the cord's top on the card edge. Sizes:
-   ~180px phones, ~220px tablets, ~310px desktop, ~330px from 1200px. */
+   puts the rope's top (the art runs to its top edge) on the card edge. Sizes:
+   ~190px phones, ~240px tablets, ~320px desktop, ~335px from 1200px. */
 .has-scene { position: relative; }
-.closer-scene { --k: .52; order: -1; justify-self: center; align-self: start; margin-top: calc(-1 * var(--pad-card) - 23px * var(--k)); }
-.scene-hammock { transform-origin: 42% 4%; } /* the cords' top, so it swings from where it hangs */
+.closer-scene { --k: .5; order: -1; justify-self: center; align-self: start; margin-top: calc(-1 * var(--pad-card)); }
+.scene-hammock { transform-origin: 45% 0; } /* the rope's top, so it swings from where it hangs */
 @media (min-width: 600px) {
   .closer-card.has-scene { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-6); }
-  .closer-scene { --k: .64; order: 1; justify-self: end; margin-top: calc(-1 * var(--pad-card-featured) - 23px * var(--k)); }
+  .closer-scene { --k: .63; order: 1; justify-self: end; margin-top: calc(-1 * var(--pad-card-featured)); }
 }
 @media (min-width: 600px) and (max-width: 1023px) { /* beside the hammock the headline steps down one size (Display -> H1), so it never ends on a lone word */
   .closer-card.has-scene .t-display { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); }
@@ -795,10 +795,10 @@ a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
 @media (min-width: 1024px) { /* the copy column hugs the headline, so the pair sits together, centred in the card */
   .closer-card.has-scene { grid-template-columns: minmax(0, max-content) auto; justify-content: center; gap: var(--space-7); }
   .closer-card.has-scene .closer-copy { max-width: calc(var(--space-10) * 3 + var(--space-9)); }
-  .closer-scene { --k: .9; }
+  .closer-scene { --k: .84; }
 }
 @media (min-width: 1200px) {
-  .closer-scene { --k: .96; margin-top: calc(-1 * var(--space-9) - 23px * var(--k)); }
+  .closer-scene { --k: .88; margin-top: calc(-1 * var(--space-9)); }
 }
 
 /* Services closing: Samosa with his ball beside the closing text */

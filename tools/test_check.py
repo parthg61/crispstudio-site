@@ -263,7 +263,7 @@ class Bypasses(unittest.TestCase):
     # ── Cats: the official "Cat poses" set and the round avatars ──
     @staticmethod
     def pose(name, cls="cat"):
-        folder = "cats" if name.startswith("Crisp_Avatar") else "cat-poses"
+        folder = "cats" if name.startswith("Crisp_Avatar") else "illustrations" if name.startswith("idli-") else "cat-poses"
         return f'<img class="{cls}" src="/assets/{folder}/{name}.svg" alt="">'
 
     def test_cat_placements(self):
@@ -274,7 +274,7 @@ class Bypasses(unittest.TestCase):
                         + P("Idli_04_peeking_over_edge") + '</div><form></form><div id="form-done"><div class="cat-duo">'
                         + P("Samosa_09_head_tilt_sitting") + P("Idli_14_rolled_belly_up") + "</div></div></div></section>" + foot),
             "404": '<section class="lost"><div class="lost-art">' + P("Samosa_07_walking") + P("Idli_02_lying_on_back_stretched") + "</div></section>" + foot,
-            "home": '<section class="closer"><div class="closer-card">' + P("Idli_08_in_hammock") + "</div></section>",
+            "home": '<section class="closer"><div class="closer-card">' + P("idli-hammock-plants") + "</div></section>",
             "blog": '<section><div id="blog-empty">' + P("Idli_12_curled_looking_down") + "</div></section>" + foot,
             "about": '<section class="closer">' + P("Crisp_Avatar_Idli", "cat cat--48") + "</section>" + foot,
             "services": '<section class="closer">' + P("Samosa_02_playing_with_ball") + "</section>" + foot,
@@ -371,7 +371,7 @@ class Bypasses(unittest.TestCase):
 
     def test_hammock_sway(self):
         hs = lambda t: check.check_hammock_css(t, "t.css")
-        good = (".scene-hammock { transform-origin: 42% 4%; } @media (prefers-reduced-motion: no-preference) { "
+        good = (".scene-hammock { transform-origin: 45% 0; } @media (prefers-reduced-motion: no-preference) { "
                 ".scene-hammock { animation: cat-sway 5.5s ease-in-out infinite alternate; } "
                 "@keyframes cat-sway { from { transform: rotate(-2.75deg); } to { transform: rotate(2.75deg) translateY(2px); } } }")
         self.assertEqual(hs(good), [])
@@ -379,7 +379,7 @@ class Bypasses(unittest.TestCase):
         self.bad(hs(good.replace("5.5s", "2s")), "too fast")
         self.bad(hs(good.replace(" alternate", "")), "not alternate")
         self.bad(hs(good.replace("2.75deg)", "6deg)")), "swings too far")
-        self.bad(hs(good.replace("42% 4%", "50% 100%")), "turns about its bottom")
+        self.bad(hs(good.replace("45% 0", "50% 100%")), "turns about its bottom")
         self.bad(hs(good + " @media (prefers-reduced-motion: no-preference) { .cat--nudge { animation: cat-nudge 6s infinite; } }"), "nudge left over")
         self.bad(hs(""), "no sway")
         self.assertEqual(hs((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
@@ -679,6 +679,10 @@ class Bypasses(unittest.TestCase):
                          sorted(f"work/{s}" for s, _ in check.WORK_TILES))
 
     # ── Work section: project media pinned in tools/work-assets.sha256 ──
+    def test_illustrations_pinned(self):
+        self.assertEqual(check.check_illustrations(), [])
+        self.bad(with_tmp("0" * 64 + "  assets/illustrations/idli-hammock-plants.svg\n", check.check_illustrations, ".sha256"), "changed illustration")
+
     def test_work_assets_pinned(self):
         self.assertEqual(check.check_work_assets(), [])
         files = check.work_asset_files()

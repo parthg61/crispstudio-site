@@ -546,13 +546,13 @@ CAT_PLACEMENTS = {
                 ("Samosa_09_head_tilt_sitting", ("#form-done",)), ("Idli_14_rolled_belly_up", ("#form-done",)), FOOT_CAT],
     "404": [("Samosa_07_walking", ("lost-art",)), ("Idli_02_lying_on_back_stretched", ("lost-art",)), FOOT_CAT],
     # Home pass item 3: only Idli in the hammock on the closing card, and no footer Idli on Home
-    "home": [("Idli_08_in_hammock", ("closer-card",))],
+    "home": [("idli-hammock-plants", ("closer-card",))],
     "blog": [("Idli_12_curled_looking_down", ("#blog-empty",)), FOOT_CAT],
     "about": [("Crisp_Avatar_Idli", ("closer",)), FOOT_CAT],
     "services": [("Samosa_02_playing_with_ball", ("closer",)), FOOT_CAT],
     "work": [],
 }
-CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats)/([\w-]+)\.svg")
+CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats|illustrations)/([\w-]+)\.svg")
 WORK_MARKERS = ("case", "work-grid", "work-index", "work-row", "work-card")
 
 
@@ -615,7 +615,7 @@ def check_manifest_refs(text, label, manifest=None):
     return sorted(set(out), key=out.index)
 
 
-CAT_SELECTOR = re.compile(r"\.cat\b|\.cat-|\.pose\b|\.pose-|cat-poses|Crisp_Avatar")
+CAT_SELECTOR = re.compile(r"\.cat\b|\.cat-|\.pose\b|\.pose-|\.scene-hammock|cat-poses|illustrations/|Crisp_Avatar")
 FLIP = re.compile(r"scaleX\(\s*-|scale\(\s*-|scale\([^,)]*,\s*-|scale3d\(\s*-|rotateY\(|rotate3d\(\s*0\s*,\s*1|"
                   r"(?<![\w-])scale\s*:\s*-|(?<![\w-])rotate\s*:\s*y|matrix\(\s*-", re.I)
 
@@ -662,6 +662,11 @@ def check_work_assets(manifest=None):
     listed = manifest_files(manifest)
     out += [f"tools/work-assets.sha256: {rel} is not pinned (add its sha256)" for rel in work_asset_files() if rel not in listed]
     return out
+
+
+def check_illustrations(manifest=None):
+    """Non-official illustrations (assets/illustrations/): every file in tools/illustrations.sha256 exists and matches."""
+    return check_assets(manifest or ROOT / "tools" / "illustrations.sha256")
 
 
 def check_assets(manifest=None):
@@ -1407,7 +1412,7 @@ def main(argv):
     for src in sorted((ROOT / "src" / "pages").rglob("*.html")):
         problems += check_front_matter(src)
     if not argv:
-        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest() + check_work_assets() + check_sitemap()
+        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest() + check_work_assets() + check_illustrations() + check_sitemap()
         site_css = ROOT / "css" / "site.css"
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_bento_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
