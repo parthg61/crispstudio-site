@@ -495,11 +495,11 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(wr(good), [])
         self.bad(wr(good.replace('role="region" ', "")), "not a region")
         self.bad(wr(good.replace(' tabindex="0"', "")), "region not focusable")
-        self.bad(wr(good.replace("/work/#logos", "/work/")), "wrong link")
+        self.bad(wr(good.replace('href="/work/"', 'href="/work/#logos"', 1)), "wrong link")
         self.bad(wr(good.replace("<h3>Logos</h3>", "<h3>Identity</h3>")), "renamed category")
         self.bad(wr(good.replace("<h3>Logos</h3>", '<h3>Logos</h3><p class="work-meta">1 piece</p>')), "a count on a category card")
         self.bad(wr(good.replace("<h3>Logos</h3>", "<h3>Logos</h3><p>Marks</p>")), "a description on a category card")
-        self.bad(wr(good.replace('<a class="card work-card" href="/work/#logos"', '<a class="card work-card" aria-label="Logos, 1 piece" href="/work/#logos"')), "a count in the accessible name")
+        self.bad(wr(good.replace('<a class="card work-card" href="/work/"', '<a class="card work-card" aria-label="Logos, 1 piece" href="/work/"')), "a count in the accessible name")
         self.bad(wr(self.work_section(cards="".join(
             f'<a class="card work-card" href="{h}"><span class="work-icon" aria-hidden="true"><svg></svg></span><h3>{t}</h3></a>'
             for h, t, m in reversed(check.WORK_CARDS)))), "cards out of order")

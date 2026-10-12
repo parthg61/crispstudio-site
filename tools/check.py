@@ -917,16 +917,13 @@ def check_hero_layout(text, label):
 # Home pass item 2: "Selected work" is one horizontally scrollable row of CATEGORY cards (no client names), each a
 # link with a large flat icon on a Crisp brand colour. (href, title, meta) in order.
 WORK_CARDS = [
-    ("/work/#collaterals", "Branding Collaterals", None),
-    ("/work/#logos", "Logos", None),
-    ("/work/#presentations", "Presentations", None),
+    ("/work/", "Branding Collaterals", None),
+    ("/work/", "Logos", None),
+    ("/work/", "Presentations", None),
     ("/contact/", "Confidential", "Under NDA"),
 ]
 WORK_ROW_LABEL = "Selected work categories"
 CLIENT_NAMES = ("HDFC", "Mind Mojo", "NMIMS", "HDB", "SAATH", "Kaamna")
-# The Work page has no category sections yet; these Home links land on /work/ until it gets
-# id="collaterals|logos|presentations" (then drop them from here).
-PENDING_ANCHORS = {"/work/#collaterals", "/work/#logos", "/work/#presentations"}
 
 
 def check_work_row(text, label):
@@ -1304,8 +1301,6 @@ def check_links(pages):
             ref = htmllib.unescape(ref)
             if ref.startswith(SITE):
                 ref = ref[len(SITE):] or "/"
-            if ref in PENDING_ANCHORS:
-                continue  # Home work categories: the Work page sections are not built yet (see PENDING_ANCHORS)
             if ref in ("", "#") or re.match(r"(?:[a-z][\w+.-]*:|//)", ref, flags=re.I):
                 continue  # social placeholders, external, mailto:, tel:
             path, _, frag = ref.split("?")[0].partition("#")
