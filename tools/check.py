@@ -909,6 +909,26 @@ def check_hero_layout(text, label):
     return out
 
 
+# Home pass item 1 ("On desktop the logo can be bigger"): the hero logo width (--logo-w on .hero-grid) per
+# breakpoint, keyed by the @media min-width it applies from (0 = no media query). Phones and tablets keep 160/200px.
+HERO_LOGO_W = {0: 160, 600: 200, 1024: 320, 1280: 400}
+
+
+def check_hero_logo_sizes(text, label, tokens_text=""):
+    """Every --logo-w declaration on .hero-grid resolves to px and the set is exactly HERO_LOGO_W (by min-width)."""
+    tokens = css_tokens(text, tokens_text)
+    found = {}
+    for sel, body, ats in css_rules(text):
+        if not re.search(r"\.hero-grid(?![\w-])", sel):
+            continue
+        for val in re.findall(r"--logo-w\s*:\s*([^;}]+)", body):
+            mins = [int(x) for a in ats for x in re.findall(r"min-width\s*:\s*(\d+)px", a)]
+            found[max(mins) if mins else 0] = css_px(val, tokens)
+    if found != HERO_LOGO_W:
+        return [f"{label}: hero logo widths by min-width {found} must be {HERO_LOGO_W}"]
+    return []
+
+
 def page_slug(path):
     path = Path(path).resolve()
     if path == ROOT / "index.html":
@@ -1141,6 +1161,8 @@ def main(argv):
         problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest()
         site_css = ROOT / "css" / "site.css"
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
+        problems += check_hero_logo_sizes(site_css.read_text(encoding="utf-8"), label_for(site_css),
+                                          (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_header_logo(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                       (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_strips_css(site_css.read_text(encoding="utf-8"), label_for(site_css))

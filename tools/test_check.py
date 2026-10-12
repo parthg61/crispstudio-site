@@ -407,6 +407,19 @@ class Bypasses(unittest.TestCase):
         self.bad(hl(good + " .fan-card { width: var(--space-10); }"), "fan CSS left behind")
         self.assertEqual(hl((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
 
+    def test_hero_logo_bigger_on_desktop(self):
+        toks = (check.ROOT / "css" / "tokens.css").read_text(encoding="utf-8")
+        ls = lambda t: check.check_hero_logo_sizes(t, "t.css", toks)
+        good = (".hero-grid { --logo-w: 160px; } @media (min-width: 600px) { .hero-grid { --logo-w: 200px; } } "
+                "@media (min-width: 1024px) { .hero-grid { --logo-w: 320px; } } "
+                "@media (min-width: 1280px) { .hero-grid { --logo-w: calc(var(--space-10) * 3 + var(--space-4)); } }")
+        self.assertEqual(ls(good), [])
+        self.bad(ls(good.replace("320px", "192px")), "the old 192px desktop logo")
+        self.bad(ls(good.replace("min-width: 1280px", "min-width: 1200px")), "400px from the wrong breakpoint")
+        self.bad(ls(good.replace("200px", "240px")), "tablet size changed")
+        self.bad(ls(good + " @media (min-width: 1200px) { .hero-grid { --logo-w: 256px; } }"), "a stray in-between size")
+        self.assertEqual(ls((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
+
     # ── Round 2, Task 3: bento, marquee, ticker pause, Why statement ──
     @staticmethod
     def tile(href, icon, tags):

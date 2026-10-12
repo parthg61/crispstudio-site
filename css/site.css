@@ -267,7 +267,8 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 .hero-copy .stack { --stack-gap: var(--gap-heading-body); }
 /* The big hero logo sits on no container (no tray, no cards). --logo-w is its size per breakpoint, always well
    above the 120px navbar logo it docks into. Phones and tablets (< 1024px): one column, the logo first and
-   centred at the top of the hero; desktop: two columns, the logo centred in the right column against the text. */
+   centred at the top of the hero (160px, 200px from 600px); desktop: two columns, the logo bigger (320px, 400px
+   from 1280px) and centred in the right column, vertically centred with the headline block. */
 .hero-grid { --logo-w: calc(var(--space-10) + var(--space-6)); } /* 160px */
 @media (min-width: 600px) {
   .hero-grid { --logo-w: calc(var(--space-10) + var(--space-8) + var(--space-2)); } /* 200px */
@@ -277,11 +278,14 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 }
 @media (min-width: 1024px) {
   .hero { padding-block: var(--space-8) var(--pad-section); }
-  .hero-grid { grid-template-columns: 7fr 5fr; gap: var(--layout-gutter); --logo-w: calc(var(--space-10) + var(--space-8)); } /* 192px */
+  .hero-grid { grid-template-columns: 7fr 5fr; gap: var(--layout-gutter); --logo-w: calc(var(--space-10) * 2 + var(--space-8)); } /* 320px */
   .hero-logo-spot { justify-self: center; }
 }
 @media (min-width: 1200px) {
-  .hero-grid { grid-template-columns: 6fr 5fr; gap: var(--space-8); --logo-w: calc(var(--space-10) * 2); } /* 256px */
+  .hero-grid { grid-template-columns: 6fr 5fr; gap: var(--space-8); }
+}
+@media (min-width: 1280px) {
+  .hero-grid { --logo-w: calc(var(--space-10) * 3 + var(--space-4)); } /* 400px */
 }
 
 /* The hero logo. js initLogoTravel() makes the .hero-logo box position: fixed (html.logo-travel) and moves it
