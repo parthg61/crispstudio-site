@@ -359,7 +359,7 @@ def norm_text(s):
     return re.sub(r"\s+", " ", s.replace(" ", " ")).strip()
 
 
-BENTO_MODS = ("tall", "small", "small", "wide")
+BENTO_MODS = ("small", "small", "tall", "wide")  # by href: Strategy, Branding small; Product Design tall; Build wide
 
 
 def check_home_sections(text, label):
@@ -845,7 +845,7 @@ def check_bento_layout(text, label):
     found = {"tall": False, "small": False, "wide": False}
     for sel, body, ats in css_rules(text):
         if any(re.search(r"min-width\s*:\s*1024px", a) for a in ats):
-            for k, pat in (("tall", r"grid-row\s*:\s*span 2"), ("small", r"grid-column\s*:\s*2"), ("wide", r"grid-column\s*:\s*1\s*/\s*-1|display\s*:\s*grid")):
+            for k, pat in (("tall", r"grid-row\s*:\s*(?:1\s*/\s*)?span 2"), ("small", r"grid-column\s*:\s*2"), ("wide", r"grid-column\s*:\s*1\s*/\s*-1|display\s*:\s*grid")):
                 if re.search(rf"\.bento-tile--{k}(?![\w-])", sel) and re.search(pat, body):
                     found[k] = True
     return [f"{label}: .bento-tile--{k} needs its asymmetric grid rule inside @media (min-width: 1024px)" for k, ok in found.items() if not ok]

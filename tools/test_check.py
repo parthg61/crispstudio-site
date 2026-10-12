@@ -447,7 +447,7 @@ class Bypasses(unittest.TestCase):
 
     def test_bento_layout_from_1024(self):
         bl = lambda t: check.check_bento_layout(t, "t.css")
-        good = ("@media (min-width: 1024px) { .bento-tile--tall { grid-row: span 2; } .bento-tile--small { grid-column: 2; } "
+        good = ("@media (min-width: 1024px) { .bento-tile--tall { grid-row: 1 / span 2; } .bento-tile--small { grid-column: 2; } "
                 ".bento-tile--wide .tile-text { display: grid; } }")
         self.assertEqual(bl(good), [])
         self.bad(bl(""), "no rules")
@@ -547,8 +547,8 @@ class Bypasses(unittest.TestCase):
         swapped = [(h, (tiles[(k + 1) % 4][1][0], t)) for k, (h, (i, t)) in enumerate(tiles)]
         self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t) for h, (i, t) in swapped) + "</div>")), "icons swapped")
         self.bad(hs(self.home_sections(bento='<div class="bento">' + "".join(self.tile(h, i, t[:-1]) for h, (i, t) in tiles) + "</div>")), "a tag dropped")
-        self.bad(hs(self.home_sections().replace("bento-tile--tall", "bento-tile--small", 1)), "first tile not --tall")
-        self.bad(hs(self.home_sections().replace("bento-tile--wide", "bento-tile--small", 1)), "last tile not --wide")
+        self.bad(hs(self.home_sections().replace("bento-tile--tall", "bento-tile--small", 1)), "Product tile not --tall")
+        self.bad(hs(self.home_sections().replace("bento-tile--wide", "bento-tile--small", 1)), "Build tile not --wide")
         self.bad(hs(self.home_sections().replace("bento-tile--small", "bento-tile--x", 1)), "a small modifier missing")
         no_chip = self.home_sections().replace('class="icon-chip"', 'class="icon"')
         self.bad(hs(no_chip), "icon not in an .icon-chip")
