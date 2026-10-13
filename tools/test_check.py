@@ -263,7 +263,7 @@ class Bypasses(unittest.TestCase):
     # ── Cats: the official "Cat poses" set and the round avatars ──
     @staticmethod
     def pose(name, cls="cat"):
-        folder = "cats" if name.startswith("Crisp_Avatar") else "illustrations" if name.startswith("idli-") else "cat-poses"
+        folder = "cats" if name.startswith("Crisp_Avatar") else "illustrations" if name.startswith(("idli-", "samosa-")) else "cat-poses"
         return f'<img class="{cls}" src="/assets/{folder}/{name}.svg" alt="">'
 
     def test_cat_placements(self):
@@ -277,7 +277,7 @@ class Bypasses(unittest.TestCase):
             "home": '<section class="closer"><div class="closer-card">' + P("idli-hammock") + "</div></section>",
             "blog": '<section><div id="blog-empty">' + P("Idli_12_curled_looking_down") + "</div></section>" + foot,
             "about": '<section class="closer">' + P("Crisp_Avatar_Idli", "cat cat--48") + "</section>" + foot,
-            "services": '<section class="closer">' + P("Samosa_02_playing_with_ball") + "</section>" + foot,
+            "services": '<section class="closer"><span class="closer-cat">' + P("samosa-ball") + "</span></section>" + foot,
             "work": '<section class="work-index"><article class="case"></article></section>',
         }
         cc = lambda t, slug: check.check_cats(t, "t", slug)

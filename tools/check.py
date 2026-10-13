@@ -563,7 +563,7 @@ CAT_PLACEMENTS = {
     "home": [("idli-hammock", ("closer-card",))],
     "blog": [("Idli_12_curled_looking_down", ("#blog-empty",))],
     "about": [("Crisp_Avatar_Idli", ("closer",))],
-    "services": [("Samosa_02_playing_with_ball", ("closer",))],
+    "services": [("samosa-ball", ("closer-cat",))],
     "work": [],
 }
 CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats|illustrations)/([\w-]+)\.svg")

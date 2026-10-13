@@ -516,9 +516,6 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
 .closer-copy .stack { --stack-gap: var(--gap-heading-body); }
 .closer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-5); }
 @media (min-width: 600px) { .closer-card { padding: var(--pad-card-featured); } }
-@media (min-width: 1024px) {
-  .closer-card:has(> .closer-cat) { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-7); }
-}
 @media (min-width: 1200px) {
   .closer-card { padding: var(--space-9); }
 }
@@ -799,9 +796,11 @@ a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
   .closer-scene { --k: .236; margin-top: calc(-1 * var(--space-9)); }
 }
 
-/* Services closing: Samosa with his ball beside the closing text */
-.closer-cat { --k: .21; display: block; }
-@media (min-width: 1024px) { .closer-cat { align-self: end; } }
+/* Services closing: Samosa with his ball stands on the card's top edge (art 1883x938, so the card clears 938 x --k above it) */
+.closer-card--top { --k: .1; position: relative; margin-top: calc(938 * var(--k) * 1px); }
+.closer-cat { position: absolute; bottom: 100%; right: var(--space-6); }
+@media (min-width: 600px) { .closer-card--top { --k: .127; } .closer-cat { right: var(--space-7); } }
+@media (min-width: 1024px) { .closer-card--top { --k: .16; } .closer-cat { right: var(--space-8); } }
 
 /* Blog empty state: Idli asleep */
 .blog-cat { --k: .22; display: block; }
