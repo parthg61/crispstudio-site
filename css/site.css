@@ -854,3 +854,12 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
   /* a short media column (one figure) stays beside the sticky text instead of leaving a gap */
   .case-media { position: sticky; top: calc(var(--nav-h) + var(--space-6)); }
 }
+
+/* Confirmation after "Let's chat" copies the address */
+.toast {
+  position: fixed; left: 50%; bottom: var(--space-6); z-index: 50; transform: translate(-50%, var(--space-4));
+  padding: var(--space-3) var(--space-5); border-radius: var(--radius-md); background: var(--bg); color: var(--navy);
+  box-shadow: var(--shadow-lg); font-weight: 600; opacity: 0; pointer-events: none; max-width: calc(100% - 2 * var(--space-5));
+}
+.toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: no-preference) { .toast { transition: opacity .25s var(--ease), transform .25s var(--ease); } }

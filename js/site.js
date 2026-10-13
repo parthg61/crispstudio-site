@@ -335,5 +335,24 @@ if (inview.length && !matchMedia('(prefers-reduced-motion: reduce)').matches && 
   inview.forEach(v => { v.removeAttribute('controls'); vio.observe(v); });
 }
 
+// "Let's chat" opens the visitor's email app and also copies the address (no email app? it is still on the clipboard)
+const chatLinks = document.querySelectorAll('a[href="mailto:team@crispstudio.in?subject=Hello%20Crisp"]');
+if (chatLinks.length) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.setAttribute('role', 'status');
+  document.body.appendChild(toast);
+  let hide;
+  chatLinks.forEach(a => a.addEventListener('click', () => {
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText('team@crispstudio.in').then(() => {
+      toast.textContent = 'team@crispstudio.in copied';
+      toast.classList.add('is-on');
+      clearTimeout(hide);
+      hide = setTimeout(() => toast.classList.remove('is-on'), 3000);
+    }, () => {});
+  }));
+}
+
 // Footer year
 document.querySelectorAll('[data-year]').forEach(el => (el.textContent = new Date().getFullYear()));
