@@ -492,7 +492,7 @@ def in_class(el, cls):
     return any(cls in c for _, c, _ in el["ancestors"])
 
 
-def check_services_index(text, label):
+def check_services_index(text, label, css=None):
     """#process must be the LAST thing inside the container holding the sticky .svc-index (index ends with it)."""
     els = tag_contexts(text)
     nav = [e for e in els if "svc-index" in classes(e)]
@@ -505,6 +505,10 @@ def check_services_index(text, label):
     secs = [e["attrs"]["id"] for e in els if e["tag"] == "section" and e["attrs"].get("id") and any(a is holder or a[2] is holder[2] for a in e["ancestors"])]
     if secs[-1:] != ["process"]:
         return [f"{label}: #process must be the last section in the sticky index's container"]
+    if css is None:
+        css = (ROOT / "css" / "site.css").read_text(encoding="utf-8")
+    if not re.search(r"\.svc-main\s*>\s*\.svc:last-child\s*\{[^}]*padding-bottom:\s*0\b", css):
+        return [f"{label}: the last .svc must have padding-bottom: 0 so the index stops at the table's bottom edge"]
     return []
 
 

@@ -535,6 +535,8 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
      so its own top padding, not padding + header offset, is the gap above the label */
   scroll-margin-top: calc(-1 * var(--space-6));
 }
+.svc-main > .svc:last-child { padding-bottom: 0; } /* the sticky index stops level with the table's bottom edge */
+.svc-layout + .closer { margin-top: var(--pad-section); } /* the spacing that used to sit inside the container */
 .svc-head { display: flex; flex-direction: column; gap: var(--gap-heading-body); }
 .svc-head .label { margin-bottom: calc(var(--gap-label-heading) - var(--gap-heading-body)); }
 .svc-block { display: flex; flex-direction: column; gap: var(--space-4); }

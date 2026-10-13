@@ -434,6 +434,9 @@ class Bypasses(unittest.TestCase):
         self.bad(sc(f'<div class="svc-layout">{nav}<section id="process"></section><section id="x"></section></div>'), "section after process")
         self.bad(sc(f'<div class="svc-layout">{nav}</div><section id="process"></section>'), "process outside")
         self.bad(sc("<div></div>"), "missing parts")
+        ok = f'<div class="svc-layout">{nav}<div class="svc-main"><section id="process"></section></div></div>'
+        self.assertEqual(check.check_services_index(ok, "t", ".svc-main > .svc:last-child { padding-bottom: 0; }"), [])
+        self.bad(check.check_services_index(ok, "t", ".svc { padding-bottom: 8px; }"), "last section keeps bottom padding")
         for page in check.built_pages():
             if check.page_slug(page) == "services":
                 self.assertEqual(check.check_services_index(page.read_text(encoding="utf-8"), page.name), [], page)
