@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="One hiring system with three connected views"><title>One hiring system with three connected views</title>
+<rect width="480" height="360" fill="#021F53"/>
+<path d="M240 200V120M240 200L130 250M240 200L350 250" fill="none" stroke="#FECA98" stroke-width="14" stroke-linecap="round"/>
+<g fill="#FFFFFF"><rect x="195" y="52" width="90" height="90" rx="18"/><rect x="80" y="210" width="90" height="90" rx="18"/><rect x="310" y="210" width="90" height="90" rx="18"/></g>
+<g fill="#021F53"><rect x="209" y="68" width="17" height="24" rx="4"/><rect x="209" y="98" width="17" height="24" rx="4"/><rect x="232" y="68" width="17" height="24" rx="4"/><rect x="255" y="68" width="17" height="24" rx="4"/><rect x="255" y="98" width="17" height="24" rx="4"/>
+<path d="M97 245l28-18 28 18z"/><rect x="101" y="250" width="8" height="26" rx="2"/><rect x="115" y="250" width="8" height="26" rx="2"/><rect x="129" y="250" width="8" height="26" rx="2"/><rect x="143" y="250" width="8" height="26" rx="2"/><rect x="97" y="280" width="56" height="8" rx="3"/>
+<path d="M355 228l34 15-34 15-34-15z"/><rect x="340" y="250" width="30" height="18" rx="5"/><rect x="330" y="278" width="50" height="8" rx="4"/></g>
+<circle cx="240" cy="200" r="48" fill="#FD9F0F"/>
+<path d="M219 201l15 15 28-30" fill="none" stroke="#021F53" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

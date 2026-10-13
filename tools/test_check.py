@@ -715,10 +715,12 @@ class Bypasses(unittest.TestCase):
         self.bad(rp(good.replace(imgs, imgs + imgs)), "two images")
         self.bad(rp(good.replace("connected-system.svg", "dashboard.png")), "a screenshot")
         self.bad(rp(good.replace("</div>", '<img src="/a.jpg" alt="x"></div>', 1)), "a jpg outside the media")
-        card = lambda src: check.check_recruitment_card(f'<a class="work-tile" href="/work/recruitment/"><span class="work-cover"><img src="{src}" alt=""></span></a>', "t")
-        self.assertEqual(card("/assets/work/projects/recruitment/connected-system.svg"), [])
-        self.bad(card("/assets/work/projects/recruitment/cover.png"), "png card cover")
-        self.assertEqual(check.check_recruitment_card((check.ROOT / "work" / "index.html").read_text(encoding="utf-8"), "t"), [])
+        tiles = "".join(f'<a class="work-tile" href="/work/{s}/"><span class="work-cover"><img src="/assets/work/projects/{s}/cover-icon.svg" alt=""></span></a>' for s, _ in check.WORK_TILES)
+        self.assertEqual(check.check_work_card_covers(tiles, "t"), [])
+        self.bad(check.check_work_card_covers(tiles.replace("didac/cover-icon.svg", "didac/cover.png"), "t"), "png card cover")
+        self.bad(check.check_work_card_covers(tiles.replace("recruitment/cover-icon.svg", "recruitment/connected-system.svg"), "t"), "old diagram cover")
+        self.bad(check.check_work_card_covers(tiles.replace("b2b-presentations/cover-icon", "didac/cover-icon"), "t"), "wrong slug")
+        self.assertEqual(check.check_work_card_covers((check.ROOT / "work" / "index.html").read_text(encoding="utf-8"), "t"), [])
         page = check.ROOT / "work" / "recruitment" / "index.html"
         self.assertEqual(rp(page.read_text(encoding="utf-8")), [])
 

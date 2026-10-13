@@ -342,7 +342,7 @@ def check_html(path):
     if page_slug(path) == "work/recruitment":
         out += check_recruitment(text, label)
     if page_slug(path) == "work":
-        out += check_recruitment_card(text, label)
+        out += check_work_card_covers(text, label)
     if page_slug(path) == "home":
         out += check_home_sections(text, label) + check_work_row(text, label)
 
@@ -1336,12 +1336,15 @@ def check_recruitment(text, label):
     return out
 
 
-def check_recruitment_card(text, label):
-    """work index: the Recruitment Platform card cover is the brand diagram SVG, never a screenshot."""
-    m = re.search(r'href="/work/recruitment/".*?<img\b[^>]*src="([^"]+)"', text, re.S)
-    if not m or not m.group(1).endswith("/recruitment/connected-system.svg"):
-        return [f"{label}: the Recruitment Platform card cover must be connected-system.svg (found {m and m.group(1)})"]
-    return []
+def check_work_card_covers(text, label):
+    """work index: every card cover is its own flat icon, /assets/work/projects/<slug>/cover-icon.svg; no raster covers."""
+    out = []
+    for slug, _ in WORK_TILES:
+        m = re.search(rf'href="/work/{slug}/".*?<img\b[^>]*src="([^"]+)"', text, re.S)
+        want = f"/assets/work/projects/{slug}/cover-icon.svg"
+        if not m or m.group(1) != want:
+            out.append(f"{label}: the {slug} card cover must be {want} (found {m and m.group(1)})")
+    return out
 
 
 def check_sources():
