@@ -669,6 +669,31 @@ def check_illustrations(manifest=None):
     return check_assets(manifest or ROOT / "tools" / "illustrations.sha256")
 
 
+ILLUSTRATION_PALETTE = {"#021f53", "#4a5675", "#ffffff", "#dededa", "#feca98", "#fd9f0f", "#cc4806", "#4daf6b"}
+
+
+def check_illustration_svgs(files=None):
+    """assets/illustrations/*.svg: Crisp palette only (6-digit hex from ILLUSTRATION_PALETTE, or none/currentColor),
+    a viewBox and a <title>, and no script, embedded image or external reference."""
+    out = []
+    for f in files or sorted((ROOT / "assets" / "illustrations").glob("*.svg")):
+        text, label = Path(f).read_text(encoding="utf-8"), label_for(Path(f))
+        if not re.search(r"<svg\b[^>]*\sviewBox=\"[^\"]+\"", text):
+            out.append(f"{label}: no viewBox")
+        if not re.search(r"<title>[^<]+</title>", text):
+            out.append(f"{label}: no <title>")
+        if re.search(r"<(?:script|image|foreignObject)\b|\bon\w+=", text, re.I):
+            out.append(f"{label}: script, event handler or embedded image")
+        if re.search(r"(?:href\s*=\s*[\"']|url\(\s*[\"']?)(?!#)", text):
+            out.append(f"{label}: external reference (only #fragment links allowed)")
+        for v in re.findall(r"(?:fill|stroke|stop-color|color)\s*[:=]\s*\"?([^;\"}\s]+)", text):
+            if v.lower() not in ILLUSTRATION_PALETTE | {"none", "currentcolor"}:
+                out.append(f"{label}: colour {v} is not in the Crisp illustration palette")
+        out += [f"{label}: colour {h} is not in the Crisp illustration palette" for h in
+                re.findall(r"#[0-9a-fA-F]{3,8}\b", text) if h.lower() not in ILLUSTRATION_PALETTE]
+    return sorted(set(out), key=out.index)
+
+
 def check_assets(manifest=None):
     """(c) every file in tools/assets.sha256 exists and still matches its recorded hash (official artwork)."""
     import hashlib
@@ -1412,7 +1437,7 @@ def main(argv):
     for src in sorted((ROOT / "src" / "pages").rglob("*.html")):
         problems += check_front_matter(src)
     if not argv:
-        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest() + check_work_assets() + check_illustrations() + check_sitemap()
+        problems += check_links(built_pages()) + check_js() + check_assets() + check_cat_manifest() + check_work_assets() + check_illustrations() + check_illustration_svgs() + check_sitemap()
         site_css = ROOT / "css" / "site.css"
         problems += check_hero_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_bento_layout(site_css.read_text(encoding="utf-8"), label_for(site_css))

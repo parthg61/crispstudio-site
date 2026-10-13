@@ -683,6 +683,21 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(check.check_illustrations(), [])
         self.bad(with_tmp("0" * 64 + "  assets/illustrations/idli-hammock-plants.svg\n", check.check_illustrations, ".sha256"), "changed illustration")
 
+    def test_illustration_svgs(self):
+        self.assertEqual(check.check_illustration_svgs(), [])
+        good = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" role="img" aria-label="Idli"><title>Idli</title>'
+                '<style>.a{fill:#021f53}</style><path class="a" d="M0 0h1"/><path fill="none" stroke="#FD9F0F" d="M0 0"/></svg>')
+        svg = lambda body: with_tmp(body, lambda p: check.check_illustration_svgs([p]), ".svg")
+        self.assertEqual(svg(good), [])
+        self.bad(svg(good.replace("#021f53", "#000000")), "off-palette colour")
+        self.bad(svg(good.replace("#FD9F0F", "#fff")), "short hex")
+        self.bad(svg(good.replace(' viewBox="0 0 10 10"', "")), "no viewBox")
+        self.bad(svg(good.replace("<title>Idli</title>", "")), "no title")
+        self.bad(svg(good.replace("</svg>", "<script>x()</script></svg>")), "script")
+        self.bad(svg(good.replace("</svg>", '<image href="a.png"/></svg>')), "image")
+        self.bad(svg(good.replace("</svg>", '<use href="http://x.test/a.svg#b"/></svg>')), "external reference")
+        self.bad(svg(good.replace("fill:#021f53", "fill:red")), "named colour")
+
     def test_work_assets_pinned(self):
         self.assertEqual(check.check_work_assets(), [])
         files = check.work_asset_files()
