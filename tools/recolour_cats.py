@@ -43,6 +43,15 @@ VIEWBOX = {
 # per-file class overrides: {name: {"cls-N": colour}} (judgment calls after looking at renders)
 CLASS_OVERRIDES = {}
 
+# per-file shape overrides: {name: {colour: [indices of path/polygon/rect/circle in document order]}}.
+# idli-confused: the user wants Idli's hind legs white (the folded back leg down to the toe-pad paw);
+# 242/246/247 are the thigh and shin fur, 248/228/249/251 small fur marks on it; 227 (the shadow where the
+# thigh meets the front leg) and 244 (the band under the leg) become the usual light shading.
+SHAPE_OVERRIDES = {
+    "idli-confused": {WHITE: [242, 246, 247, 248, 228, 249, 251], GREY: [227, 244]},
+}
+
+
 def hsl(hexs):
     h = hexs.lstrip("#")
     if len(h) == 3:
@@ -96,6 +105,17 @@ def convert(src, name, title, disc):
 
     text = re.sub(r"\.(cls-\d+)\s*\{([^}]*)\}", style_rule, text)
     text = re.sub(r"#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b", lambda c: recolour(c.group(0), disc), text)  # inline attrs
+    shapes = {i: c for c, ids in SHAPE_OVERRIDES.get(name, {}).items() for i in ids}
+    if shapes:
+        n = iter(range(10 ** 6))
+
+        def shape(m):
+            i = next(n)
+            if i not in shapes:
+                return m.group(0)
+            return re.sub(r'\sclass="[^"]*"', "", m.group(0)).replace(m.group(1), f'{m.group(1)} fill="{shapes[i]}"', 1)
+
+        text = re.sub(r"<(path|polygon|rect|circle)\b[^>]*>", shape, text)
     vb = VIEWBOX.get(name, "0 0 1920 1920")
     text = re.sub(r"<svg[^>]*>", f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vb}" role="img" '
                   f'aria-label="{title}"><title>{title}</title>', text, count=1)
