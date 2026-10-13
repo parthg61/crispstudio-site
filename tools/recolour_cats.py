@@ -50,7 +50,6 @@ CLASS_OVERRIDES = {}
 SHAPE_OVERRIDES = {
     # raised hind leg (the one with the toe beans): 229 the leg, 230 a fur patch on it; 233 its back shadow and
     # 159/231/235/236/237 small fur marks become light shading. The toe pads stay as drawn.
-    "idli-confused": {WHITE: [242, 246, 247, 248, 228, 249, 251, 229, 230], GREY: [227, 244, 233, 159, 231, 235, 236, 237]},
 }
 # User: "add a light colour fill in cats ears that matches their nose": inner-ear shapes take the nose's
 # Flake cream (every nose here is cream). Indices are source shapes, found by browser inspection.
@@ -64,7 +63,7 @@ EARS = {
 CLOSED_EYES = {"idli-avatar": [73], "idli-sleeping": [61, 62]}
 
 # shapes that get a navy outline copy drawn right after them (white leg against white belly fur)
-OUTLINES = {"idli-confused": [229]}
+OUTLINES = {}
 
 
 def hsl(hexs):
