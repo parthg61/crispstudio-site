@@ -100,6 +100,14 @@ SAMOSA_BODY = (
 )
 UNDERLAYS = {"samosa-avatar": {"head": 25, "points": SAMOSA_BODY}}
 
+# User: "add a light colour fill in cats ears that matches their nose": inner-ear shapes take the nose's
+# Flake cream (every nose here is cream). Indices are source shapes, found by browser inspection.
+EARS = {
+    "idli-avatar": [78, 79], "idli-confused": [41, 49, 51, 160, 163, 194], "idli-lying": [6, 31],
+    "idli-sleeping": [30, 54, 63], "idli-hammock": [579, 580], "samosa-avatar": [26, 32],
+    "samosa-ball": [42, 46, 106], "samosa-sitting": [120, 121, 123],
+}
+
 # shapes that get a navy outline copy drawn right after them (white leg against white belly fur)
 OUTLINES = {"idli-confused": [229]}
 
@@ -158,6 +166,7 @@ def convert(src, name, title, disc):
     text = re.sub(r"\.(cls-\d+)\s*\{([^}]*)\}", style_rule, text)
     text = re.sub(r"#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b", lambda c: recolour(c.group(0), disc), text)  # inline attrs
     shapes = {i: c for c, ids in SHAPE_OVERRIDES.get(name, {}).items() for i in ids}
+    shapes.update({i: CREAM for i in EARS.get(name, [])})
     if shapes:
         n = iter(range(10 ** 6))
 
