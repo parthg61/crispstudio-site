@@ -346,14 +346,14 @@ html:not(.js) body[data-page="home"] [data-logo-slot] img { visibility: visible;
    check_card_colours). Text pairs: navy on Golden Bake 7.66:1, white on Crust Navy 15.87:1, navy on Flake
    10.67:1, white on Toasted Rust 4.67:1. Never white on orange. Hover keeps the colour (the icon and arrow move). */
 .work-card--collaterals, a.work-card--collaterals:hover { background: var(--brand-orange); color: var(--navy); --wi-1: var(--navy); --wi-2: var(--orange); --wi-3: var(--bg); }
-.work-card--logos, a.work-card--logos:hover { background: var(--navy); color: var(--bg); --wi-1: var(--orange); --wi-2: var(--navy); --wi-3: var(--cream); }
+.work-card--product, a.work-card--product:hover { background: var(--navy); color: var(--bg); --wi-1: var(--orange); --wi-2: var(--navy); --wi-3: var(--cream); }
 .work-card--presentations, a.work-card--presentations:hover { background: var(--cream); color: var(--navy); --wi-1: var(--navy); --wi-2: var(--orange); --wi-3: var(--burnt); }
 .work-card--nda, a.work-card--nda:hover { background: var(--burnt); color: var(--bg); --wi-1: var(--bg); --wi-2: var(--navy); --wi-3: var(--cream); }
 /* arrow circle: navy with a white arrow on the orange, cream and rust cards; orange with a navy arrow on navy */
 .work-card .card-go { background: var(--navy); }
 .work-card .card-go svg { color: var(--bg); }
-.work-card--logos .card-go { background: var(--orange); }
-.work-card--logos .card-go svg { color: var(--navy); }
+.work-card--product .card-go { background: var(--orange); }
+.work-card--product .card-go svg { color: var(--navy); }
 .work-nav { display: flex; gap: var(--space-2); margin-inline-start: auto; }
 .work-arrow {
   display: grid; place-items: center; width: var(--size-button); height: var(--size-button); padding: 0;

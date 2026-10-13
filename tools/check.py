@@ -27,7 +27,7 @@ PAGE_COPY = {
         # Home pass item 2: the Selected work category cards (no client names) and the unchanged section copy
         "A few of the brands and products we've shaped. Some of our best work lives behind NDAs, ask us about it. "
         "Confidentiality is non-negotiable.",
-        "Branding Collaterals", "Logos",
+        "Branding Collaterals", "Product Design",
         "Presentations", "Confidential", "Under NDA",
         "Our best work doesn't always get a public page. Ask us and we'll walk you through it.",
         "View all work",
@@ -979,9 +979,9 @@ def check_hero_layout(text, label):
 # Home pass item 2: "Selected work" is one horizontally scrollable row of CATEGORY cards (no client names), each a
 # link with a large flat icon on a Crisp brand colour. (href, title, meta) in order.
 WORK_CARDS = [
-    ("/work/", "Branding Collaterals", None),
-    ("/work/", "Logos", None),
-    ("/work/", "Presentations", None),
+    ("/work/didac/", "Branding Collaterals", None),
+    ("/work/recruitment/", "Product Design", None),
+    ("/work/b2b-presentations/", "Presentations", None),
     ("/contact/", "Confidential", "Under NDA"),
 ]
 WORK_ROW_LABEL = "Selected work categories"
