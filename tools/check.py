@@ -555,16 +555,15 @@ def check_images(text, label, slug):
 # Cats on the site: the official "Cat poses" set (assets/cat-poses/<Name>.svg, flat tracings: whole-figure motion
 # only) and the two round avatars (assets/cats/Crisp_Avatar_Samosa|Idli.svg). The old table poses
 # (Crisp_Cat_*) stay in the design system and never ship. slug -> [(file stem, classes/#ids it must sit inside)].
-FOOT_CAT = ("Idli_03_sitting_sprawled_leg_up", ("site-foot",))  # sits ON the footer's top edge
 CAT_PLACEMENTS = {
     "contact": [("Samosa_06_standing_paws_up", ("form-card", "cat-peek")), ("Idli_04_peeking_over_edge", ("form-card", "cat-peek")),
-                ("Samosa_09_head_tilt_sitting", ("#form-done",)), ("Idli_14_rolled_belly_up", ("#form-done",)), FOOT_CAT],
-    "404": [("Samosa_07_walking", ("lost-art",)), ("Idli_02_lying_on_back_stretched", ("lost-art",)), FOOT_CAT],
-    # Home pass item 3: only Idli in the hammock on the closing card, and no footer Idli on Home
+                ("Samosa_09_head_tilt_sitting", ("#form-done",)), ("Idli_14_rolled_belly_up", ("#form-done",))],
+    "404": [("Samosa_07_walking", ("lost-art",)), ("Idli_02_lying_on_back_stretched", ("lost-art",))],
+    # Home: only Idli in the hammock on the closing card. No page has a footer cat.
     "home": [("idli-hammock", ("closer-card",))],
-    "blog": [("Idli_12_curled_looking_down", ("#blog-empty",)), FOOT_CAT],
-    "about": [("Crisp_Avatar_Idli", ("closer",)), FOOT_CAT],
-    "services": [("Samosa_02_playing_with_ball", ("closer",)), FOOT_CAT],
+    "blog": [("Idli_12_curled_looking_down", ("#blog-empty",))],
+    "about": [("Crisp_Avatar_Idli", ("closer",))],
+    "services": [("Samosa_02_playing_with_ball", ("closer",))],
     "work": [],
 }
 CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats|illustrations)/([\w-]+)\.svg")

@@ -268,7 +268,7 @@ class Bypasses(unittest.TestCase):
 
     def test_cat_placements(self):
         P = self.pose
-        foot = f'<footer class="site-foot"><div class="foot-cat">{P("Idli_03_sitting_sprawled_leg_up")}</div></footer>'
+        foot = '<footer class="site-foot"></footer>'
         good = {
             "contact": ('<section class="contact"><div class="card form-card"><div class="cat-peek">' + P("Samosa_06_standing_paws_up")
                         + P("Idli_04_peeking_over_edge") + '</div><form></form><div id="form-done"><div class="cat-duo">'
@@ -285,10 +285,8 @@ class Bypasses(unittest.TestCase):
             self.assertEqual(cc(t, slug), [], slug)
         self.bad(cc(good["contact"].replace("Idli_04_peeking_over_edge", "Idli_15_belly_up_legs_raised"), "contact"), "wrong pose")
         self.bad(cc(good["contact"].replace('<div class="cat-peek">', '<div class="cats">'), "contact"), "peek pair not in .cat-peek")
-        self.bad(cc(good["contact"].replace(foot, ""), "contact"), "no footer Idli")
-        self.bad(cc(good["work"] + foot, "work"), "footer Idli on Work")
+        self.bad(cc(good["work"] + foot.replace("></", f">{P('Idli_03_sitting_sprawled_leg_up')}</"), "work"), "footer Idli")
         self.bad(cc(good["home"].replace('class="closer-card"', 'class="card"'), "home"), "home hammock off the closing card")
-        self.bad(cc(good["home"] + foot, "home"), "footer Idli on Home")
         self.bad(cc(good["home"].replace("</div></section>", P("Samosa_01_standing_paw_up") + "</div></section>"), "home"), "Samosa back under the hammock")
         self.bad(cc(good["about"].replace('alt=""', 'alt="Idli"'), "about"), "cat with alt text")
         self.bad(cc(good["blog"].replace('<div id="blog-empty">', '<div id="blog-empty"><a href="/">').replace("</div></section>", "</a></div></section>"), "blog"), "cat in a link")
@@ -348,14 +346,12 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(cm(".cat { animation: none; } .track { animation: ticker 40s linear infinite; }"), [])
         self.assertEqual(check.check_css(check.ROOT / "css" / "site.css"), [])
 
-    def test_footer_cat_off_home(self):
+    def test_footer_has_no_cat(self):
         sys.path.insert(0, str(check.ROOT / "tools"))
         import build
         meta = {"title": "t", "desc": "d"}
-        self.assertNotIn("Idli_03", build.render("home", meta, "<main></main>"))
-        self.assertNotIn("Idli_03", build.render("work", meta, "<main></main>"))
-        for slug in ("about", "services", "contact", "blog", "404"):
-            self.assertIn("Idli_03_sitting_sprawled_leg_up", build.render(slug, meta, "<main></main>"), slug)
+        for slug in ("home", "work", "about", "services", "contact", "blog", "404"):
+            self.assertNotIn("<img", build.render(slug, meta, "<main></main>").split("<footer")[1], slug)
 
     def test_orange_text_only_for_the_why_words(self):
         toks = (check.ROOT / "css" / "tokens.css").read_text(encoding="utf-8")

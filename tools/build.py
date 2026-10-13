@@ -26,9 +26,6 @@ PARTIALS = ROOT / "src" / "partials"
 PAGES = ROOT / "src" / "pages"
 NAV_SLUGS = ("work", "services", "about", "blog", "contact")
 SCRIPT = '<script src="/js/site.js" defer></script>\n'
-# The footer Idli is left off these pages: Work (cats never sit beside client work) and Home (Idli in the
-# closing card's hammock is enough there).
-NO_CAT_SLUGS = ("work", "home")
 
 
 def read(name):
@@ -74,8 +71,6 @@ def render(slug, meta, body):
     for s in NAV_SLUGS:
         header = header.replace("{{cur:%s}}" % s, ' aria-current="page"' if s == section else "")
     footer = read("footer.html").replace("{{year}}", str(datetime.date.today().year))
-    footer = re.sub(r"[ \t]*\{\{cat\}\}.*?\{\{/cat\}\}\n", "", footer, flags=re.S) if section in NO_CAT_SLUGS \
-        else footer.replace("{{cat}}", "").replace("{{/cat}}", "")
     return head + header + body.strip() + "\n" + footer + SCRIPT + "</body>\n</html>\n"
 
 

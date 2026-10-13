@@ -238,7 +238,6 @@ textarea.input { min-height: var(--space-10); resize: vertical; }
 
 /* ── Footer ───────────────────────────────────────────────── */
 .site-foot { position: relative; padding-block: var(--pad-section) var(--space-6); border-top: 1px solid var(--border); }
-.foot-peek { position: absolute; top: -1px; left: 0; right: 0; height: 0; } /* -1px: the edge is the top of the hairline, so Idli sits behind it */
 .site-foot > .wrap { display: flex; flex-direction: column; gap: var(--space-8); }
 .foot-grid { display: grid; gap: var(--space-7); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 600px) { .foot-grid { grid-template-columns: 2fr 1fr 1fr; gap: var(--layout-gutter); } }
@@ -807,12 +806,6 @@ a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
 /* Blog empty state: Idli asleep */
 .blog-cat { --k: .22; display: block; }
 @media (min-width: 1024px) { .blog-cat { --k: .26; } }
-
-/* Footer: Idli sitting on the footer's top edge, art bottom on the hairline (not on Work or Home, tools/build.py). The footer takes
-   a little extra room above it so she never reaches into the section before. */
-.foot-cat { --k: .165; position: absolute; bottom: 0; right: var(--layout-margin); } /* ~120px wide */
-.site-foot:has(.foot-cat) { margin-top: var(--space-7); }
-@media (min-width: 1024px) { .foot-cat { --k: .21; } } /* ~155px wide */
 
 /* Motion, only when motion is fine: Idli breathes very slowly; the Home hammock sways constantly and subtly
    (2.75deg each way about the cords' top with a 2px bob, 5.5s); Samosa tilts on hover/tap (springy); avatars tilt
