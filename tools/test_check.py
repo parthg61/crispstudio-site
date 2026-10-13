@@ -694,6 +694,23 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(sorted(check.page_slug(p) for p in check.built_pages() if "work/" in (check.page_slug(p) or "")),
                          sorted(f"work/{s}" for s, _ in check.WORK_TILES))
 
+    def test_recruitment_page(self):
+        self.assertEqual([t for _, t in check.WORK_TILES], ["Didac Branding", "B2B Presentations", "Recruitment Platform"])
+        mail = '<a class="btn btn--primary" href="mailto:team@crispstudio.in?subject=Request%3A%20Recruitment%20Platform%20case%20study&amp;body=Hi">Request case study</a>'
+        imgs = "".join(f'<img src="/assets/work/projects/recruitment/{n}.png" alt="A" width="1" height="1" loading="lazy">' for n in range(6))
+        good = f'<title>Recruitment Platform — Crisp</title><div class="case-text">{mail}</div><div class="case-media">{imgs}</div>'
+        rp = lambda t: check.check_recruitment(t, "t")
+        self.assertEqual(rp(good), [])
+        self.bad(rp(good.replace("</div>", "Suraasa</div>", 1)), "client name")
+        self.bad(rp(good.replace("Recruitment Platform — Crisp", "Radhika")), "designer name")
+        self.bad(rp(good.replace("ITU", "ITU").replace("</title>", " ITU</title>")), "ITU")
+        self.bad(rp(good.replace(mail, mail + mail)), "two mailto links")
+        self.bad(rp(good.replace(mail, "")), "no mailto")
+        self.bad(rp(good.replace("Recruitment%20Platform", "Other")), "wrong subject")
+        self.bad(rp(good.replace(imgs, imgs[:imgs.rfind("<img")])), "five images")
+        page = check.ROOT / "work" / "recruitment" / "index.html"
+        self.assertEqual(rp(page.read_text(encoding="utf-8")), [])
+
     # ── Work section: project media pinned in tools/work-assets.sha256 ──
     def test_illustrations_pinned(self):
         self.assertEqual(check.check_illustrations(), [])

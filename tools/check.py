@@ -102,7 +102,10 @@ PAGE_DESC = {
 WORK_TILES = [
     ("didac", "Didac Branding"),
     ("b2b-presentations", "B2B Presentations"),
+    ("recruitment", "Recruitment Platform"),
 ]
+# Recruitment case: brand-neutral (no client, product or designer names) and one request-by-email link.
+RECRUITMENT_FORBIDDEN = ("Suraasa", "Radhika", "Johari", "ITU")
 # Element ids each page must carry (other pages link to them as anchors).
 PAGE_IDS = {
     "services": ["strategy", "branding", "product", "build", "process"],
@@ -336,6 +339,8 @@ def check_html(path):
         out += check_services_index(text, label)
     if (page_slug(path) or "").startswith("work/"):
         out += check_case_page(text, label, page_slug(path))
+    if page_slug(path) == "work/recruitment":
+        out += check_recruitment(text, label)
     if page_slug(path) == "home":
         out += check_home_sections(text, label) + check_work_row(text, label)
 
@@ -1292,6 +1297,26 @@ def check_case_page(text, label, slug):
             if not a.get("aria-label") or not a.get("poster") or a.get("preload") != "metadata" or "autoplay" in a \
                     or not all(k in a for k in ("muted", "loop", "playsinline")):
                 out.append(f"{label}:{e['line']}: case video needs aria-label, poster, muted loop playsinline preload=\"metadata\", no autoplay")
+    return out
+
+
+def check_recruitment(text, label):
+    """work/recruitment: no client/designer names anywhere; exactly one mailto: to team@crispstudio.in whose
+    subject names the Recruitment Platform; six media images (alt, width, height, lazy)."""
+    from urllib.parse import unquote
+    out = [f"{label}: names '{w}' (the case is brand-neutral)" for w in RECRUITMENT_FORBIDDEN
+           if re.search(rf"\b{w}\b", text, re.I)]
+    mails = re.findall(r'href="(mailto:[^"]*)"', text)
+    ok = [m for m in mails if m.lower().startswith("mailto:team@crispstudio.in?")
+          and "Recruitment Platform" in unquote(htmllib.unescape(m).split("subject=", 1)[-1].split("&")[0])]
+    if len(ok) != 1:
+        out.append(f"{label}: needs exactly one mailto:team@crispstudio.in link with a subject naming the Recruitment Platform (found {mails})")
+    els = tag_contexts(text)
+    media = [e for e in els if "case-media" in classes(e)]
+    imgs = [e for e in els if e["tag"] == "img" and media and inside(e, media[0])]
+    if len(imgs) != 6 or not all(e["attrs"].get(k) for e in imgs for k in ("alt", "width", "height")) \
+            or any(e["attrs"].get("loading") != "lazy" for e in imgs):
+        out.append(f"{label}: the case media needs six lazy images with alt, width and height (found {len(imgs)})")
     return out
 
 

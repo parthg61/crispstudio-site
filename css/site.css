@@ -603,6 +603,7 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
    4:3 shape so rows line up; covers fill it, the wide deck cover sits whole on the grey. */
 .work-tiles { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--layout-gutter); }
 @media (min-width: 600px) { .work-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .work-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .work-tile {
   position: relative; display: flex; flex-direction: column; gap: var(--gap-media-text); height: 100%;
   padding: var(--pad-card); border-radius: var(--radius-xl); background: var(--surface);
