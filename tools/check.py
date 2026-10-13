@@ -552,8 +552,8 @@ def check_images(text, label, slug):
     """(a) no logo/croissant-avatar <img> outside <header>, except the Home hero logo (data-hero-logo inside
     .hero on index.html), which travels into the navbar; (b) no cat on the Work page or inside a .hero."""
     out = []
-    if (slug or "").split("/")[0] == "work" and CAT_SRC.search(strip_inert(text)):
-        out.append(f"{label}: a cat (Idli/Samosa) appears on the Work page; cats never sit beside client work")
+    if (slug or "").startswith("work/") and CAT_SRC.search(strip_inert(text)):
+        out.append(f"{label}: a cat (Idli/Samosa) appears on a case page; cats never sit beside client work")
     for line, a, anc in img_contexts(text):
         src = a.get("src", "") + " " + a.get("srcset", "")
         in_header = any(t == "header" for t, _, _ in anc)
@@ -578,7 +578,8 @@ CAT_PLACEMENTS = {
     "blog": [("idli-confused", ("#blog-empty",))],
     "about": [("Crisp_Avatar_Idli", ("closer",))],
     "services": [("samosa-ball", ("closer-cat",))],
-    "work": [],
+    "work": [("samosa-sitting", ("closer-cat",))],  # the Work index closing only (user)
+    "work/case": [],
 }
 CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats|illustrations)/([\w-]+)\.svg")
 WORK_MARKERS = ("case", "work-grid", "work-index", "work-row", "work-card")
@@ -611,7 +612,7 @@ def check_cats(text, label, slug):
         sections = [a for t, _, a in e["ancestors"] if t in ("section", "footer", "header")]
         if sections and any(any(a is sections[-1] for _, _, a in w["ancestors"]) for w in work):
             out.append(f"{label}:{e['line']}: cat {name} shares a section with client work")
-    slug = "work" if (slug or "").startswith("work/") else slug  # case pages: no cats either
+    slug = "work/case" if (slug or "").startswith("work/") else slug  # case pages: no cats
     if slug in CAT_PLACEMENTS:
         want = CAT_PLACEMENTS[slug]
         have = sorted(n for n, _ in cats)

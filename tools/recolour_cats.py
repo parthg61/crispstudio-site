@@ -37,7 +37,7 @@ VIEWBOX = {
     "idli-hammock": "276 0 1422 1916",  # no top padding: the rope must meet the card's top edge
     "samosa-avatar": "-38 -43 1997 2002",
     "samosa-ball": "17 587 1883 938",
-    "samosa-sitting": "304 352 1255 1552",
+    "samosa-sitting": "304 352 1255 1524",
 }
 
 # per-file class overrides: {name: {"cls-N": colour}} (judgment calls after looking at renders)

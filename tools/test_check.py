@@ -243,9 +243,9 @@ class Bypasses(unittest.TestCase):
                 "/assets/cats/Crisp_Avatar_Idli.svg", "/assets/cats/Crisp_Avatar_Samosa.svg")
         for c in cats:
             self.bad(img(f'<section class="hero lost"><div><img src="{c}" alt=""></div></section>'), f"{c} in hero")
-            self.bad(img(f'<main><img src="{c}" alt=""></main>', "work"), f"{c} on work")
+            self.bad(img(f'<main><img src="{c}" alt=""></main>', "work/didac"), f"{c} on a case page")
             self.assertEqual(img(f'<section class="hero"></section><section class="contact"><img src="{c}" alt=""></section>', "contact"), [])
-        self.bad(img('<main><div style="background:url(/assets/cat-poses/Idli_03_sitting_sprawled_leg_up.svg)"></div></main>', "work"), "cat as background on work")
+        self.bad(img('<main><div style="background:url(/assets/cat-poses/Idli_03_sitting_sprawled_leg_up.svg)"></div></main>', "work/didac"), "cat as background on a case page")
         self.assertEqual(img('<section class="hero-grid"><img src="/assets/cat-poses/Idli_03_sitting_sprawled_leg_up.svg" alt=""></section>'), [])
 
     def test_assets_manifest(self):
@@ -278,7 +278,7 @@ class Bypasses(unittest.TestCase):
             "blog": '<section><div id="blog-empty">' + P("idli-confused") + "</div></section>" + foot,
             "about": '<section class="closer">' + P("Crisp_Avatar_Idli", "cat cat--48") + "</section>" + foot,
             "services": '<section class="closer"><span class="closer-cat">' + P("samosa-ball") + "</span></section>" + foot,
-            "work": '<section class="work-index"><article class="case"></article></section>',
+            "work": '<section class="work-index"><article class="case"></article></section><section class="closer"><span class="closer-cat">' + P("samosa-sitting") + "</span></section>",
         }
         cc = lambda t, slug: check.check_cats(t, "t", slug)
         for slug, t in good.items():
@@ -286,6 +286,7 @@ class Bypasses(unittest.TestCase):
         self.bad(cc(good["contact"].replace("Idli_04_peeking_over_edge", "Idli_15_belly_up_legs_raised"), "contact"), "wrong pose")
         self.bad(cc(good["contact"].replace('<div class="cat-peek">', '<div class="cats">'), "contact"), "peek pair not in .cat-peek")
         self.bad(cc(good["work"] + foot.replace("></", f">{P('Idli_03_sitting_sprawled_leg_up')}</"), "work"), "footer Idli")
+        self.bad(cc(good["work"], "work/didac"), "cat on a case page")
         self.bad(cc(good["home"].replace('class="closer-card"', 'class="card"'), "home"), "home hammock off the closing card")
         self.bad(cc(good["home"].replace("</div></section>", P("Samosa_01_standing_paw_up") + "</div></section>"), "home"), "Samosa back under the hammock")
         self.bad(cc(good["about"].replace('alt=""', 'alt="Idli"'), "about"), "cat with alt text")
