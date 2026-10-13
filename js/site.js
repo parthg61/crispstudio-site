@@ -12,6 +12,7 @@ const LOGOS = [
   { name: 'NMIMS', h: 42, src: '/assets/clients/nmims.png' },
   { name: 'ICICI Lombard', h: 40, src: '/assets/clients/icici-lombard.png' },
   { name: 'Axis Max Life', h: 40, src: '/assets/clients/axis-max-life.png' },
+  { name: 'Next', h: 40, src: '/assets/clients/next.png' },
 ];
 
 // Mobile nav: toggle, close on link click and on Escape
