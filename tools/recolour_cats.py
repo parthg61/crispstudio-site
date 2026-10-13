@@ -108,6 +108,9 @@ EARS = {
     "samosa-ball": [42, 46, 106], "samosa-sitting": [120, 121, 123],
 }
 
+# User: "his closed eyes cant be seen, so colour that path in white": closed-eye lines that vanished on navy fur.
+CLOSED_EYES = {"idli-avatar": [73], "idli-sleeping": [61, 62]}
+
 # shapes that get a navy outline copy drawn right after them (white leg against white belly fur)
 OUTLINES = {"idli-confused": [229]}
 
@@ -167,6 +170,7 @@ def convert(src, name, title, disc):
     text = re.sub(r"#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b", lambda c: recolour(c.group(0), disc), text)  # inline attrs
     shapes = {i: c for c, ids in SHAPE_OVERRIDES.get(name, {}).items() for i in ids}
     shapes.update({i: CREAM for i in EARS.get(name, [])})
+    shapes.update({i: WHITE for i in CLOSED_EYES.get(name, [])})
     if shapes:
         n = iter(range(10 ** 6))
 
