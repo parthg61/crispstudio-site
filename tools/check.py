@@ -493,15 +493,18 @@ def in_class(el, cls):
 
 
 def check_services_index(text, label):
-    """#process (the stage table) must sit outside the container holding the sticky .svc-index."""
+    """#process must be the LAST thing inside the container holding the sticky .svc-index (index ends with it)."""
     els = tag_contexts(text)
     nav = [e for e in els if "svc-index" in classes(e)]
     proc = [e for e in els if e["attrs"].get("id") == "process"]
     if not nav or not proc:
         return [f"{label}: Services needs .svc-index and #process"]
     holder = nav[0]["ancestors"][-1]
-    if any(a is holder or a[2] is holder[2] for a in proc[0]["ancestors"]):
-        return [f"{label}: #process sits inside the sticky index's container (table would sit beside the index)"]
+    if not any(a is holder or a[2] is holder[2] for a in proc[0]["ancestors"]):
+        return [f"{label}: #process must sit inside the sticky index's container"]
+    secs = [e["attrs"]["id"] for e in els if e["tag"] == "section" and e["attrs"].get("id") and any(a is holder or a[2] is holder[2] for a in e["ancestors"])]
+    if secs[-1:] != ["process"]:
+        return [f"{label}: #process must be the last section in the sticky index's container"]
     return []
 
 

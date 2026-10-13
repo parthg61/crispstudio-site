@@ -427,11 +427,12 @@ class Bypasses(unittest.TestCase):
         for page in check.built_pages():
             self.assertEqual(check.check_hero(page.read_text(encoding="utf-8"), page.name, check.page_slug(page)), [], page)
 
-    def test_services_index_stops_before_process(self):
+    def test_services_index_ends_with_process(self):
         sc = lambda h: check.check_services_index(h, "t")
         nav = '<nav class="svc-index"></nav>'
-        self.assertEqual(sc(f'<div class="svc-layout">{nav}<section id="build"></section></div><div><section id="process"></section></div>'), [])
-        self.bad(sc(f'<div class="svc-layout">{nav}<div class="svc-main"><section id="process"></section></div></div>'), "process beside index")
+        self.assertEqual(sc(f'<div class="svc-layout">{nav}<div class="svc-main"><section id="build"></section><section id="process"></section></div></div>'), [])
+        self.bad(sc(f'<div class="svc-layout">{nav}<section id="process"></section><section id="x"></section></div>'), "section after process")
+        self.bad(sc(f'<div class="svc-layout">{nav}</div><section id="process"></section>'), "process outside")
         self.bad(sc("<div></div>"), "missing parts")
         for page in check.built_pages():
             if check.page_slug(page) == "services":
