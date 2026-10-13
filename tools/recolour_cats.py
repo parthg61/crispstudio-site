@@ -62,6 +62,9 @@ EARS = {
 # User: "his closed eyes cant be seen, so colour that path in white": closed-eye lines that vanished on navy fur.
 CLOSED_EYES = {"idli-avatar": [73], "idli-sleeping": [61, 62]}
 
+# stray sparkle shapes dropped (user: "remove this star"); index in document order
+REMOVE = {"samosa-sitting": [3]}
+
 # shapes that get a navy outline copy drawn right after them (white leg against white belly fur)
 OUTLINES = {}
 
@@ -122,11 +125,13 @@ def convert(src, name, title, disc):
     shapes = {i: c for c, ids in SHAPE_OVERRIDES.get(name, {}).items() for i in ids}
     shapes.update({i: CREAM for i in EARS.get(name, [])})
     shapes.update({i: WHITE for i in CLOSED_EYES.get(name, [])})
-    if shapes:
+    if shapes or REMOVE.get(name):
         n = iter(range(10 ** 6))
 
         def shape(m):
             i = next(n)
+            if i in REMOVE.get(name, []):
+                return ""
             if i not in shapes:
                 return m.group(0)
             el = re.sub(r'\sclass="[^"]*"', "", m.group(0))
