@@ -805,8 +805,8 @@ a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
 @media (min-width: 1024px) { .closer-card--top { --k: .16; } .closer-cat { left: var(--space-8); } }
 
 /* Blog empty state: Idli asleep */
-.blog-cat { --k: .22; display: block; }
-@media (min-width: 1024px) { .blog-cat { --k: .26; } }
+.blog-cat { --k: .088; display: block; } /* idli-confused 1693x1581: ~149px wide x 139px tall on phones */
+@media (min-width: 1024px) { .blog-cat { --k: .11; } } /* ~186 x 174px */
 
 /* Motion, only when motion is fine: Idli breathes very slowly; the Home hammock sways constantly and subtly
    (2.75deg each way about the cords' top with a 2px bob, 5.5s); Samosa tilts on hover/tap (springy); avatars tilt

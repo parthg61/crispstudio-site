@@ -575,7 +575,7 @@ CAT_PLACEMENTS = {
     "404": [("Samosa_07_walking", ("lost-art",)), ("Idli_02_lying_on_back_stretched", ("lost-art",))],
     # Home: only Idli in the hammock on the closing card. No page has a footer cat.
     "home": [("idli-hammock", ("closer-card",))],
-    "blog": [("Idli_12_curled_looking_down", ("#blog-empty",))],
+    "blog": [("idli-confused", ("#blog-empty",))],
     "about": [("Crisp_Avatar_Idli", ("closer",))],
     "services": [("samosa-ball", ("closer-cat",))],
     "work": [],
