@@ -983,7 +983,7 @@ WORK_CARDS = [
     ("/work/didac/", "Branding Collaterals", None),
     ("/work/recruitment/", "Product Design", None),
     ("/work/b2b-presentations/", "Presentations", None),
-    ("/contact/", "Confidential", "Under NDA"),
+    ("mailto:team@crispstudio.in?subject=Hello%20Crisp", "Confidential", "Under NDA"),
 ]
 WORK_ROW_LABEL = "Selected work categories"
 CLIENT_NAMES = ("HDFC", "Mind Mojo", "NMIMS", "HDB", "SAATH", "Kaamna")

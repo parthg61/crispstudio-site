@@ -94,6 +94,9 @@ def main():
     for src in pages:
         slug = src.relative_to(PAGES).with_suffix("").as_posix()
         meta, body = split_front_matter(src.read_text(encoding="utf-8"), src.name)
+        if meta.get("draft") == "true":  # paused page: kept in src, not built, not in the sitemap
+            print(f"skipped draft {src.name}")
+            continue
         out, _ = output_path(slug)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(render(slug, meta, body), encoding="utf-8")
