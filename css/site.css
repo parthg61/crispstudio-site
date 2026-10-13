@@ -831,6 +831,7 @@ a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
 .case-text p { max-width: 65ch; }
 .case-back, .case-next { color: var(--link-ink, var(--navy)); text-decoration: underline; text-underline-offset: .2em; }
 .case-back { align-self: flex-start; }
+.case-client { display: block; width: auto; height: var(--space-8); max-width: 100%; }
 .case-next { display: flex; flex-direction: column; gap: var(--space-1); align-self: flex-start; text-decoration: none; }
 .case-next .label { color: var(--text-muted); }
 .case-next-title { font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: 600; text-decoration: underline; text-underline-offset: .2em; }
