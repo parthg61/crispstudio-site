@@ -341,6 +341,8 @@ def check_html(path):
         out += check_case_page(text, label, page_slug(path))
     if page_slug(path) == "work/recruitment":
         out += check_recruitment(text, label)
+    if page_slug(path) == "work":
+        out += check_recruitment_card(text, label)
     if page_slug(path) == "home":
         out += check_home_sections(text, label) + check_work_row(text, label)
 
@@ -698,11 +700,15 @@ def check_illustrations(manifest=None):
 ILLUSTRATION_PALETTE = {"#021f53", "#4a5675", "#ffffff", "#dededa", "#feca98", "#fd9f0f", "#cc4806", "#4daf6b"}
 
 
+def illustration_svg_files():
+    return sorted((ROOT / "assets" / "illustrations").glob("*.svg")) + sorted((ROOT / "assets" / "work" / "projects").glob("*/*.svg"))
+
+
 def check_illustration_svgs(files=None):
     """assets/illustrations/*.svg: Crisp palette only (6-digit hex from ILLUSTRATION_PALETTE, or none/currentColor),
     a viewBox and a <title>, and no script, embedded image or external reference."""
     out = []
-    for f in files or sorted((ROOT / "assets" / "illustrations").glob("*.svg")):
+    for f in files or illustration_svg_files():
         text, label = Path(f).read_text(encoding="utf-8"), label_for(Path(f))
         if not re.search(r"<svg\b[^>]*\sviewBox=\"[^\"]+\"", text):
             out.append(f"{label}: no viewBox")
@@ -1309,7 +1315,8 @@ def check_case_page(text, label, slug):
 
 def check_recruitment(text, label):
     """work/recruitment: no client/designer names anywhere; exactly one mailto: to team@crispstudio.in whose
-    subject names the Recruitment Platform; six media images (alt, width, height, lazy)."""
+    subject names the Recruitment Platform; one media image, the brand diagram (alt, width, height, lazy); no
+    .png/.jpg anywhere in <main> (no product screens)."""
     from urllib.parse import unquote
     out = [f"{label}: names '{w}' (the case is brand-neutral)" for w in RECRUITMENT_FORBIDDEN
            if re.search(rf"\b{w}\b", text, re.I)]
@@ -1321,10 +1328,20 @@ def check_recruitment(text, label):
     els = tag_contexts(text)
     media = [e for e in els if "case-media" in classes(e)]
     imgs = [e for e in els if e["tag"] == "img" and media and inside(e, media[0])]
-    if len(imgs) != 6 or not all(e["attrs"].get(k) for e in imgs for k in ("alt", "width", "height")) \
-            or any(e["attrs"].get("loading") != "lazy" for e in imgs):
-        out.append(f"{label}: the case media needs six lazy images with alt, width and height (found {len(imgs)})")
+    if len(imgs) != 1 or not all(e["attrs"].get(k) for e in imgs for k in ("alt", "width", "height")) \
+            or any(e["attrs"].get("loading") != "lazy" or not e["attrs"].get("src", "").endswith(".svg") for e in imgs):
+        out.append(f"{label}: the case media needs exactly one lazy .svg diagram with alt, width and height (found {len(imgs)})")
+    body = text.split("<main", 1)[-1]
+    out += [f"{label}: raster image {m} (no product screens on this case)" for m in re.findall(r"[\w/.-]+\.(?:png|jpe?g)\b", body, re.I)]
     return out
+
+
+def check_recruitment_card(text, label):
+    """work index: the Recruitment Platform card cover is the brand diagram SVG, never a screenshot."""
+    m = re.search(r'href="/work/recruitment/".*?<img\b[^>]*src="([^"]+)"', text, re.S)
+    if not m or not m.group(1).endswith("/recruitment/connected-system.svg"):
+        return [f"{label}: the Recruitment Platform card cover must be connected-system.svg (found {m and m.group(1)})"]
+    return []
 
 
 def check_sources():

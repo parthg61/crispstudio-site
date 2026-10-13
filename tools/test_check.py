@@ -701,7 +701,7 @@ class Bypasses(unittest.TestCase):
     def test_recruitment_page(self):
         self.assertEqual([t for _, t in check.WORK_TILES], ["Didac Branding", "B2B Presentations", "Recruitment Platform"])
         mail = '<a class="btn btn--primary" href="mailto:team@crispstudio.in?subject=Request%3A%20Recruitment%20Platform%20case%20study&amp;body=Hi">Request case study</a>'
-        imgs = "".join(f'<img src="/assets/work/projects/recruitment/{n}.png" alt="A" width="1" height="1" loading="lazy">' for n in range(6))
+        imgs = '<img src="/assets/work/projects/recruitment/connected-system.svg" alt="A" width="480" height="600" loading="lazy">'
         good = f'<title>Recruitment Platform — Crisp</title><div class="case-text">{mail}</div><div class="case-media">{imgs}</div>'
         rp = lambda t: check.check_recruitment(t, "t")
         self.assertEqual(rp(good), [])
@@ -711,7 +711,14 @@ class Bypasses(unittest.TestCase):
         self.bad(rp(good.replace(mail, mail + mail)), "two mailto links")
         self.bad(rp(good.replace(mail, "")), "no mailto")
         self.bad(rp(good.replace("Recruitment%20Platform", "Other")), "wrong subject")
-        self.bad(rp(good.replace(imgs, imgs[:imgs.rfind("<img")])), "five images")
+        self.bad(rp(good.replace(imgs, "")), "no image")
+        self.bad(rp(good.replace(imgs, imgs + imgs)), "two images")
+        self.bad(rp(good.replace("connected-system.svg", "dashboard.png")), "a screenshot")
+        self.bad(rp(good.replace("</div>", '<img src="/a.jpg" alt="x"></div>', 1)), "a jpg outside the media")
+        card = lambda src: check.check_recruitment_card(f'<a class="work-tile" href="/work/recruitment/"><span class="work-cover"><img src="{src}" alt=""></span></a>', "t")
+        self.assertEqual(card("/assets/work/projects/recruitment/connected-system.svg"), [])
+        self.bad(card("/assets/work/projects/recruitment/cover.png"), "png card cover")
+        self.assertEqual(check.check_recruitment_card((check.ROOT / "work" / "index.html").read_text(encoding="utf-8"), "t"), [])
         page = check.ROOT / "work" / "recruitment" / "index.html"
         self.assertEqual(rp(page.read_text(encoding="utf-8")), [])
 
@@ -722,6 +729,7 @@ class Bypasses(unittest.TestCase):
 
     def test_illustration_svgs(self):
         self.assertEqual(check.check_illustration_svgs(), [])
+        self.assertIn("connected-system.svg", " ".join(str(f) for f in check.illustration_svg_files()))
         good = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" role="img" aria-label="Idli"><title>Idli</title>'
                 '<style>.a{fill:#021f53}</style><path class="a" d="M0 0h1"/><path fill="none" stroke="#FD9F0F" d="M0 0"/></svg>')
         svg = lambda body: with_tmp(body, lambda p: check.check_illustration_svgs([p]), ".svg")

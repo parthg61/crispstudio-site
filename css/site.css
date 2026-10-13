@@ -846,4 +846,6 @@ a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
     max-height: calc(100vh - var(--nav-h) - var(--space-6) * 2); overflow-y: auto;
   }
   .case-next { margin-top: auto; }
+  /* a short media column (one figure) stays beside the sticky text instead of leaving a gap */
+  .case-media { position: sticky; top: calc(var(--nav-h) + var(--space-6)); }
 }

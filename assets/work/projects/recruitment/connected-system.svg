@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 600" role="img" aria-label="Three connected views of one hiring system"><title>Three connected views of one hiring system</title>
+<g fill="none" stroke="#021F53" stroke-width="14" stroke-linecap="round"><path d="M240 320V110M240 320L120 490M240 320L360 490"/></g>
+<g fill="#FECA98"><circle cx="240" cy="210" r="9"/><circle cx="180" cy="405" r="9"/><circle cx="300" cy="405" r="9"/></g>
+<g fill="#021F53"><rect x="180" y="50" width="120" height="120" rx="24"/><rect x="60" y="430" width="120" height="120" rx="24"/><rect x="300" y="430" width="120" height="120" rx="24"/></g>
+<g fill="#FFFFFF"><rect x="198" y="72" width="22" height="30" rx="5"/><rect x="198" y="108" width="22" height="30" rx="5"/><rect x="229" y="72" width="22" height="30" rx="5"/><rect x="260" y="72" width="22" height="30" rx="5"/><rect x="260" y="108" width="22" height="30" rx="5"/>
+<path d="M82 474L120 450L158 474Z"/><rect x="88" y="480" width="10" height="32" rx="2"/><rect x="106" y="480" width="10" height="32" rx="2"/><rect x="124" y="480" width="10" height="32" rx="2"/><rect x="142" y="480" width="10" height="32" rx="2"/><rect x="82" y="516" width="76" height="10" rx="3"/>
+<path d="M360 448L404 468L360 488L316 468Z"/><rect x="340" y="476" width="40" height="22" rx="6"/><rect x="326" y="516" width="68" height="10" rx="5"/></g>
+<rect x="326" y="516" width="40" height="10" rx="5" fill="#FD9F0F"/>
+<circle cx="240" cy="320" r="64" fill="#FD9F0F"/>
+<path d="M212 322L232 342L270 302" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
