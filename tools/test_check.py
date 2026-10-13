@@ -274,7 +274,7 @@ class Bypasses(unittest.TestCase):
                         + P("Idli_04_peeking_over_edge") + '</div><form></form><div id="form-done"><div class="cat-duo">'
                         + P("Samosa_09_head_tilt_sitting") + P("Idli_14_rolled_belly_up") + "</div></div></div></section>" + foot),
             "404": '<section class="lost"><div class="lost-art">' + P("Samosa_07_walking") + P("Idli_02_lying_on_back_stretched") + "</div></section>" + foot,
-            "home": '<section class="closer"><div class="closer-card">' + P("idli-hammock-plants") + "</div></section>",
+            "home": '<section class="closer"><div class="closer-card">' + P("idli-hammock") + "</div></section>",
             "blog": '<section><div id="blog-empty">' + P("Idli_12_curled_looking_down") + "</div></section>" + foot,
             "about": '<section class="closer">' + P("Crisp_Avatar_Idli", "cat cat--48") + "</section>" + foot,
             "services": '<section class="closer">' + P("Samosa_02_playing_with_ball") + "</section>" + foot,
@@ -681,7 +681,7 @@ class Bypasses(unittest.TestCase):
     # ── Work section: project media pinned in tools/work-assets.sha256 ──
     def test_illustrations_pinned(self):
         self.assertEqual(check.check_illustrations(), [])
-        self.bad(with_tmp("0" * 64 + "  assets/illustrations/idli-hammock-plants.svg\n", check.check_illustrations, ".sha256"), "changed illustration")
+        self.bad(with_tmp("0" * 64 + "  assets/illustrations/idli-hammock.svg\n", check.check_illustrations, ".sha256"), "changed illustration")
 
     def test_illustration_svgs(self):
         self.assertEqual(check.check_illustration_svgs(), [])

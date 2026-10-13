@@ -546,7 +546,7 @@ CAT_PLACEMENTS = {
                 ("Samosa_09_head_tilt_sitting", ("#form-done",)), ("Idli_14_rolled_belly_up", ("#form-done",)), FOOT_CAT],
     "404": [("Samosa_07_walking", ("lost-art",)), ("Idli_02_lying_on_back_stretched", ("lost-art",)), FOOT_CAT],
     # Home pass item 3: only Idli in the hammock on the closing card, and no footer Idli on Home
-    "home": [("idli-hammock-plants", ("closer-card",))],
+    "home": [("idli-hammock", ("closer-card",))],
     "blog": [("Idli_12_curled_looking_down", ("#blog-empty",)), FOOT_CAT],
     "about": [("Crisp_Avatar_Idli", ("closer",)), FOOT_CAT],
     "services": [("Samosa_02_playing_with_ball", ("closer",)), FOOT_CAT],
