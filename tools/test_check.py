@@ -421,6 +421,16 @@ class Bypasses(unittest.TestCase):
         for page in check.built_pages():
             self.assertEqual(check.check_hero(page.read_text(encoding="utf-8"), page.name, check.page_slug(page)), [], page)
 
+    def test_services_index_stops_before_process(self):
+        sc = lambda h: check.check_services_index(h, "t")
+        nav = '<nav class="svc-index"></nav>'
+        self.assertEqual(sc(f'<div class="svc-layout">{nav}<section id="build"></section></div><div><section id="process"></section></div>'), [])
+        self.bad(sc(f'<div class="svc-layout">{nav}<div class="svc-main"><section id="process"></section></div></div>'), "process beside index")
+        self.bad(sc("<div></div>"), "missing parts")
+        for page in check.built_pages():
+            if check.page_slug(page) == "services":
+                self.assertEqual(check.check_services_index(page.read_text(encoding="utf-8"), page.name), [], page)
+
     def test_logo_travel_js(self):
         lt = check.check_logo_travel_js
         fn = ("function initLogoTravel() {\n  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');\n}\n")

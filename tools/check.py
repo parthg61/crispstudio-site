@@ -332,6 +332,8 @@ def check_html(path):
     out += check_manifest_refs(text, label)
     if page_slug(path) is not None:
         out += check_hero(text, label, page_slug(path))
+    if page_slug(path) == "services":
+        out += check_services_index(text, label)
     if (page_slug(path) or "").startswith("work/"):
         out += check_case_page(text, label, page_slug(path))
     if page_slug(path) == "home":
@@ -483,6 +485,19 @@ def img_contexts(text):
 
 def in_class(el, cls):
     return any(cls in c for _, c, _ in el["ancestors"])
+
+
+def check_services_index(text, label):
+    """#process (the stage table) must sit outside the container holding the sticky .svc-index."""
+    els = tag_contexts(text)
+    nav = [e for e in els if "svc-index" in classes(e)]
+    proc = [e for e in els if e["attrs"].get("id") == "process"]
+    if not nav or not proc:
+        return [f"{label}: Services needs .svc-index and #process"]
+    holder = nav[0]["ancestors"][-1]
+    if any(a is holder or a[2] is holder[2] for a in proc[0]["ancestors"]):
+        return [f"{label}: #process sits inside the sticky index's container (table would sit beside the index)"]
+    return []
 
 
 def check_hero(text, label, slug):
