@@ -48,8 +48,12 @@ CLASS_OVERRIDES = {}
 # 242/246/247 are the thigh and shin fur, 248/228/249/251 small fur marks on it; 227 (the shadow where the
 # thigh meets the front leg) and 244 (the band under the leg) become the usual light shading.
 SHAPE_OVERRIDES = {
-    "idli-confused": {WHITE: [242, 246, 247, 248, 228, 249, 251], GREY: [227, 244]},
+    # raised hind leg (the one with the toe beans): 229 the leg, 230 a fur patch on it; 233 its back shadow and
+    # 159/231/235/236/237 small fur marks become light shading. The toe pads stay as drawn.
+    "idli-confused": {WHITE: [242, 246, 247, 248, 228, 249, 251, 229, 230], GREY: [227, 244, 233, 159, 231, 235, 236, 237]},
 }
+# shapes that get a navy outline copy drawn right after them (white leg against white belly fur)
+OUTLINES = {"idli-confused": [229]}
 
 
 def hsl(hexs):
@@ -113,7 +117,11 @@ def convert(src, name, title, disc):
             i = next(n)
             if i not in shapes:
                 return m.group(0)
-            return re.sub(r'\sclass="[^"]*"', "", m.group(0)).replace(m.group(1), f'{m.group(1)} fill="{shapes[i]}"', 1)
+            el = re.sub(r'\sclass="[^"]*"', "", m.group(0))
+            out = el.replace(m.group(1), f'{m.group(1)} fill="{shapes[i]}"', 1)
+            if i in OUTLINES.get(name, []):
+                out += el.replace(m.group(1), f'{m.group(1)} fill="none" stroke="{NAVY}" stroke-width="5" stroke-linejoin="round"', 1)
+            return out
 
         text = re.sub(r"<(path|polygon|rect|circle)\b[^>]*>", shape, text)
     vb = VIEWBOX.get(name, "0 0 1920 1920")
