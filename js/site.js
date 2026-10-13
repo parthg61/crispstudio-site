@@ -10,6 +10,8 @@ const LOGOS = [
   { name: 'The Mind Mojo', h: 38, src: '/assets/clients/the-mind-mojo.png' },
   { name: 'HDFC securities', h: 28, src: '/assets/clients/hdfc-securities.png' },
   { name: 'NMIMS', h: 42, src: '/assets/clients/nmims.png' },
+  { name: 'ICICI Lombard', h: 40, src: '/assets/clients/icici-lombard.png' },
+  { name: 'Axis Max Life', h: 40, src: '/assets/clients/axis-max-life.png' },
 ];
 
 // Mobile nav: toggle, close on link click and on Escape
