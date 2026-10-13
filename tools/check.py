@@ -576,7 +576,7 @@ CAT_PLACEMENTS = {
     # Home: only Idli in the hammock on the closing card. No page has a footer cat.
     "home": [("idli-hammock", ("closer-card",))],
     "blog": [("idli-confused", ("#blog-empty",))],
-    "about": [("Crisp_Avatar_Idli", ("closer",))],
+    "about": [("idli-avatar", ("closer",))],
     "services": [("samosa-ball", ("closer-cat",))],
     "work": [("samosa-sitting", ("closer-card",))],  # the Work index closing only (user)
     "work/case": [],

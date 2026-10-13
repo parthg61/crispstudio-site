@@ -276,7 +276,7 @@ class Bypasses(unittest.TestCase):
             "404": '<section class="lost"><div class="lost-art">' + P("Samosa_07_walking") + P("Idli_02_lying_on_back_stretched") + "</div></section>" + foot,
             "home": '<section class="closer"><div class="closer-card">' + P("idli-hammock") + "</div></section>",
             "blog": '<section><div id="blog-empty">' + P("idli-confused") + "</div></section>" + foot,
-            "about": '<section class="closer">' + P("Crisp_Avatar_Idli", "cat cat--48") + "</section>" + foot,
+            "about": '<section class="closer">' + P("idli-avatar", "cat cat--48") + "</section>" + foot,
             "services": '<section class="closer"><span class="closer-cat">' + P("samosa-ball") + "</span></section>" + foot,
             "work": '<section class="work-index"><article class="case"></article></section><section class="closer"><div class="closer-card"><span>' + P("samosa-sitting") + "</span></div></section>",
         }
