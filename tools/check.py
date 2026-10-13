@@ -578,7 +578,7 @@ CAT_PLACEMENTS = {
     "blog": [("idli-confused", ("#blog-empty",))],
     "about": [("Crisp_Avatar_Idli", ("closer",))],
     "services": [("samosa-ball", ("closer-cat",))],
-    "work": [("samosa-sitting", ("closer-cat",))],  # the Work index closing only (user)
+    "work": [("samosa-sitting", ("closer-card",))],  # the Work index closing only (user)
     "work/case": [],
 }
 CAT_FILE = re.compile(r"/assets/(?:cat-poses|cats|illustrations)/([\w-]+)\.svg")

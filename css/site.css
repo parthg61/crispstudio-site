@@ -798,11 +798,14 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
 .closer-cat { position: absolute; bottom: 100%; left: var(--space-6); }
 @media (min-width: 600px) { .closer-card--top { --k: .127; } .closer-cat { left: var(--space-7); } }
 @media (min-width: 1024px) { .closer-card--top { --k: .16; } .closer-cat { left: var(--space-8); } }
-/* Work closing: the sitting Samosa (art 1255x1524) stands on the top edge toward the right, unflipped */
-.closer-card--top:has(.closer-cat--right) { --k: .08; margin-top: calc(1524 * var(--k) * 1px); }
-.closer-cat--right { left: auto; right: var(--space-6); }
-@media (min-width: 600px) { .closer-card--top:has(.closer-cat--right) { --k: .1; } .closer-cat--right { left: auto; right: var(--space-7); } }
-@media (min-width: 1024px) { .closer-card--top:has(.closer-cat--right) { --k: .12; } .closer-cat--right { left: auto; right: var(--space-8); } }
+/* Work closing: the sitting Samosa (art 1255x1524) sits inside the box, bottom-right, paws on the card's bottom edge, unflipped */
+.closer-card--sits { --k: .1; }
+.closer-card--sits .closer-sit { justify-self: end; align-self: end; margin-bottom: calc(-1 * var(--pad-card)); }
+@media (min-width: 600px) {
+  .closer-card--sits { --k: .11; grid-template-columns: minmax(0, 1fr) auto; }
+  .closer-card--sits .closer-sit { margin-bottom: calc(-1 * var(--pad-card-featured)); }
+}
+@media (min-width: 1024px) { .closer-card--sits { --k: .14; } }
 
 /* Blog empty state: Idli asleep */
 .blog-cat { --k: .088; display: block; } /* idli-confused 1693x1581: ~149px wide x 139px tall on phones */

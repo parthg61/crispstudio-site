@@ -278,7 +278,7 @@ class Bypasses(unittest.TestCase):
             "blog": '<section><div id="blog-empty">' + P("idli-confused") + "</div></section>" + foot,
             "about": '<section class="closer">' + P("Crisp_Avatar_Idli", "cat cat--48") + "</section>" + foot,
             "services": '<section class="closer"><span class="closer-cat">' + P("samosa-ball") + "</span></section>" + foot,
-            "work": '<section class="work-index"><article class="case"></article></section><section class="closer"><span class="closer-cat">' + P("samosa-sitting") + "</span></section>",
+            "work": '<section class="work-index"><article class="case"></article></section><section class="closer"><div class="closer-card"><span>' + P("samosa-sitting") + "</span></div></section>",
         }
         cc = lambda t, slug: check.check_cats(t, "t", slug)
         for slug, t in good.items():
