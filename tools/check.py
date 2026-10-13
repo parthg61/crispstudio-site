@@ -1223,6 +1223,8 @@ def check_work_index(text, label):
             out.append(f"{label}:{a['line']}: tile cover needs alt=\"\" (the title names it), loading=\"lazy\", width and height")
         if any(e["tag"] in ("p", "span") and inside(e, a) and norm_text(e["text"]) for e in els):
             out.append(f"{label}:{a['line']}: tile {a['attrs'].get('href')} shows more than its title")
+    if re.search(r'class="vault"', text):
+        out.append(f"{label}: the confidential vault block was removed from the closing card")
     if re.search(r"data-filter|work-count|class=\"chip|emailer|Sure Journey|CPAT|PgCTL|M\.Ed|Research Platform", text, re.I):
         out.append(f"{label}: the Work page has no filters, counts or emailers project")
     return out

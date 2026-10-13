@@ -361,7 +361,7 @@ class Bypasses(unittest.TestCase):
         toks = (check.ROOT / "css" / "tokens.css").read_text(encoding="utf-8")
         ot = lambda t: check.check_orange_text(t, "t.css", toks)
         self.assertEqual(ot(".why-statement .cycle > span { color: var(--brand-orange); } .tile-icon { color: var(--orange); } "
-                            ".vault svg { color: var(--orange); } .btn { background: var(--orange); color: var(--on-accent); }"), [])
+                            ".tile-icon svg { color: var(--orange); } .btn { background: var(--orange); color: var(--on-accent); }"), [])
         for sel in (".why-big", ".why-statement .cycle", ".why-dot", ".why-statement .why-static", "p", ".label", ".work-meta"):
             self.bad(ot(f"{sel} {{ color: var(--brand-orange); }}"), f"orange text on {sel}")
         self.bad(ot(".t-lead { color: #FF8A00; }"), "orange hex text")

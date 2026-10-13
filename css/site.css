@@ -518,7 +518,7 @@ a.bento-tile:hover { background: var(--surface); } /* hover = icon tilt + arrow;
 .closer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-5); }
 @media (min-width: 600px) { .closer-card { padding: var(--pad-card-featured); } }
 @media (min-width: 1024px) {
-  .closer-card { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-7); }
+  .closer-card:has(> .closer-cat) { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-7); }
 }
 @media (min-width: 1200px) {
   .closer-card { padding: var(--space-9); }
