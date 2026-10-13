@@ -798,9 +798,9 @@ a.work-tile:hover, a.work-tile:focus-visible { box-shadow: var(--shadow-md); }
 
 /* Services closing: Samosa with his ball stands on the card's top edge (art 1883x938, so the card clears 938 x --k above it) */
 .closer-card--top { --k: .1; position: relative; margin-top: calc(938 * var(--k) * 1px); }
-.closer-cat { position: absolute; bottom: 100%; right: var(--space-6); }
-@media (min-width: 600px) { .closer-card--top { --k: .127; } .closer-cat { right: var(--space-7); } }
-@media (min-width: 1024px) { .closer-card--top { --k: .16; } .closer-cat { right: var(--space-8); } }
+.closer-cat { position: absolute; bottom: 100%; left: var(--space-6); }
+@media (min-width: 600px) { .closer-card--top { --k: .127; } .closer-cat { left: var(--space-7); } }
+@media (min-width: 1024px) { .closer-card--top { --k: .16; } .closer-cat { left: var(--space-8); } }
 
 /* Blog empty state: Idli asleep */
 .blog-cat { --k: .22; display: block; }

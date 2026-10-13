@@ -1160,6 +1160,21 @@ def check_hammock_css(text, label):
     return out
 
 
+def check_closer_cat_css(text, label):
+    """Services closing: Samosa with the ball stands on the card's top edge toward the LEFT (left inset, never
+    right), unflipped."""
+    rules = [(sel, body) for sel, body, ats in css_rules(text) if re.search(r"\.closer-cat(?![\w-])", sel)]
+    out = []
+    if not any(re.search(r"(?<![\w-])left\s*:", b) for _, b in rules):
+        out.append(f"{label}: .closer-cat must be placed with a left inset (Samosa on the left of the box)")
+    for sel, body in rules:
+        if re.search(r"(?<![\w-])right\s*:", body):
+            out.append(f"{label}: '{sel.strip()}' sets right; Samosa sits on the left of the box")
+        if re.search(r"scaleX\(\s*-|scale\(\s*-", body):
+            out.append(f"{label}: '{sel.strip()}' mirrors the cat")
+    return out
+
+
 def page_slug(path):
     path = Path(path).resolve()
     if path == ROOT / "index.html":
@@ -1461,6 +1476,7 @@ def main(argv):
                                        (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
         problems += check_orange_text(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                       (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))
+        problems += check_closer_cat_css(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_hammock_css(site_css.read_text(encoding="utf-8"), label_for(site_css))
         problems += check_hero_logo_sizes(site_css.read_text(encoding="utf-8"), label_for(site_css),
                                           (ROOT / "css" / "tokens.css").read_text(encoding="utf-8"))

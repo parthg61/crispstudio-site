@@ -365,6 +365,16 @@ class Bypasses(unittest.TestCase):
         self.assertEqual(ot((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
         self.assertAlmostEqual(check.contrast("#FD9F0F", "#FFFFFF"), 2.07, places=2)
 
+    def test_closer_cat_left(self):
+        cl = lambda t: check.check_closer_cat_css(t, "t.css")
+        good = (".closer-cat { position: absolute; bottom: 100%; left: var(--space-6); } "
+                "@media (min-width: 600px) { .closer-cat { left: var(--space-7); } }")
+        self.assertEqual(cl(good), [])
+        self.bad(cl(good.replace("left:", "right:")), "Samosa on the right")
+        self.bad(cl(good + " .closer-cat img { transform: scaleX(-1); }"), "mirrored")
+        self.bad(cl(""), "no placement")
+        self.assertEqual(cl((check.ROOT / "css" / "site.css").read_text(encoding="utf-8")), [])
+
     def test_hammock_sway(self):
         hs = lambda t: check.check_hammock_css(t, "t.css")
         good = (".scene-hammock { transform-origin: 45% 0; } @media (prefers-reduced-motion: no-preference) { "
